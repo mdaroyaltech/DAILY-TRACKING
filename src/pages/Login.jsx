@@ -25,7 +25,7 @@ export default function Login({ setLoggedIn }) {
     <div className="min-h-screen flex items-center justify-center bg-slate-100">
       <div className="bg-white p-6 rounded-xl shadow w-full max-w-sm">
         <h2 className="text-xl font-bold text-center mb-4">
-          Dummy Login
+          Dashboard Login
         </h2>
 
         <input
