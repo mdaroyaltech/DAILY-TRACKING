@@ -33,7 +33,7 @@ export default function Dashboard() {
     amount: "",
   });
 
-  /* ================= FETCH DATA ================= */
+  /* ================= FETCH ================= */
   const fetchData = async () => {
     setLoading(true);
 
@@ -58,7 +58,7 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
-  /* ================= ADD INCOME ================= */
+  /* ================= ADD ================= */
   const addIncome = async () => {
     if (!incomeForm.service || !incomeForm.amount) return;
 
@@ -69,24 +69,16 @@ export default function Dashboard() {
     setIncomeForm({ date: today, service: "", amount: "" });
     fetchData();
   };
+  
 
-  /* ================= ADD EXPENSE ================= */
   const addExpense = async () => {
-    let finalPaidTo = expenseForm.paid_to;
+    let paidTo =
+      expenseForm.paid_to === "Others" ? customPaidTo : expenseForm.paid_to;
 
-    if (finalPaidTo === "Others") {
-      if (!customPaidTo) return;
-      finalPaidTo = customPaidTo;
-    }
-
-    if (!finalPaidTo || !expenseForm.amount) return;
+    if (!paidTo || !expenseForm.amount) return;
 
     await supabase.from("expense").insert([
-      {
-        date: today,
-        paid_to: finalPaidTo,
-        amount: Number(expenseForm.amount),
-      },
+      { date: today, paid_to: paidTo, amount: Number(expenseForm.amount) },
     ]);
 
     setExpenseForm({ date: today, paid_to: "", amount: "" });
@@ -108,7 +100,7 @@ export default function Dashboard() {
     fetchData();
   };
 
-  /* ================= CALCULATIONS ================= */
+  /* ================= CALC ================= */
   const totalIncome = incomes.reduce((s, i) => s + i.amount, 0);
   const totalExpense = expenses.reduce((s, e) => s + e.amount, 0);
   const balance = totalIncome - totalExpense;
@@ -117,7 +109,7 @@ export default function Dashboard() {
     <>
       <Navbar />
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 py-8 animate-fade-in">
         <div className="max-w-6xl mx-auto px-4">
 
           {/* HEADER */}
@@ -132,9 +124,9 @@ export default function Dashboard() {
 
           {/* SUMMARY */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-            <Card title="Today's Income" value={totalIncome} color="green" />
-            <Card title="Today's Expense" value={totalExpense} color="red" />
-            <Card title="Balance" value={balance} color="blue" />
+            <Card title="💰 Income" value={totalIncome} color="green" />
+            <Card title="💸 Expense" value={totalExpense} color="red" />
+            <Card title="🧮 Balance" value={balance} color="blue" />
           </div>
 
           {/* FORMS */}
@@ -162,7 +154,7 @@ export default function Dashboard() {
 
             <FormBox title="➖ Add Expense">
               <select
-                className="input"
+                className="input mb-2"
                 value={expenseForm.paid_to}
                 onChange={(e) => {
                   setExpenseForm({ ...expenseForm, paid_to: e.target.value });
@@ -170,8 +162,8 @@ export default function Dashboard() {
                 }}
               >
                 <option value="">Select Paid To</option>
-                {PAID_TO_OPTIONS.map((item) => (
-                  <option key={item} value={item}>{item}</option>
+                {PAID_TO_OPTIONS.map((p) => (
+                  <option key={p}>{p}</option>
                 ))}
               </select>
 
@@ -198,7 +190,7 @@ export default function Dashboard() {
           </div>
 
           {/* TABLE */}
-          <div className="bg-white rounded-2xl shadow-lg p-6">
+          <div className="bg-white rounded-2xl shadow-lg p-6 transition">
             <h2 className="font-semibold text-lg mb-4">
               📅 Today's Transactions ({today})
             </h2>
@@ -210,7 +202,7 @@ export default function Dashboard() {
                 No transactions for today
               </p>
             ) : (
-              <table className="w-full text-sm border rounded overflow-hidden">
+              <table className="w-full text-sm">
                 <thead className="bg-slate-200">
                   <tr>
                     <th className="th">Type</th>
@@ -222,8 +214,15 @@ export default function Dashboard() {
                 <tbody>
                   {[...incomes.map(i => ({ ...i, type: "Income" })),
                     ...expenses.map(e => ({ ...e, type: "Expense" }))].map(row => (
-                    <tr key={`${row.type}-${row.id}`} className="hover:bg-slate-50">
-                      <td className={`td font-medium ${row.type === "Income" ? "text-green-700" : "text-red-700"}`}>
+                    <tr
+                      key={`${row.type}-${row.id}`}
+                      className="hover:bg-slate-50 transition"
+                    >
+                      <td className={`td font-medium ${
+                        row.type === "Income"
+                          ? "text-green-700"
+                          : "text-red-700"
+                      }`}>
                         {row.type}
                       </td>
                       <td className="td">{row.service || row.paid_to}</td>
@@ -232,8 +231,9 @@ export default function Dashboard() {
                           <input
                             type="number"
                             defaultValue={row.amount}
-                            className="border px-2 w-24 text-right"
                             autoFocus
+                            className="border px-2 w-24 text-right"
+
                             onBlur={(e) =>
                               updateTransaction(
                                 row.type === "Income" ? "income" : "expense",
@@ -244,26 +244,43 @@ export default function Dashboard() {
                           />
                         ) : (
                           <span
-                            className="cursor-pointer"
-                            onClick={() => setEditing(`${row.type}-${row.id}`)}
+                          onClick={() => setEditing(`${row.type}-${row.id}`)}
+                          className="inline-flex items-center gap-2 cursor-pointer group"
+                        >
+                          ₹{row.amount}
+                          <svg
+                           className="w-6 h-6 text-slate-500 group-hover:text-blue-600 group-hover:rotate-12 transition-all"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
                           >
-                            ₹{row.amount} ✏️
-                          </span>
+                            <path d="M15.232 5.232l3.536 3.536M4 20l4-1 10-10-3-3L5 16l-1 4z" />
+                          </svg>
+                        </span>
                         )}
                       </td>
                       <td className="td text-center">
-                        <button
-                          onClick={() =>
-                            deleteTransaction(
-                              row.type === "Income" ? "income" : "expense",
-                              row.id
-                            )
-                          }
-                          className="text-red-600"
+                      <button
+                        onClick={() =>
+                          deleteTransaction(
+                            row.type === "Income" ? "income" : "expense",
+                            row.id
+                          )
+                        }
+                        className="group p-1"
+                      >
+                        <svg
+                          className="w-5 h-5 text-slate-500 group-hover:text-red-600 group-hover:scale-125 transition-all"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
                         >
-                          🗑️
-                        </button>
-                      </td>
+                          <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                        </svg>
+                      </button>
+                    </td>
                     </tr>
                   ))}
                 </tbody>
@@ -286,27 +303,31 @@ const colorMap = {
 };
 
 const Card = ({ title, value, color }) => (
-  <div className={`bg-white rounded-xl shadow p-6 border-l-4 ${colorMap[color]}`}>
+  <div className={`bg-white rounded-xl shadow p-6 border-l-4 ${colorMap[color]} hover:scale-[1.02] transition`}>
     <p className="text-sm text-slate-500">{title}</p>
     <p className="text-3xl font-bold mt-1">₹{value}</p>
   </div>
 );
 
 const FormBox = ({ title, children }) => (
-  <div className="bg-white rounded-xl shadow p-6">
+  <div className="bg-white rounded-xl shadow p-6 hover:shadow-lg transition">
     <h2 className="font-semibold mb-4">{title}</h2>
     {children}
   </div>
 );
 
 const Input = ({ onChange, ...props }) => (
-  <input {...props} className="input mb-2" onChange={(e) => onChange(e.target.value)} />
+  <input
+    {...props}
+    className="input mb-2 transition focus:ring-2 focus:ring-blue-500"
+    onChange={(e) => onChange(e.target.value)}
+  />
 );
 
 const Button = ({ children, onClick, color }) => (
   <button
     onClick={onClick}
-    className={`btn-${color} mt-3 w-full`}
+    className={`btn-${color} mt-3 w-full hover:translate-y-[-1px] transition`}
   >
     {children}
   </button>

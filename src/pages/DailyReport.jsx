@@ -84,7 +84,7 @@ export default function DailyReport() {
   const totalExpense = expenses.reduce((s, e) => s + e.amount, 0);
   const balance = totalIncome - totalExpense;
 
-  const hasData = incomes.length || expenses.length;
+  const hasData = incomes.length > 0 || expenses.length > 0;
 
   return (
     <>
