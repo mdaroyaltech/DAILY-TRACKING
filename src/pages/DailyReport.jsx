@@ -2,6 +2,15 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import Navbar from "../components/Navbar";
 
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+
 export default function DailyReport() {
   const [date, setDate] = useState("");
   const [incomes, setIncomes] = useState([]);
@@ -84,6 +93,13 @@ export default function DailyReport() {
   const totalExpense = expenses.reduce((s, e) => s + e.amount, 0);
   const balance = totalIncome - totalExpense;
 
+  const chartData = [
+    { name: "Income", value: totalIncome },
+    { name: "Expense", value: totalExpense },
+  ];
+
+  const COLORS = ["#16a34a", "#dc2626"];
+
   const hasData = incomes.length > 0 || expenses.length > 0;
 
   return (
@@ -144,7 +160,30 @@ export default function DailyReport() {
               <SummaryCard title="Balance" value={balance} color="blue" />
             </div>
           )}
+          {hasData && (
+            <div className="bg-white rounded-2xl shadow p-6 mb-8">
+              <h2 className="font-semibold mb-4">📊 Daily Overview</h2>
 
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    dataKey="value"
+                    label
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
           {/* TABLE */}
           {hasData && (
             <div className="bg-white rounded-2xl shadow p-6">
@@ -163,7 +202,7 @@ export default function DailyReport() {
                   </thead>
                   <tbody>
                     {[...incomes.map(i => ({ ...i, t: "income" })),
-                      ...expenses.map(e => ({ ...e, t: "expense" }))].map(row => (
+                    ...expenses.map(e => ({ ...e, t: "expense" }))].map(row => (
                       <tr key={`${row.t}-${row.id}`} className="hover:bg-slate-50">
                         <td className={`td font-medium ${row.t === "income" ? "text-green-600" : "text-red-600"}`}>
                           {row.t === "income" ? "Income" : "Expense"}

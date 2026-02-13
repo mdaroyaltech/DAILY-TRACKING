@@ -1,15 +1,33 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import Navbar from "../components/Navbar";
+import { useNavigate } from "react-router-dom";
+
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+
   const today = new Date().toISOString().split("T")[0];
 
   const [incomes, setIncomes] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [editing, setEditing] = useState(null);
   const [customPaidTo, setCustomPaidTo] = useState("");
+
+  const [chartType, setChartType] = useState("daily");
+  const [chartData, setChartData] = useState([]);
 
   const PAID_TO_OPTIONS = [
     "PACHAIYAPPAN FIN",
@@ -37,39 +55,107 @@ export default function Dashboard() {
   const fetchData = async () => {
     setLoading(true);
 
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      navigate("/");
+      return;
+    }
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    const startDate = sevenDaysAgo.toISOString().split("T")[0];
+
     const { data: incomeData } = await supabase
       .from("income")
       .select("*")
-      .eq("date", today)
-      .order("id", { ascending: false });
+      .gte("date", startDate)
+      .lte("date", today)
+      .order("date", { ascending: true });
 
     const { data: expenseData } = await supabase
       .from("expense")
       .select("*")
-      .eq("date", today)
-      .order("id", { ascending: false });
+      .gte("date", startDate)
+      .lte("date", today)
+      .order("date", { ascending: true });
 
     setIncomes(incomeData || []);
     setExpenses(expenseData || []);
     setLoading(false);
   };
 
+  const generateChartData = (incomes, expenses) => {
+    if (chartType === "daily") {
+      return [
+        {
+          name: "Today",
+          Income: incomes.reduce((s, i) => s + i.amount, 0),
+          Expense: expenses.reduce((s, e) => s + e.amount, 0),
+        },
+      ];
+    }
+
+    // Weekly
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split("T")[0];
+
+      const dailyIncome = incomes
+        .filter(i => i.date === dateStr)
+        .reduce((s, i) => s + i.amount, 0);
+
+      const dailyExpense = expenses
+        .filter(e => e.date === dateStr)
+        .reduce((s, e) => s + e.amount, 0);
+
+      last7Days.push({
+        name: dateStr.slice(5),
+        Income: dailyIncome,
+        Expense: dailyExpense,
+      });
+    }
+
+    return last7Days;
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        navigate("/");
+      }
+    };
+
+    checkSession();
+  }, [navigate]);
 
   /* ================= ADD ================= */
   const addIncome = async () => {
     if (!incomeForm.service || !incomeForm.amount) return;
 
-    await supabase.from("income").insert([
-      { ...incomeForm, amount: Number(incomeForm.amount) },
+    const { error } = await supabase.from("income").insert([
+      {
+        date: today,
+        service: incomeForm.service,
+        amount: Number(incomeForm.amount),
+      },
     ]);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
 
     setIncomeForm({ date: today, service: "", amount: "" });
     fetchData();
   };
-  
+
 
   const addExpense = async () => {
     let paidTo =
@@ -77,14 +163,24 @@ export default function Dashboard() {
 
     if (!paidTo || !expenseForm.amount) return;
 
-    await supabase.from("expense").insert([
-      { date: today, paid_to: paidTo, amount: Number(expenseForm.amount) },
+    const { error } = await supabase.from("expense").insert([
+      {
+        date: today,
+        paid_to: paidTo,
+        amount: Number(expenseForm.amount),
+      },
     ]);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
 
     setExpenseForm({ date: today, paid_to: "", amount: "" });
     setCustomPaidTo("");
     fetchData();
   };
+
 
   /* ================= UPDATE ================= */
   const updateTransaction = async (table, id, amount) => {
@@ -100,9 +196,20 @@ export default function Dashboard() {
     fetchData();
   };
 
+  useEffect(() => {
+    setChartData(generateChartData(incomes, expenses));
+  }, [chartType, incomes, expenses]);
+
+
   /* ================= CALC ================= */
-  const totalIncome = incomes.reduce((s, i) => s + i.amount, 0);
-  const totalExpense = expenses.reduce((s, e) => s + e.amount, 0);
+  const totalIncome = incomes
+    .filter(i => i.date === today)
+    .reduce((s, i) => s + i.amount, 0);
+
+  const totalExpense = expenses
+    .filter(e => e.date === today)
+    .reduce((s, e) => s + e.amount, 0);
+
   const balance = totalIncome - totalExpense;
 
   return (
@@ -189,6 +296,35 @@ export default function Dashboard() {
             </FormBox>
           </div>
 
+          <div className="bg-white rounded-2xl shadow p-6 mb-10">
+            <div className="flex gap-4 mb-4">
+              <button
+                onClick={() => setChartType("daily")}
+                className={`px-4 py-2 rounded ${chartType === "daily" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+              >
+                Daily
+              </button>
+
+              <button
+                onClick={() => setChartType("weekly")}
+                className={`px-4 py-2 rounded ${chartType === "weekly" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+              >
+                Weekly
+              </button>
+            </div>
+
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="Income" fill="#16a34a" />
+                <Bar dataKey="Expense" fill="#dc2626" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
           {/* TABLE */}
           <div className="bg-white rounded-2xl shadow-lg p-6 transition">
             <h2 className="font-semibold text-lg mb-4">
@@ -212,77 +348,85 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {[...incomes.map(i => ({ ...i, type: "Income" })),
-                    ...expenses.map(e => ({ ...e, type: "Expense" }))].map(row => (
-                    <tr
-                      key={`${row.type}-${row.id}`}
-                      className="hover:bg-slate-50 transition"
-                    >
-                      <td className={`td font-medium ${
-                        row.type === "Income"
+                  {[
+                    ...incomes
+                      .filter(i => i.date === today)
+                      .map(i => ({ ...i, type: "Income" })),
+
+                    ...expenses
+                      .filter(e => e.date === today)
+                      .map(e => ({ ...e, type: "Expense" }))
+                  ]
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .map(row => (
+                      <tr
+                        key={`${row.type}-${row.id}`}
+                        className="hover:bg-slate-50 transition"
+                      >
+                        <td className={`td font-medium ${row.type === "Income"
                           ? "text-green-700"
                           : "text-red-700"
-                      }`}>
-                        {row.type}
-                      </td>
-                      <td className="td">{row.service || row.paid_to}</td>
-                      <td className="td text-right">
-                        {editing === `${row.type}-${row.id}` ? (
-                          <input
-                            type="number"
-                            defaultValue={row.amount}
-                            autoFocus
-                            className="border px-2 w-24 text-right"
+                          }`}>
+                          {row.type}
+                        </td>
+                        <td className="td">{row.service || row.paid_to}</td>
+                        <td className="td text-right">
+                          {editing === `${row.type}-${row.id}` ? (
+                            <input
+                              type="number"
+                              defaultValue={row.amount}
+                              autoFocus
+                              className="border px-2 w-24 text-right"
 
-                            onBlur={(e) =>
-                              updateTransaction(
+                              onBlur={(e) =>
+                                updateTransaction(
+                                  row.type === "Income" ? "income" : "expense",
+                                  row.id,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          ) : (
+                            <span
+                              onClick={() => setEditing(`${row.type}-${row.id}`)}
+                              className="inline-flex items-center gap-2 cursor-pointer group"
+                            >
+                              ₹{row.amount}
+                              <svg
+                                className="w-6 h-6 text-slate-500 group-hover:text-blue-600 group-hover:rotate-12 transition-all"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                viewBox="0 0 24 24"
+                              >
+                                <path d="M15.232 5.232l3.536 3.536M4 20l4-1 10-10-3-3L5 16l-1 4z" />
+                              </svg>
+                            </span>
+                          )}
+                        </td>
+                        <td className="td text-center">
+                          <button
+                            onClick={() =>
+                              deleteTransaction(
                                 row.type === "Income" ? "income" : "expense",
-                                row.id,
-                                e.target.value
+                                row.id
                               )
                             }
-                          />
-                        ) : (
-                          <span
-                          onClick={() => setEditing(`${row.type}-${row.id}`)}
-                          className="inline-flex items-center gap-2 cursor-pointer group"
-                        >
-                          ₹{row.amount}
-                          <svg
-                           className="w-6 h-6 text-slate-500 group-hover:text-blue-600 group-hover:rotate-12 transition-all"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            viewBox="0 0 24 24"
+                            className="group p-1"
                           >
-                            <path d="M15.232 5.232l3.536 3.536M4 20l4-1 10-10-3-3L5 16l-1 4z" />
-                          </svg>
-                        </span>
-                        )}
-                      </td>
-                      <td className="td text-center">
-                      <button
-                        onClick={() =>
-                          deleteTransaction(
-                            row.type === "Income" ? "income" : "expense",
-                            row.id
-                          )
-                        }
-                        className="group p-1"
-                      >
-                        <svg
-                          className="w-5 h-5 text-slate-500 group-hover:text-red-600 group-hover:scale-125 transition-all"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-                        </svg>
-                      </button>
-                    </td>
-                    </tr>
-                  ))}
+                            <svg
+                              className="w-5 h-5 text-slate-500 group-hover:text-red-600 group-hover:scale-125 transition-all"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              viewBox="0 0 24 24"
+                            >
+                              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                            </svg>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             )}

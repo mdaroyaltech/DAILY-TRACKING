@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 
 export default function Login({ setLoggedIn }) {
   const [email, setEmail] = useState("");
@@ -9,20 +10,39 @@ export default function Login({ setLoggedIn }) {
 
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    if (email === "jeelanispt@gmail.com" && password === "385459") {
-      localStorage.setItem("dummyLogin", "true");
+  const handleLogin = async () => {
+    setError("");
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setError(error.message);
+    } else {
       setLoggedIn(true);
       navigate("/dashboard");
-    } else {
-      setError("Invalid email or password");
     }
   };
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        setLoggedIn(true);
+        navigate("/dashboard");
+      }
+    };
+
+    checkUser();
+  }, [navigate, setLoggedIn]);
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
-        
+
         {/* Header */}
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-slate-800">

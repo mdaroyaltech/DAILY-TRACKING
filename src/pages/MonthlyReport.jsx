@@ -2,11 +2,24 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import Navbar from "../components/Navbar";
 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from "recharts";
+
+
+
 export default function MonthlyReport() {
   const [month, setMonth] = useState("");
   const [incomes, setIncomes] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [yearData, setYearData] = useState([]);
 
   /* ================= FETCH DATA ================= */
   const fetchData = async () => {
@@ -14,8 +27,14 @@ export default function MonthlyReport() {
 
     setLoading(true);
 
-    const start = `${month}-01`;
-    const end = `${month}-31`;
+    const startDate = new Date(`${month}-01`);
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + 1);
+    endDate.setDate(0);
+
+    const start = startDate.toISOString().split("T")[0];
+    const end = endDate.toISOString().split("T")[0];
+
 
     const { data: incomeData } = await supabase
       .from("income")
@@ -36,9 +55,55 @@ export default function MonthlyReport() {
     setLoading(false);
   };
 
+  const fetchYearData = async () => {
+    if (!month) return;
+
+    const year = month.split("-")[0];
+    if (!year) return;
+
+    const { data: incomeData } = await supabase
+      .from("income")
+      .select("*")
+      .gte("date", `${year}-01-01`)
+      .lte("date", `${year}-12-31`);
+
+    const { data: expenseData } = await supabase
+      .from("expense")
+      .select("*")
+      .gte("date", `${year}-01-01`)
+      .lte("date", `${year}-12-31`);
+
+    const months = Array.from({ length: 12 }, (_, i) => {
+      const monthNum = String(i + 1).padStart(2, "0");
+
+      const monthlyIncome = (incomeData || [])
+        .filter(i => i.date.slice(5, 7) === monthNum)
+        .reduce((sum, i) => sum + i.amount, 0);
+
+      const monthlyExpense = (expenseData || [])
+        .filter(e => e.date.slice(5, 7) === monthNum)
+        .reduce((sum, e) => sum + e.amount, 0);
+
+      return {
+        name: new Date(`${year}-${monthNum}-01`).toLocaleString("default", { month: "short" }),
+
+        Income: monthlyIncome,
+        Expense: monthlyExpense,
+      };
+    });
+
+    setYearData(
+      months.filter(m => m.Income !== 0 || m.Expense !== 0)
+    );
+
+  };
+
+
   useEffect(() => {
     fetchData();
+    fetchYearData();
   }, [month]);
+
 
   /* ================= CALCULATIONS ================= */
   const totalIncome = incomes.reduce((s, i) => s + i.amount, 0);
@@ -103,23 +168,56 @@ export default function MonthlyReport() {
                   </thead>
                   <tbody>
                     {[...incomes.map(i => ({ ...i, type: "Income" })),
-                      ...expenses.map(e => ({ ...e, type: "Expense" }))].map(row => (
-                      <tr key={`${row.type}-${row.id}`} className="hover:bg-slate-50">
-                        <td className="td">{row.date}</td>
-                        <td className={`td font-medium ${
-                          row.type === "Income" ? "text-green-600" : "text-red-600"
-                        }`}>
-                          {row.type}
-                        </td>
-                        <td className="td">{row.service || row.paid_to}</td>
-                        <td className="td text-right">₹{row.amount}</td>
-                      </tr>
-                    ))}
+                    ...expenses.map(e => ({ ...e, type: "Expense" }))]
+                      .sort((a, b) => new Date(a.date) - new Date(b.date))
+                      .map(row => (
+
+                        <tr key={`${row.type}-${row.id}`} className="hover:bg-slate-50">
+                          <td className="td">{row.date}</td>
+                          <td className={`td font-medium ${row.type === "Income" ? "text-green-600" : "text-red-600"
+                            }`}>
+                            {row.type}
+                          </td>
+                          <td className="td">{row.service || row.paid_to}</td>
+                          <td className="td text-right">₹{row.amount}</td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               )}
             </div>
           )}
+
+          {yearData.length > 0 && (
+            <div className="bg-white rounded-2xl shadow p-6 mb-8">
+              <h2 className="font-semibold mb-4">
+                Yearly Monthly Tracking
+              </h2>
+
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={yearData}>
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="Income"
+                    stroke="#16a34a"
+                    strokeWidth={3}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="Expense"
+                    stroke="#dc2626"
+                    strokeWidth={3}
+                  />
+                </LineChart>
+
+              </ResponsiveContainer>
+            </div>
+          )}
+
 
           {/* EMPTY STATE */}
           {!hasData && month && !loading && (
