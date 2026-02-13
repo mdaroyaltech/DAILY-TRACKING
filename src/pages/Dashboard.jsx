@@ -86,11 +86,19 @@ export default function Dashboard() {
 
   const generateChartData = (incomes, expenses) => {
     if (chartType === "daily") {
+      const todayIncome = incomes
+        .filter(i => i.date === today)
+        .reduce((s, i) => s + i.amount, 0);
+
+      const todayExpense = expenses
+        .filter(e => e.date === today)
+        .reduce((s, e) => s + e.amount, 0);
+
       return [
         {
           name: "Today",
-          Income: incomes.reduce((s, i) => s + i.amount, 0),
-          Expense: expenses.reduce((s, e) => s + e.amount, 0),
+          Income: todayIncome,
+          Expense: todayExpense,
         },
       ];
     }
