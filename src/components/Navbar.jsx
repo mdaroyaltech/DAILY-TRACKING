@@ -1,19 +1,23 @@
 import { useNavigate, NavLink } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 
 export default function Navbar() {
   const navigate = useNavigate();
 
-  const logout = () => {
-    localStorage.removeItem("dummyLogin");
-    navigate("/login");
-    window.location.reload();
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate("/login");
+    } catch (err) {
+      alert("Logout failed");
+    }
   };
 
+
   const linkClass = ({ isActive }) =>
-    `px-3 py-1.5 rounded-md text-sm font-medium transition ${
-      isActive
-        ? "bg-green-100 text-green-700"
-        : "text-slate-600 hover:bg-slate-100 hover:text-green-700"
+    `px-3 py-1.5 rounded-md text-sm font-medium transition ${isActive
+      ? "bg-green-100 text-green-700"
+      : "text-slate-600 hover:bg-slate-100 hover:text-green-700"
     }`;
 
   return (
