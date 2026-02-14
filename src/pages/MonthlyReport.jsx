@@ -1,14 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "../lib/supabase";
 import Navbar from "../components/Navbar";
 
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
-  Legend,
   ResponsiveContainer
 } from "recharts";
 
@@ -19,7 +18,9 @@ export default function MonthlyReport() {
   const [incomes, setIncomes] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [yearData, setYearData] = useState([]);
+  const [prevIncome, setPrevIncome] = useState(0);
+  const [prevExpense, setPrevExpense] = useState(0);
+
 
   /* ================= FETCH DATA ================= */
   const fetchData = async () => {
@@ -52,56 +53,41 @@ export default function MonthlyReport() {
 
     setIncomes(incomeData || []);
     setExpenses(expenseData || []);
+    // ===== Previous Month Calculation =====
+    const prevStartDate = new Date(startDate);
+    prevStartDate.setMonth(prevStartDate.getMonth() - 1);
+    prevStartDate.setDate(1);
+
+    const prevEndDate = new Date(prevStartDate);
+    prevEndDate.setMonth(prevEndDate.getMonth() + 1);
+    prevEndDate.setDate(0);
+
+    const prevStart = prevStartDate.toISOString().split("T")[0];
+    const prevEnd = prevEndDate.toISOString().split("T")[0];
+
+    const { data: prevIncomeData } = await supabase
+      .from("income")
+      .select("*")
+      .gte("date", prevStart)
+      .lte("date", prevEnd);
+
+    const { data: prevExpenseData } = await supabase
+      .from("expense")
+      .select("*")
+      .gte("date", prevStart)
+      .lte("date", prevEnd);
+
+    const prevIncomeTotal = (prevIncomeData || []).reduce((s, i) => s + i.amount, 0);
+    const prevExpenseTotal = (prevExpenseData || []).reduce((s, e) => s + e.amount, 0);
+
+    setPrevIncome(prevIncomeTotal);
+    setPrevExpense(prevExpenseTotal);
+
     setLoading(false);
   };
 
-  const fetchYearData = async () => {
-    if (!month) return;
-
-    const year = month.split("-")[0];
-    if (!year) return;
-
-    const { data: incomeData } = await supabase
-      .from("income")
-      .select("*")
-      .gte("date", `${year}-01-01`)
-      .lte("date", `${year}-12-31`);
-
-    const { data: expenseData } = await supabase
-      .from("expense")
-      .select("*")
-      .gte("date", `${year}-01-01`)
-      .lte("date", `${year}-12-31`);
-
-    const months = Array.from({ length: 12 }, (_, i) => {
-      const monthNum = String(i + 1).padStart(2, "0");
-
-      const monthlyIncome = (incomeData || [])
-        .filter(i => i.date.slice(5, 7) === monthNum)
-        .reduce((sum, i) => sum + i.amount, 0);
-
-      const monthlyExpense = (expenseData || [])
-        .filter(e => e.date.slice(5, 7) === monthNum)
-        .reduce((sum, e) => sum + e.amount, 0);
-
-      return {
-        name: new Date(`${year}-${monthNum}-01`).toLocaleString("default", { month: "short" }),
-
-        Income: monthlyIncome,
-        Expense: monthlyExpense,
-      };
-    });
-
-    setYearData(
-      months.filter(m => m.Income !== 0 || m.Expense !== 0)
-    );
-
-  };
-
-
   useEffect(() => {
     fetchData();
-    fetchYearData();
   }, [month]);
 
 
@@ -109,6 +95,68 @@ export default function MonthlyReport() {
   const totalIncome = incomes.reduce((s, i) => s + i.amount, 0);
   const totalExpense = expenses.reduce((s, e) => s + e.amount, 0);
   const balance = totalIncome - totalExpense;
+
+  const totalGivenToHome = incomes.reduce(
+    (sum, i) => sum + (Number(i?.given_to_home) || 0),
+    0
+  );
+
+
+  const remainingAfterHome = totalIncome - totalGivenToHome;
+
+  const momTotal = incomes
+    .filter(i => i?.given_to_whom === "Mom")
+    .reduce((sum, i) => sum + (i.given_to_home || 0), 0);
+
+  const dadTotal = incomes
+    .filter(i => i.given_to_whom === "Dad")
+    .reduce((sum, i) => sum + (i.given_to_home || 0), 0);
+
+  const prevBalance = prevIncome - prevExpense;
+
+  const incomeChange =
+    prevIncome === 0
+      ? 100
+      : ((totalIncome - prevIncome) / prevIncome) * 100;
+
+  const expenseChange =
+    prevExpense === 0
+      ? 100
+      : ((totalExpense - prevExpense) / prevExpense) * 100;
+
+  const balanceChange =
+    prevBalance === 0
+      ? 100
+      : ((balance - prevBalance) / prevBalance) * 100;
+
+
+  // Daily Net Trend
+  // Daily Net Trend (Income + Expense combined dates)
+  const allDates = [
+    ...new Set([
+      ...incomes.map(i => i.date),
+      ...expenses.map(e => e.date),
+    ]),
+  ];
+
+  const trendData = useMemo(() => {
+    return allDates
+      .sort((a, b) => new Date(a) - new Date(b))
+      .map(date => {
+        const dailyIncome = incomes
+          .filter(i => i.date === date)
+          .reduce((s, i) => s + i.amount, 0);
+
+        const dailyExpense = expenses
+          .filter(e => e.date === date)
+          .reduce((s, e) => s + e.amount, 0);
+
+        return {
+          date: date.slice(8),
+          Net: dailyIncome - dailyExpense,
+        };
+      });
+  }, [incomes, expenses]);
 
   const hasData = incomes.length > 0 || expenses.length > 0;
 
@@ -130,94 +178,170 @@ export default function MonthlyReport() {
               </p>
             </div>
 
-            <input
-              type="month"
-              className="input max-w-xs"
+            <select
+              className="px-4 py-2 rounded-xl border border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500"
               value={month}
               onChange={(e) => setMonth(e.target.value)}
-            />
+            >
+              <option value="">Select Month</option>
+              {Array.from({ length: 12 }, (_, i) => {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                const value = date.toISOString().slice(0, 7);
+                return (
+                  <option key={value} value={value}>
+                    {date.toLocaleString("default", { month: "long", year: "numeric" })}
+                  </option>
+                );
+              })}
+            </select>
+
           </div>
 
           {/* SUMMARY */}
           {hasData && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-              <SummaryCard title="Total Income" value={totalIncome} color="green" />
-              <SummaryCard title="Total Expense" value={totalExpense} color="red" />
-              <SummaryCard title="Balance" value={balance} color="blue" />
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-6 mb-8">
+              <SummaryCard
+                title="Total Income"
+                value={totalIncome}
+                color="green"
+                percent={incomeChange}
+              />
+              <SummaryCard
+                title="Total Expense"
+                value={totalExpense}
+                color="red"
+                percent={expenseChange}
+              />
+              <SummaryCard
+                title="Balance"
+                value={balance}
+                color="blue"
+                percent={balanceChange}
+              />
+              <SummaryCard
+                title="Given To Home"
+                value={totalGivenToHome}
+                color="blue"
+                percent={0}
+              />
+              <SummaryCard
+                title="Remaining After Home"
+                value={remainingAfterHome}
+                color="green"
+                percent={0}
+              />
             </div>
           )}
 
-          {/* TABLE */}
-          {hasData && (
-            <div className="bg-white rounded-2xl shadow p-6">
-              <h2 className="font-semibold mb-4">
-                Transactions ({month})
+          {incomes.length > 0 && (
+            <div className="bg-white rounded-2xl shadow p-6 mb-8">
+              <h2 className="font-semibold mb-4 text-green-700">
+                💰 Income Transactions ({month})
               </h2>
 
-              {loading ? (
-                <p className="text-center text-slate-500">Loading...</p>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-100">
-                    <tr>
-                      <th className="th">Date</th>
-                      <th className="th">Type</th>
-                      <th className="th">Description</th>
-                      <th className="th text-right">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[...incomes.map(i => ({ ...i, type: "Income" })),
-                    ...expenses.map(e => ({ ...e, type: "Expense" }))]
-                      .sort((a, b) => new Date(a.date) - new Date(b.date))
-                      .map(row => (
+              <table className="w-full text-sm">
+                <thead className="bg-green-50">
+                  <tr>
+                    <th className="th">Date</th>
+                    <th className="th">Service</th>
+                    <th className="th text-right">Amount</th>
+                    <th className="th text-right">Home</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {incomes.map(row => (
+                    <tr key={row.id}>
+                      <td className="td">{row.date}</td>
+                      <td className="td">{row.service}</td>
+                      <td className="td text-right">₹{row.amount}</td>
+                      <td className="td text-right">
+                        ₹{Number(row?.given_to_home) || 0} ({row?.given_to_whom || "-"})
+                      </td>
 
-                        <tr key={`${row.type}-${row.id}`} className="hover:bg-slate-50">
-                          <td className="td">{row.date}</td>
-                          <td className={`td font-medium ${row.type === "Income" ? "text-green-600" : "text-red-600"
-                            }`}>
-                            {row.type}
-                          </td>
-                          <td className="td">{row.service || row.paid_to}</td>
-                          <td className="td text-right">₹{row.amount}</td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className="mt-4 text-right font-semibold text-green-700">
+                Total Income: ₹{totalIncome}
+              </div>
             </div>
           )}
 
-          {yearData.length > 0 && (
+          {expenses.length > 0 && (
+            <div className="bg-white rounded-2xl shadow p-6 mb-8">
+              <h2 className="font-semibold mb-4 text-red-700">
+                💸 Expense Transactions ({month})
+              </h2>
+
+              <table className="w-full text-sm">
+                <thead className="bg-red-50">
+                  <tr>
+                    <th className="th">Date</th>
+                    <th className="th">Paid To</th>
+                    <th className="th text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {expenses.map(row => (
+                    <tr key={row.id}>
+                      <td className="td">{row.date}</td>
+                      <td className="td">{row.paid_to}</td>
+                      <td className="td text-right">₹{row.amount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className="mt-4 text-right font-semibold text-red-700">
+                Total Expense: ₹{totalExpense}
+              </div>
+            </div>
+          )}
+
+
+          {trendData.length > 0 && (
             <div className="bg-white rounded-2xl shadow p-6 mb-8">
               <h2 className="font-semibold mb-4">
-                Yearly Monthly Tracking
+                📈 Monthly Trend (Net Profit / Loss)
               </h2>
 
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={yearData}>
-                  <XAxis dataKey="name" />
+                <AreaChart data={trendData}>
+                  <XAxis dataKey="date" />
                   <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="Income"
-                    stroke="#16a34a"
-                    strokeWidth={3}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="Expense"
-                    stroke="#dc2626"
-                    strokeWidth={3}
-                  />
-                </LineChart>
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const value = payload[0].value;
 
+                        return (
+                          <div className="bg-white p-3 rounded-lg shadow border text-sm">
+                            <p>Net: ₹{value}</p>
+                            <p className="text-slate-500">
+                              Compared to prev month: ₹{prevIncome - prevExpense}
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+
+                  <Area
+                    type="monotone"
+                    dataKey="Net"
+                    stroke={balance >= 0 ? "#16a34a" : "#dc2626"}
+                    fill={balance >= 0 ? "#86efac" : "#fca5a5"}
+                    strokeWidth={3}
+                  />
+
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           )}
-
 
           {/* EMPTY STATE */}
           {!hasData && month && !loading && (
@@ -234,17 +358,50 @@ export default function MonthlyReport() {
 
 /* ================= UI HELPERS ================= */
 
-const SummaryCard = ({ title, value, color }) => {
+const useAnimatedNumber = (value, duration = 800) => {
+  const [animatedValue, setAnimatedValue] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const increment = value / (duration / 16);
+
+    const counter = setInterval(() => {
+      start += increment;
+      if (
+        (value >= 0 && start >= value) ||
+        (value < 0 && start <= value)
+      ) {
+        start = value;
+        clearInterval(counter);
+      }
+      setAnimatedValue(start);
+    }, 16);
+
+    return () => clearInterval(counter);
+  }, [value, duration]);
+
+  return animatedValue;
+};
+
+const SummaryCard = ({ title, value, color, percent = 0 }) => {
   const map = {
     green: "from-green-500 to-green-700",
     red: "from-red-500 to-red-700",
     blue: "from-blue-500 to-blue-700",
   };
 
+  const animatedPercent = useAnimatedNumber(percent || 0);
+  const isPositive = percent >= 0;
+
   return (
     <div className={`rounded-2xl p-6 text-white shadow-lg bg-gradient-to-r ${map[color]}`}>
       <p className="text-sm opacity-90">{title}</p>
       <p className="text-3xl font-bold">₹{value}</p>
+
+      <p className={`text-sm mt-2 ${isPositive ? "text-green-200" : "text-red-200"}`}>
+        {isPositive ? "▲" : "▼"} {Math.abs(animatedPercent).toFixed(1)}% vs last month
+      </p>
     </div>
   );
 };
+

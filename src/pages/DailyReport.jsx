@@ -93,12 +93,23 @@ export default function DailyReport() {
   const totalExpense = expenses.reduce((s, e) => s + e.amount, 0);
   const balance = totalIncome - totalExpense;
 
+  const totalGivenToHome = incomes.reduce(
+    (sum, i) => sum + (i.given_to_home || 0),
+    0
+  );
+
+  const remainingAfterHome = totalIncome - totalGivenToHome;
+
+
   const chartData = [
-    { name: "Income", value: totalIncome },
     { name: "Expense", value: totalExpense },
+    { name: "Given To Home", value: totalGivenToHome },
+    { name: "Remaining", value: remainingAfterHome },
   ];
 
-  const COLORS = ["#16a34a", "#dc2626"];
+
+  const COLORS = ["#dc2626", "#2563eb", "#16a34a"];
+
 
   const hasData = incomes.length > 0 || expenses.length > 0;
 
@@ -154,11 +165,14 @@ export default function DailyReport() {
 
           {/* SUMMARY */}
           {hasData && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-6 mb-8">
               <SummaryCard title="Income" value={totalIncome} color="green" />
               <SummaryCard title="Expense" value={totalExpense} color="red" />
               <SummaryCard title="Balance" value={balance} color="blue" />
+              <SummaryCard title="Given To Home" value={totalGivenToHome} color="blue" />
+              <SummaryCard title="Remaining After Home" value={remainingAfterHome} color="green" />
             </div>
+
           )}
           {hasData && (
             <div className="bg-white rounded-2xl shadow p-6 mb-8">
@@ -197,13 +211,21 @@ export default function DailyReport() {
                       <th className="th">Type</th>
                       <th className="th">Description</th>
                       <th className="th text-right">Amount</th>
+                      <th className="th text-right">Home</th>
                       <th className="th text-center">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {[...incomes.map(i => ({ ...i, t: "income" })),
                     ...expenses.map(e => ({ ...e, t: "expense" }))].map(row => (
-                      <tr key={`${row.t}-${row.id}`} className="hover:bg-slate-50">
+                      <tr
+                        key={`${row.t}-${row.id}`}
+                        className={`hover:bg-slate-50 ${row.t === "income" &&
+                          (row.given_to_home || 0) < row.amount
+                          ? "bg-yellow-50"
+                          : ""
+                          }`}
+                      >
                         <td className={`td font-medium ${row.t === "income" ? "text-green-600" : "text-red-600"}`}>
                           {row.t === "income" ? "Income" : "Expense"}
                         </td>
@@ -218,6 +240,11 @@ export default function DailyReport() {
                               ₹{row.amount} ✏️
                             </span>
                           )}
+                        </td>
+                        <td className="td text-right">
+                          {row.t === "income"
+                            ? `₹${row.given_to_home || 0} (${row.given_to_whom || "-"})`
+                            : "-"}
                         </td>
                         <td className="td text-center">
                           <button onClick={() => deleteRow(row.t, row.id)}>🗑️</button>
