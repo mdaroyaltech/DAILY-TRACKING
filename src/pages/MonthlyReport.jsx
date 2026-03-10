@@ -377,6 +377,81 @@ const CSS = `
   font-weight: 700;
   color: var(--teal);
 }
+/* ─── BULK SECTION ─── */
+.bulk-section {
+  background: var(--surface);
+  border: 2px solid #7c3aed;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 28px;
+  box-shadow: 0 4px 20px rgba(124,58,237,.08);
+}
+.bulk-section-header {
+  background: linear-gradient(135deg,#7c3aed 0%,#6d28d9 100%);
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.bulk-header-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+.bulk-header-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 2px; }
+.bulk-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 0;
+  border-bottom: 1.5px solid var(--border);
+}
+.bulk-stat-cell {
+  padding: 16px 20px;
+  border-right: 1px solid var(--border);
+  text-align: center;
+}
+.bulk-stat-cell:last-child { border-right: none; }
+.bulk-stat-label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
+.bulk-stat-value { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
+.bulk-body { padding: 20px 24px; }
+.bulk-person-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.bulk-person-row:last-child { border-bottom: none; }
+.bulk-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  color: #fff; font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.bulk-person-name { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+.bulk-person-date { font-size: 11px; color: var(--text-faint); }
+.bulk-amt-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.bulk-amt-pill {
+  font-size: 12px; font-weight: 600; padding: 3px 10px;
+  border-radius: 20px; white-space: nowrap;
+}
+.bulk-shared-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.bulk-shared-row:last-child { border-bottom: none; }
+.bulk-shared-desc { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+.bulk-shared-date { font-size: 11px; color: var(--text-faint); }
+.bulk-split-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.split-pill {
+  display: flex; align-items: center; gap: 5px;
+  padding: 3px 10px 3px 7px; border-radius: 99px;
+  background: #ede9fe; border: 1px solid rgba(124,58,237,.2);
+  font-size: 11px; font-weight: 500; color: #5a5449;
+}
+.split-pill-av { width: 16px; height: 16px; border-radius: 50%; color: #fff; font-size: 8px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 `;
 
 /* ── ANIMATED NUMBER HOOK ── */
@@ -403,6 +478,9 @@ export default function MonthlyReport() {
   const [month, setMonth] = useState("");
   const [incomes, setIncomes] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [bulkIncomes, setBulkIncomes] = useState([]);
+  const [bulkExpenses, setBulkExpenses] = useState([]);
+  const [sharedExpenses, setSharedExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [prevIncome, setPrevIncome] = useState(0);
   const [prevExpense, setPrevExpense] = useState(0);
@@ -419,12 +497,18 @@ export default function MonthlyReport() {
     const start = startDate.toISOString().split("T")[0];
     const end = endDate.toISOString().split("T")[0];
 
-    const [{ data: incomeData }, { data: expenseData }] = await Promise.all([
+    const [{ data: incomeData }, { data: expenseData }, { data: bulkIncData }, { data: bulkExpData }, { data: sharedData }] = await Promise.all([
       supabase.from("income").select("*").gte("date", start).lte("date", end).order("date", { ascending: true }),
       supabase.from("expense").select("*").gte("date", start).lte("date", end).order("date", { ascending: true }),
+      supabase.from("bulk_income").select("*").gte("date", start).lte("date", end).order("date", { ascending: true }),
+      supabase.from("bulk_expense").select("*").gte("date", start).lte("date", end).order("date", { ascending: true }),
+      supabase.from("shared_expense").select("*, shared_expense_split(*)").gte("date", start).lte("date", end).order("date", { ascending: true }),
     ]);
     setIncomes(incomeData || []);
     setExpenses(expenseData || []);
+    setBulkIncomes(bulkIncData || []);
+    setBulkExpenses(bulkExpData || []);
+    setSharedExpenses(sharedData || []);
 
     // prev month
     const prevStart = new Date(startDate); prevStart.setMonth(prevStart.getMonth() - 1); prevStart.setDate(1);
@@ -450,6 +534,14 @@ export default function MonthlyReport() {
   const momTotal = incomes.filter(i => i.given_to_whom === "Mom").reduce((s, i) => s + (i.given_to_home || 0), 0);
   const dadTotal = incomes.filter(i => i.given_to_whom === "Dad").reduce((s, i) => s + (i.given_to_home || 0), 0);
 
+  // Bulk calculations
+  const totalBulkReceived = bulkIncomes.reduce((s, i) => s + i.amount, 0);
+  const totalBulkIndivExp = bulkExpenses.reduce((s, e) => s + e.amount, 0);
+  const totalSharedExp = sharedExpenses.reduce((s, e) => s + e.total_amount, 0);
+  const totalBulkExpense = totalBulkIndivExp + totalSharedExp;
+  const totalBulkRemaining = totalBulkReceived - totalBulkExpense;
+  const hasBulkData = bulkIncomes.length > 0 || bulkExpenses.length > 0 || sharedExpenses.length > 0;
+
   const prevBalance = prevIncome - prevExpense;
   const incomeChange = prevIncome === 0 ? 100 : ((totalIncome - prevIncome) / prevIncome) * 100;
   const expenseChange = prevExpense === 0 ? 100 : ((totalExpense - prevExpense) / prevExpense) * 100;
@@ -470,6 +562,13 @@ export default function MonthlyReport() {
     const d = new Date(); d.setMonth(d.getMonth() - i);
     return { value: d.toISOString().slice(0, 7), label: d.toLocaleString("default", { month: "long", year: "numeric" }) };
   });
+
+  const avatarColor = (name = "") => {
+    const cols = ["#0d9488", "#16a34a", "#7c3aed", "#db2777", "#b45309", "#1d4ed8", "#dc2626"];
+    let h = 0; for (let c of name) h = c.charCodeAt(0) + ((h << 5) - h);
+    return cols[Math.abs(h) % cols.length];
+  };
+  const fmt = (n) => Math.round(n).toLocaleString("en-IN");
 
   return (
     <>
@@ -687,6 +786,115 @@ export default function MonthlyReport() {
                 }}>
                   {balanceChange >= 0 ? "▲" : "▼"} {Math.abs(balanceChange).toFixed(1)}%
                 </span>
+              </div>
+            </div>
+          )}
+
+          {/* BULK TRACKER SECTION */}
+          {hasBulkData && !loading && (
+            <div className="bulk-section">
+              <div className="bulk-section-header">
+                <div>
+                  <div className="bulk-header-title">🔗 Bulk Tracker Summary</div>
+                  <div className="bulk-header-sub">Person-wise bulk income & expenses for this month</div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,.75)", fontWeight: 600, marginBottom: 2 }}>Net Remaining</div>
+                  <div style={{ fontFamily: "Playfair Display,serif", fontSize: 22, fontWeight: 700, color: "#fff" }}>
+                    ₹{fmt(totalBulkRemaining)}
+                  </div>
+                </div>
+              </div>
+
+              {/* 3 summary cells */}
+              <div className="bulk-stats-row">
+                <div className="bulk-stat-cell">
+                  <div className="bulk-stat-label">Total Received</div>
+                  <div className="bulk-stat-value" style={{ color: "var(--green)" }}>₹{fmt(totalBulkReceived)}</div>
+                </div>
+                <div className="bulk-stat-cell">
+                  <div className="bulk-stat-label">Total Spent</div>
+                  <div className="bulk-stat-value" style={{ color: "var(--red)" }}>₹{fmt(totalBulkExpense)}</div>
+                </div>
+                <div className="bulk-stat-cell">
+                  <div className="bulk-stat-label">Remaining</div>
+                  <div className="bulk-stat-value" style={{ color: totalBulkRemaining >= 0 ? "var(--teal)" : "var(--red)" }}>
+                    ₹{fmt(totalBulkRemaining)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bulk-body">
+
+                {/* Per Person */}
+                {bulkIncomes.length > 0 && (
+                  <>
+                    <p className="section-title" style={{ fontSize: 15, marginBottom: 12 }}>Person-wise Breakdown</p>
+                    {bulkIncomes.map(inc => {
+                      const indivSpent = bulkExpenses.filter(e => e.bulk_income_id === inc.id).reduce((s, e) => s + e.amount, 0);
+                      const sharedCut = sharedExpenses.reduce((s, se) => {
+                        const sp = (se.shared_expense_split || []).find(x => x.bulk_income_id === inc.id);
+                        return s + (sp ? sp.split_amount : 0);
+                      }, 0);
+                      const remaining = inc.amount - indivSpent - sharedCut;
+                      return (
+                        <div className="bulk-person-row" key={inc.id}>
+                          <div className="bulk-avatar" style={{ background: avatarColor(inc.person_name) }}>
+                            {inc.person_name.charAt(0).toUpperCase()}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div className="bulk-person-name">{inc.person_name}</div>
+                            <div className="bulk-person-date">{inc.date}{inc.note ? ` · ${inc.note}` : ""}</div>
+                          </div>
+                          <div className="bulk-amt-group">
+                            <span className="bulk-amt-pill" style={{ background: "var(--green-bg)", color: "var(--green)" }}>
+                              ₹{fmt(inc.amount)} received
+                            </span>
+                            <span className="bulk-amt-pill" style={{ background: "var(--red-bg)", color: "var(--red)" }}>
+                              ₹{fmt(indivSpent + sharedCut)} spent
+                            </span>
+                            <span className="bulk-amt-pill" style={{ background: remaining >= 0 ? "#e0f2f0" : "var(--red-bg)", color: remaining >= 0 ? "var(--teal)" : "var(--red)" }}>
+                              ₹{fmt(remaining)} left
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
+
+                {/* Shared Expenses */}
+                {sharedExpenses.length > 0 && (
+                  <>
+                    <p className="section-title" style={{ fontSize: 15, marginTop: 20, marginBottom: 12 }}>Shared Expenses</p>
+                    {sharedExpenses.map(se => (
+                      <div key={se.id} style={{ paddingBottom: 12, marginBottom: 12, borderBottom: "1px solid var(--border)" }}>
+                        <div className="bulk-shared-row" style={{ borderBottom: "none", paddingBottom: 0 }}>
+                          <div style={{ fontSize: 16 }}>🔗</div>
+                          <div style={{ flex: 1 }}>
+                            <div className="bulk-shared-desc">{se.description}</div>
+                            <div className="bulk-shared-date">{se.date}</div>
+                          </div>
+                          <div style={{ fontFamily: "Playfair Display,serif", fontSize: 17, fontWeight: 700, color: "#7c3aed" }}>
+                            ₹{fmt(se.total_amount)}
+                          </div>
+                        </div>
+                        <div className="bulk-split-pills" style={{ paddingLeft: 28 }}>
+                          {(se.shared_expense_split || []).map(sp => (
+                            <div className="split-pill" key={sp.id}>
+                              <div className="split-pill-av" style={{ background: avatarColor(sp.person_name) }}>
+                                {sp.person_name.charAt(0).toUpperCase()}
+                              </div>
+                              {sp.person_name}
+                              <span style={{ fontWeight: 700, color: "var(--red)", marginLeft: 4 }}>₹{fmt(sp.split_amount)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+
               </div>
             </div>
           )}

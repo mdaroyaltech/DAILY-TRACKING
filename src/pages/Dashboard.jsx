@@ -496,6 +496,48 @@ const CSS = `
   font-weight: 300;
   letter-spacing: 0.04em;
 }
+
+/* ─── MANAGE OPTIONS ─── */
+.manage-opts-btn {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--teal); background: none; border: none; cursor: pointer;
+  padding: 0; font-family: 'DM Sans',sans-serif; margin-bottom: 10px;
+  transition: opacity .15s;
+}
+.manage-opts-btn:hover { opacity: .7; }
+.manage-opts-panel {
+  background: var(--bg2); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 14px; margin-bottom: 12px;
+}
+.manage-opts-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.opt-pill {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 20px; padding: 4px 10px 4px 12px;
+  font-size: 12px; font-weight: 600; color: var(--text-med);
+}
+.opt-pill-del {
+  background: none; border: none; cursor: pointer; padding: 2px;
+  border-radius: 50%; color: var(--text-faint); display: flex;
+  transition: color .15s, background .15s; line-height: 1;
+}
+.opt-pill-del:hover { color: var(--red); background: var(--red-bg); }
+.manage-opts-add { display: flex; gap: 8px; }
+.manage-opts-input {
+  flex: 1; background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 8px 12px; font-size: 13px;
+  font-family: 'DM Sans',sans-serif; color: var(--text); outline: none;
+  transition: border-color .2s;
+}
+.manage-opts-input:focus { border-color: var(--teal); }
+.manage-opts-save {
+  padding: 8px 16px; background: var(--teal); color: #fff; border: none;
+  border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
+  font-family: 'DM Sans',sans-serif; white-space: nowrap;
+  transition: opacity .15s;
+}
+.manage-opts-save:hover { opacity: .85; }
 `;
 
 /* ═══════════════════════════════════════════════════════════ */
@@ -519,11 +561,36 @@ export default function Dashboard() {
   const momTotal = incomes.filter(i => i.given_to_whom === "Mom").reduce((s, i) => s + (i.given_to_home || 0), 0);
   const dadTotal = incomes.filter(i => i.given_to_whom === "Dad").reduce((s, i) => s + (i.given_to_home || 0), 0);
 
-  const PAID_TO_OPTIONS = ["PACHAIYAPPAN FIN", "SAI FIN", "SOTTA FIN", "SPF FIN", "BHAVANI FIN", "JANA SETTIYAR", "Others"];
+  const DEFAULT_OPTIONS = ["PACHAIYAPPAN FIN", "SAI FIN", "SOTTA FIN", "SPF FIN", "BHAVANI FIN", "JANA SETTIYAR"];
+  const [paidToOptions, setPaidToOptions] = useState(() => {
+    try { const s = localStorage.getItem("paidToOptions"); return s ? JSON.parse(s) : DEFAULT_OPTIONS; }
+    catch { return DEFAULT_OPTIONS; }
+  });
+  const [showManageOptions, setShowManageOptions] = useState(false);
+  const [newOptionName, setNewOptionName] = useState("");
+
+  const saveOptions = (opts) => {
+    setPaidToOptions(opts);
+    localStorage.setItem("paidToOptions", JSON.stringify(opts));
+  };
+  const addOption = () => {
+    const name = newOptionName.trim().toUpperCase();
+    if (!name || paidToOptions.includes(name)) return;
+    saveOptions([...paidToOptions, name]);
+    setNewOptionName("");
+  };
+  const removeOption = (opt) => {
+    if (!window.confirm(`Remove "${opt}" from list?`)) return;
+    saveOptions(paidToOptions.filter(o => o !== opt));
+  };
+
+  const PAID_TO_OPTIONS = [...paidToOptions, "Others"];
 
   const [incomeForm, setIncomeForm] = useState({ date: today, service: "", amount: "" });
   const [homeForm, setHomeForm] = useState({ given_to_whom: "Mom" });
   const [expenseForm, setExpenseForm] = useState({ date: today, paid_to: "", amount: "" });
+  const [incomeDate, setIncomeDate] = useState(today);
+  const [expenseDate, setExpenseDate] = useState(today);
 
   /* ── FETCH ── */
   const fetchData = async () => {
@@ -563,7 +630,7 @@ export default function Dashboard() {
   /* ── ADD ── */
   const addIncome = async () => {
     if (!incomeForm.service || !incomeForm.amount) return;
-    const { error } = await supabase.from("income").insert([{ date: today, service: incomeForm.service, amount: Number(incomeForm.amount), given_to_home: 0 }]);
+    const { error } = await supabase.from("income").insert([{ date: incomeDate, service: incomeForm.service, amount: Number(incomeForm.amount), given_to_home: 0 }]);
     if (error) { alert(error.message); return; }
     setIncomeForm({ date: today, service: "", amount: "" });
     fetchData();
@@ -571,7 +638,7 @@ export default function Dashboard() {
   const addExpense = async () => {
     let paidTo = expenseForm.paid_to === "Others" ? customPaidTo : expenseForm.paid_to;
     if (!paidTo || !expenseForm.amount) return;
-    const { error } = await supabase.from("expense").insert([{ date: today, paid_to: paidTo, amount: Number(expenseForm.amount) }]);
+    const { error } = await supabase.from("expense").insert([{ date: expenseDate, paid_to: paidTo, amount: Number(expenseForm.amount) }]);
     if (error) { alert(error.message); return; }
     setExpenseForm({ date: today, paid_to: "", amount: "" });
     setCustomPaidTo("");
@@ -682,6 +749,11 @@ export default function Dashboard() {
             <div className="form-card">
               <div className="form-card-title">➕ Add Income</div>
               <div className="field-wrap">
+                <label className="field-label">Date</label>
+                <input className="db-input" type="date" value={incomeDate}
+                  onChange={e => setIncomeDate(e.target.value)} />
+              </div>
+              <div className="field-wrap">
                 <label className="field-label">Service / Work</label>
                 <input className="db-input" placeholder="e.g. Loan recovery" value={incomeForm.service} onChange={e => setIncomeForm({ ...incomeForm, service: e.target.value })} />
               </div>
@@ -697,7 +769,44 @@ export default function Dashboard() {
             <div className="form-card">
               <div className="form-card-title">➖ Add Expense</div>
               <div className="field-wrap">
+                <label className="field-label">Date</label>
+                <input className="db-input" type="date" value={expenseDate}
+                  onChange={e => setExpenseDate(e.target.value)} />
+              </div>
+              <div className="field-wrap">
                 <label className="field-label">Paid To</label>
+
+                {/* ── Manage Options ── */}
+                <button className="manage-opts-btn" onClick={() => setShowManageOptions(p => !p)}>
+                  ⚙️ {showManageOptions ? "Hide" : "Manage"} Options
+                </button>
+                {showManageOptions && (
+                  <div className="manage-opts-panel">
+                    <div className="manage-opts-list">
+                      {paidToOptions.map(opt => (
+                        <div className="opt-pill" key={opt}>
+                          {opt}
+                          <button className="opt-pill-del" onClick={() => removeOption(opt)} title="Remove">
+                            <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                              <path d="M18 6L6 18M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="manage-opts-add">
+                      <input
+                        className="manage-opts-input"
+                        placeholder="New name e.g. RAJAN FIN"
+                        value={newOptionName}
+                        onChange={e => setNewOptionName(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && addOption()}
+                      />
+                      <button className="manage-opts-save" onClick={addOption}>+ Add</button>
+                    </div>
+                  </div>
+                )}
+
                 <select className="db-select" value={expenseForm.paid_to} onChange={e => { setExpenseForm({ ...expenseForm, paid_to: e.target.value }); if (e.target.value !== "Others") setCustomPaidTo(""); }}>
                   <option value="">Select Paid To</option>
                   {PAID_TO_OPTIONS.map(p => <option key={p}>{p}</option>)}
