@@ -562,29 +562,43 @@ export default function Dashboard() {
   const dadTotal = incomes.filter(i => i.given_to_whom === "Dad").reduce((s, i) => s + (i.given_to_home || 0), 0);
 
   const DEFAULT_OPTIONS = ["PACHAIYAPPAN FIN", "SAI FIN", "SOTTA FIN", "SPF FIN", "BHAVANI FIN", "JANA SETTIYAR"];
-  const [paidToOptions, setPaidToOptions] = useState(() => {
-    try { const s = localStorage.getItem("paidToOptions"); return s ? JSON.parse(s) : DEFAULT_OPTIONS; }
-    catch { return DEFAULT_OPTIONS; }
-  });
+  const [paidToOptions, setPaidToOptions] = useState([]);
   const [showManageOptions, setShowManageOptions] = useState(false);
   const [newOptionName, setNewOptionName] = useState("");
+  const [optLoading, setOptLoading] = useState(false);
 
-  const saveOptions = (opts) => {
-    setPaidToOptions(opts);
-    localStorage.setItem("paidToOptions", JSON.stringify(opts));
+  const fetchOptions = async () => {
+    const { data, error } = await supabase.from("paid_to_options").select("*").order("created_at", { ascending: true });
+    if (error || !data || data.length === 0) {
+      setPaidToOptions(DEFAULT_OPTIONS.map(name => ({ name })));
+    } else {
+      setPaidToOptions(data);
+    }
   };
-  const addOption = () => {
+
+  const addOption = async () => {
     const name = newOptionName.trim().toUpperCase();
-    if (!name || paidToOptions.includes(name)) return;
-    saveOptions([...paidToOptions, name]);
+    if (!name) return;
+    if (paidToOptions.find(o => o.name === name)) { alert("Already exists!"); return; }
+    setOptLoading(true);
+    const { error } = await supabase.from("paid_to_options").insert([{ name }]);
+    if (error) { alert(error.message); setOptLoading(false); return; }
     setNewOptionName("");
-  };
-  const removeOption = (opt) => {
-    if (!window.confirm(`Remove "${opt}" from list?`)) return;
-    saveOptions(paidToOptions.filter(o => o !== opt));
+    await fetchOptions();
+    setOptLoading(false);
   };
 
-  const PAID_TO_OPTIONS = [...paidToOptions, "Others"];
+  const removeOption = async (opt) => {
+    if (!window.confirm(`Remove "${opt.name}" from list?`)) return;
+    setOptLoading(true);
+    if (opt.id) {
+      await supabase.from("paid_to_options").delete().eq("id", opt.id);
+    }
+    await fetchOptions();
+    setOptLoading(false);
+  };
+
+  const PAID_TO_OPTIONS = [...paidToOptions.map(o => o.name), "Others"];
 
   const [incomeForm, setIncomeForm] = useState({ date: today, service: "", amount: "" });
   const [homeForm, setHomeForm] = useState({ given_to_whom: "Mom" });
@@ -620,7 +634,7 @@ export default function Dashboard() {
     return last7;
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); fetchOptions(); }, []);
   useEffect(() => {
     const check = async () => { const { data } = await supabase.auth.getSession(); if (!data.session) navigate("/"); };
     check();
@@ -784,9 +798,9 @@ export default function Dashboard() {
                   <div className="manage-opts-panel">
                     <div className="manage-opts-list">
                       {paidToOptions.map(opt => (
-                        <div className="opt-pill" key={opt}>
-                          {opt}
-                          <button className="opt-pill-del" onClick={() => removeOption(opt)} title="Remove">
+                        <div className="opt-pill" key={opt.id || opt.name}>
+                          {opt.name}
+                          <button className="opt-pill-del" onClick={() => removeOption(opt)} title="Remove" disabled={optLoading}>
                             <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                               <path d="M18 6L6 18M6 6l12 12" />
                             </svg>
@@ -801,8 +815,11 @@ export default function Dashboard() {
                         value={newOptionName}
                         onChange={e => setNewOptionName(e.target.value)}
                         onKeyDown={e => e.key === "Enter" && addOption()}
+                        disabled={optLoading}
                       />
-                      <button className="manage-opts-save" onClick={addOption}>+ Add</button>
+                      <button className="manage-opts-save" onClick={addOption} disabled={optLoading}>
+                        {optLoading ? "..." : "+ Add"}
+                      </button>
                     </div>
                   </div>
                 )}
