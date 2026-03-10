@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import MonthlyReport from "./pages/MonthlyReport";
 import DailyReport from "./pages/DailyReport";
+import BulkTracker from "./pages/BulkTracker";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -35,6 +36,11 @@ export default function App() {
         <Route
           path="/monthly"
           element={loggedIn ? <MonthlyReport /> : <Navigate to="/login" />}
+        />
+
+        <Route
+          path="/bulk"
+          element={loggedIn ? <BulkTracker /> : <Navigate to="/login" />}
         />
 
         <Route path="*" element={<Navigate to="/login" />} />
