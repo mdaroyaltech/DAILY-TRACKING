@@ -18,16 +18,13 @@ const CSS = `
   --surface2:  #faf8f5;
   --border:    #e2dcd4;
   --border2:   #d0c9be;
-
   --text:      #1c1a17;
   --text-med:  #5a5449;
   --text-dim:  #9a9187;
   --text-faint:#c4bdb4;
-
   --teal:      #0d9488;
   --teal-light:#e0f2f0;
   --teal-mid:  #99d6d0;
-
   --green:     #16a34a;
   --green-bg:  #dcfce7;
   --red:       #dc2626;
@@ -36,10 +33,10 @@ const CSS = `
   --amber-bg:  #fef3c7;
   --blue:      #1d4ed8;
   --blue-bg:   #dbeafe;
-
+  --purple:    #7c3aed;
+  --purple-bg: #ede9fe;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   --shadow:    0 4px 16px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.05);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -52,492 +49,232 @@ const CSS = `
   padding-bottom: 80px;
 }
 
-/* ─── HEADER ─── */
+/* ── HEADER ── */
 .db-header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  padding: 36px 0 28px;
-  margin-bottom: 36px;
+  padding: 28px 0 22px;
+  margin-bottom: 28px;
   box-shadow: var(--shadow-sm);
 }
 .db-header-inner {
-  max-width: 1200px;
-  margin: auto;
-  padding: 0 32px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
+  max-width: 1100px; margin: auto; padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
 }
 .db-eyebrow {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--teal);
-  margin-bottom: 6px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--teal); margin-bottom: 5px; display: flex; align-items: center; gap: 7px;
 }
-.db-eyebrow::before {
-  content: '';
-  display: inline-block;
-  width: 20px;
-  height: 2px;
-  background: var(--teal);
-  border-radius: 2px;
-}
-.db-title {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(26px, 3.5vw, 40px);
-  font-weight: 900;
-  line-height: 1.08;
-  color: var(--text);
-}
-.db-title em {
-  font-style: italic;
-  color: var(--teal);
-}
-.db-date {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-dim);
-  letter-spacing: 0.06em;
-  padding: 8px 16px;
-  border: 1.5px solid var(--border2);
-  border-radius: 24px;
-  background: var(--bg2);
-}
+.db-eyebrow::before { content:''; display:inline-block; width:18px; height:2px; background:var(--teal); border-radius:2px; }
+.db-title { font-family:'Playfair Display',serif; font-size:clamp(22px,3vw,34px); font-weight:900; line-height:1.1; color:var(--text); }
+.db-title em { font-style:italic; color:var(--teal); }
+.db-date { font-size:12px; font-weight:500; color:var(--text-dim); letter-spacing:.05em; padding:7px 15px; border:1.5px solid var(--border2); border-radius:20px; background:var(--bg2); white-space:nowrap; }
 
-/* ─── LAYOUT ─── */
-.db-wrap {
-  max-width: 1200px;
-  margin: auto;
-  padding: 0 32px;
-}
-@media(max-width: 600px) { .db-wrap { padding: 0 16px; } }
+/* ── LAYOUT ── */
+.db-wrap { max-width:1100px; margin:auto; padding:0 24px; }
+@media(max-width:480px){ .db-wrap{padding:0 14px;} }
 
-/* ─── SECTION TITLE ─── */
+/* ── SECTION TITLE ── */
 .section-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 19px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 18px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  font-family:'Playfair Display',serif; font-size:17px; font-weight:700; color:var(--text);
+  margin-bottom:14px; display:flex; align-items:center; gap:10px;
 }
-.section-title::after {
-  content: '';
-  flex: 1;
-  height: 1.5px;
-  background: var(--border);
-  border-radius: 2px;
-}
+.section-title::after { content:''; flex:1; height:1.5px; background:var(--border); border-radius:2px; }
 
-/* ─── STAT CARDS ─── */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 16px;
-}
-.stats-grid-4 {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 40px;
-}
-@media(max-width: 900px) {
-  .stats-grid { grid-template-columns: 1fr; }
-  .stats-grid-4 { grid-template-columns: repeat(2, 1fr); }
-}
-@media(max-width: 480px) {
-  .stats-grid-4 { grid-template-columns: 1fr; }
-}
+/* ── STAT CARDS ── */
+.stats-grid   { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:12px; }
+.stats-grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:32px; }
+@media(max-width:640px){ .stats-grid{grid-template-columns:1fr 1fr;} }
+@media(max-width:380px){ .stats-grid{grid-template-columns:1fr;} }
+@media(max-width:700px){ .stats-grid-4{grid-template-columns:repeat(2,1fr);} }
 
-.stat-card {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 14px;
-  padding: 22px 26px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow);
-}
-.stat-card-accent {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  border-radius: 14px 14px 0 0;
-}
-.accent-green  { background: var(--green); }
-.accent-red    { background: var(--red); }
-.accent-teal   { background: var(--teal); }
-.accent-amber  { background: var(--amber); }
-.accent-blue   { background: var(--blue); }
+.stat-card { background:var(--surface); border:1.5px solid var(--border); border-radius:12px; padding:18px 20px; position:relative; overflow:hidden; box-shadow:var(--shadow-sm); transition:transform .2s,box-shadow .2s; }
+.stat-card:hover { transform:translateY(-2px); box-shadow:var(--shadow); }
+.stat-card-accent { position:absolute; top:0; left:0; right:0; height:3px; border-radius:12px 12px 0 0; }
+.accent-green { background:var(--green); }
+.accent-red   { background:var(--red); }
+.accent-teal  { background:var(--teal); }
+.accent-amber { background:var(--amber); }
+.accent-blue  { background:var(--blue); }
+.accent-purple{ background:var(--purple); }
+.stat-icon-bg { width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:16px; margin-bottom:12px; }
+.stat-label { font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim); margin-bottom:5px; }
+.stat-value { font-family:'Playfair Display',serif; font-size:28px; font-weight:700; line-height:1; }
+.stat-value.sm { font-size:22px; }
+.stat-value.green  { color:var(--green); }
+.stat-value.red    { color:var(--red); }
+.stat-value.teal   { color:var(--teal); }
+.stat-value.amber  { color:var(--amber); }
+.stat-value.blue   { color:var(--blue); }
+.stat-value.purple { color:var(--purple); }
 
-.stat-icon-bg {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  margin-bottom: 14px;
+/* ── FORMS TABS ── */
+.forms-tabs {
+  display:flex; background:var(--surface); border:1.5px solid var(--border);
+  border-radius:12px 12px 0 0; overflow:hidden;
+  margin-bottom:0;
 }
-.stat-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  margin-bottom: 6px;
+.forms-tab {
+  flex:1; padding:12px 8px; font-size:11px; font-weight:600; letter-spacing:.08em;
+  text-transform:uppercase; text-align:center; cursor:pointer;
+  border:none; font-family:'DM Sans',sans-serif; color:var(--text-dim);
+  background:transparent; transition:all .18s;
+  border-right:1.5px solid var(--border);
 }
-.stat-value {
-  font-family: 'Playfair Display', serif;
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 1;
-}
-.stat-value.green { color: var(--green); }
-.stat-value.red   { color: var(--red); }
-.stat-value.teal  { color: var(--teal); }
-.stat-value.amber { color: var(--amber); }
-.stat-value.blue  { color: var(--blue); }
+.forms-tab:last-child { border-right:none; }
+.forms-tab.active { background:var(--teal-light); color:var(--teal); }
+.forms-tab:hover:not(.active) { color:var(--text-med); background:var(--surface2); }
+@media(max-width:480px){ .forms-tab{font-size:10px; padding:10px 4px;} }
 
-/* ─── FORM CARDS ─── */
-.forms-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin-bottom: 40px;
+.form-panel {
+  background:var(--surface); border:1.5px solid var(--border); border-top:none;
+  border-radius:0 0 12px 12px; padding:22px; margin-bottom:32px;
 }
-@media(max-width: 900px) { .forms-grid { grid-template-columns: 1fr; } }
+@media(max-width:480px){ .form-panel{padding:16px;} }
 
-.form-card {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 14px;
-  padding: 26px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--shadow-sm);
+/* ── INCOME MODE TOGGLE ── */
+.income-mode-row {
+  display:flex; gap:0; background:var(--bg2); border:1.5px solid var(--border);
+  border-radius:8px; overflow:hidden; margin-bottom:16px; width:fit-content;
 }
-.form-card-title {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--teal);
-  margin-bottom: 20px;
-  padding-bottom: 14px;
-  border-bottom: 1.5px solid var(--teal-light);
+.income-mode-btn {
+  padding:7px 18px; font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+  cursor:pointer; border:none; font-family:'DM Sans',sans-serif;
+  color:var(--text-dim); background:transparent; transition:all .18s;
 }
+.income-mode-btn.active { background:var(--teal); color:#fff; }
+.income-mode-btn:hover:not(.active) { color:var(--text-med); }
 
-.field-wrap { margin-bottom: 13px; }
-.field-label {
-  display: block;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-med);
-  margin-bottom: 6px;
-}
+/* ── FIELDS ── */
+.field-wrap { margin-bottom:12px; }
+.field-label { display:block; font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-med); margin-bottom:5px; }
 
 .db-input, .db-select {
-  width: 100%;
-  background: var(--bg2);
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 14px;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 400;
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-  appearance: none;
-  -webkit-appearance: none;
+  width:100%; background:var(--bg2); border:1.5px solid var(--border); border-radius:8px;
+  padding:10px 13px; font-size:14px; font-family:'DM Sans',sans-serif;
+  color:var(--text); outline:none;
+  transition:border-color .2s, background .2s, box-shadow .2s;
+  appearance:none; -webkit-appearance:none;
 }
-.db-input::placeholder { color: var(--text-faint); }
-.db-input:focus, .db-select:focus {
-  border-color: var(--teal);
-  background: var(--surface);
-  box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
+.db-input::placeholder { color:var(--text-faint); }
+.db-input:focus, .db-select:focus { border-color:var(--teal); background:var(--surface); box-shadow:0 0 0 3px rgba(13,148,136,0.1); }
+.db-select option { color:var(--text); }
+
+.qty-rate-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.qty-rate-row .field-wrap { margin-bottom:0; }
+
+.auto-amount-box {
+  background:var(--teal-light); border:1.5px solid var(--teal-mid);
+  border-radius:8px; padding:10px 14px;
+  display:flex; align-items:center; justify-content:space-between; margin:12px 0;
 }
-.db-select option { color: var(--text); }
+.auto-amount-label { font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--teal); }
+.auto-amount-value { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:var(--teal); }
 
 .db-input-readonly {
-  background: var(--teal-light);
-  border-color: var(--teal-mid);
-  color: var(--teal);
-  font-family: 'Playfair Display', serif;
-  font-size: 20px;
-  font-weight: 700;
-  cursor: not-allowed;
+  background:var(--teal-light); border-color:var(--teal-mid); color:var(--teal);
+  font-family:'Playfair Display',serif; font-size:18px; font-weight:700; cursor:not-allowed;
 }
 
-.btn {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.15s, box-shadow 0.15s;
-  margin-top: 4px;
-}
-.btn:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: var(--shadow); }
-.btn:active { transform: translateY(0); box-shadow: none; }
+/* ── BUTTONS ── */
+.btn { width:100%; padding:12px; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; cursor:pointer; transition:all .18s; margin-top:4px; }
+.btn:hover { opacity:.88; transform:translateY(-1px); box-shadow:var(--shadow); }
+.btn:active { transform:translateY(0); box-shadow:none; }
+.btn-teal  { background:var(--teal); color:#fff; }
+.btn-green { background:var(--green); color:#fff; }
+.btn-red   { background:var(--red); color:#fff; }
+.btn-ghost { background:transparent; color:var(--red); border:1.5px solid rgba(220,38,38,0.3); margin-top:8px; }
+.btn-ghost:hover { background:var(--red-bg); }
+.btn:disabled { opacity:.35; cursor:not-allowed; transform:none !important; }
 
-.btn-teal  { background: var(--teal); color: #fff; }
-.btn-green { background: var(--green); color: #fff; }
-.btn-red   { background: var(--red); color: #fff; }
-.btn-ghost {
-  background: transparent;
-  color: var(--red);
-  border: 1.5px solid rgba(220,38,38,0.3);
-  margin-top: 8px;
-}
-.btn-ghost:hover { background: var(--red-bg); }
+/* ── MANAGE OPTIONS ── */
+.manage-opts-btn { display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--teal); background:none; border:none; cursor:pointer; padding:0; font-family:'DM Sans',sans-serif; margin-bottom:10px; transition:opacity .15s; }
+.manage-opts-btn:hover { opacity:.7; }
+.manage-opts-panel { background:var(--bg2); border:1.5px solid var(--border); border-radius:10px; padding:14px; margin-bottom:12px; }
+.manage-opts-list { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:12px; }
+.opt-pill { display:flex; align-items:center; gap:5px; background:var(--surface); border:1.5px solid var(--border); border-radius:20px; padding:4px 10px 4px 12px; font-size:11px; font-weight:600; color:var(--text-med); }
+.opt-pill-del { background:none; border:none; cursor:pointer; padding:2px; border-radius:50%; color:var(--text-faint); display:flex; transition:all .15s; }
+.opt-pill-del:hover { color:var(--red); background:var(--red-bg); }
 
-/* ─── CHART ─── */
-.chart-card {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 14px;
-  padding: 30px;
-  margin-bottom: 40px;
-  box-shadow: var(--shadow-sm);
-}
-.chart-toggle {
-  display: flex;
-  gap: 6px;
-  background: var(--bg2);
-  padding: 5px;
-  border-radius: 10px;
-  width: fit-content;
-  margin-bottom: 24px;
-  border: 1.5px solid var(--border);
-}
-.toggle-btn {
-  padding: 8px 22px;
-  border-radius: 7px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
-  font-family: 'DM Sans', sans-serif;
-  color: var(--text-dim);
-  background: transparent;
-}
-.toggle-btn.active {
-  background: var(--teal);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(13,148,136,0.3);
-}
+.svc-add-row { display:grid; grid-template-columns:1fr 80px auto; gap:7px; align-items:center; }
+@media(max-width:400px){ .svc-add-row{grid-template-columns:1fr 65px auto;} }
+.manage-opts-input { background:var(--surface); border:1.5px solid var(--border); border-radius:8px; padding:8px 11px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text); outline:none; transition:border-color .2s; width:100%; }
+.manage-opts-input:focus { border-color:var(--teal); }
+.manage-opts-save { padding:8px 12px; background:var(--teal); color:#fff; border:none; border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; white-space:nowrap; transition:opacity .15s; }
+.manage-opts-save:hover { opacity:.85; }
+.manage-opts-save:disabled { opacity:.4; cursor:not-allowed; }
 
-.chart-result-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1.5px solid var(--border);
-}
-@media(max-width: 600px) { .chart-result-row { grid-template-columns: 1fr; } }
+.opt-pill-rate { font-size:9px; font-weight:600; color:var(--green); background:var(--green-bg); padding:1px 6px; border-radius:6px; margin-left:2px; }
+.opt-pill-edit-btn { background:none; border:none; cursor:pointer; padding:2px 4px; border-radius:4px; color:var(--text-faint); display:flex; align-items:center; transition:all .15s; }
+.opt-pill-edit-btn:hover { color:var(--teal); background:var(--teal-light); }
+.opt-pill-editing { border-color:var(--teal) !important; background:var(--teal-light) !important; flex-wrap:wrap; gap:6px 8px; }
+.opt-pill-edit-inputs { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.opt-pill-input { background:var(--surface); border:1.5px solid var(--teal-mid); border-radius:5px; padding:3px 7px; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text); outline:none; }
+.opt-pill-input:focus { border-color:var(--teal); }
+.opt-pill-input.name-input { width:110px; }
+.opt-pill-input.rate-input { width:65px; }
+.opt-pill-save { background:var(--teal); color:#fff; border:none; border-radius:5px; padding:3px 9px; font-size:10px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; white-space:nowrap; }
+.opt-pill-cancel { background:var(--bg2); color:var(--text-dim); border:1.5px solid var(--border); border-radius:5px; padding:3px 7px; font-size:10px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
 
-.result-box {
-  text-align: center;
-  padding: 18px;
-  border-radius: 10px;
-  border: 1.5px solid var(--border);
-  background: var(--surface2);
-}
-.result-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  margin-bottom: 8px;
-}
-.result-value {
-  font-family: 'Playfair Display', serif;
-  font-size: 24px;
-  font-weight: 700;
-}
-.result-value.profit { color: var(--green); }
-.result-value.loss   { color: var(--red); }
+/* ── CHART ── */
+.chart-card { background:var(--surface); border:1.5px solid var(--border); border-radius:12px; padding:24px; margin-bottom:32px; box-shadow:var(--shadow-sm); }
+.chart-toggle { display:flex; gap:0; background:var(--bg2); border:1.5px solid var(--border); border-radius:8px; overflow:hidden; width:fit-content; margin-bottom:18px; }
+.toggle-btn { padding:7px 20px; font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; border:none; font-family:'DM Sans',sans-serif; color:var(--text-dim); background:transparent; transition:all .18s; }
+.toggle-btn.active { background:var(--teal); color:#fff; }
+.toggle-btn:hover:not(.active) { color:var(--text-med); }
+.chart-result-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:18px; padding-top:18px; border-top:1.5px solid var(--border); }
+@media(max-width:480px){ .chart-result-row{grid-template-columns:1fr;} }
+.result-box { text-align:center; padding:14px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface2); }
+.result-label { font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim); margin-bottom:6px; }
+.result-value { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; }
+.result-value.profit { color:var(--green); }
+.result-value.loss   { color:var(--red); }
 
-/* ─── TABLES ─── */
-.table-card {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 14px;
-  padding: 30px;
-  margin-bottom: 24px;
-  box-shadow: var(--shadow-sm);
-  overflow-x: auto;
-}
-.db-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.db-table th {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  padding: 10px 14px;
-  text-align: left;
-  background: var(--bg2);
-  border-bottom: 1.5px solid var(--border);
-  white-space: nowrap;
-}
-.db-table th:first-child { border-radius: 8px 0 0 8px; }
-.db-table th:last-child  { border-radius: 0 8px 8px 0; }
-.db-table th.right  { text-align: right; }
-.db-table th.center { text-align: center; }
+/* ── TABLES ── */
+.table-card { background:var(--surface); border:1.5px solid var(--border); border-radius:12px; padding:22px; margin-bottom:20px; box-shadow:var(--shadow-sm); overflow-x:auto; }
+.table-scroll-hint { display:none; font-size:10px; color:var(--text-dim); margin-bottom:8px; text-align:center; letter-spacing:.05em; }
+@media(max-width:580px){ .table-scroll-hint{display:block;} }
+.db-table { width:100%; border-collapse:collapse; font-size:13px; min-width:480px; }
+.db-table th { font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--text-dim); padding:9px 12px; text-align:left; background:var(--bg2); border-bottom:1.5px solid var(--border); white-space:nowrap; }
+.db-table th:first-child { border-radius:7px 0 0 7px; }
+.db-table th:last-child  { border-radius:0 7px 7px 0; }
+.db-table th.right  { text-align:right; }
+.db-table th.center { text-align:center; }
+.db-table td { padding:12px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
+.db-table td.right  { text-align:right; }
+.db-table td.center { text-align:center; }
+.db-table tr:last-child td { border-bottom:none; }
+.db-table tr:hover td { background:var(--surface2); }
+.row-pending td { background:#fffbeb !important; }
+.row-pending:hover td { background:#fef9d0 !important; }
 
-.db-table td {
-  padding: 13px 14px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text);
-  font-weight: 400;
-  vertical-align: middle;
-}
-.db-table td.right  { text-align: right; }
-.db-table td.center { text-align: center; }
-.db-table tr:last-child td { border-bottom: none; }
-.db-table tr:hover td { background: var(--surface2); }
-.row-pending td { background: #fffbeb !important; }
-.row-pending:hover td { background: #fef9d0 !important; }
+.badge { display:inline-flex; align-items:center; padding:3px 9px; border-radius:12px; font-size:10px; font-weight:600; letter-spacing:.05em; }
+.badge-income  { background:var(--green-bg); color:var(--green); }
+.badge-expense { background:var(--red-bg);   color:var(--red); }
+.badge-home    { background:var(--teal-light); color:var(--teal); }
+.badge-manual  { background:var(--purple-bg); color:var(--purple); }
 
-.badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-}
-.badge-income  { background: var(--green-bg); color: var(--green); }
-.badge-expense { background: var(--red-bg);   color: var(--red); }
-.badge-home    { background: var(--teal-light); color: var(--teal); }
+.edit-input { background:var(--bg2); border:1.5px solid var(--teal); border-radius:6px; padding:5px 8px; width:90px; text-align:right; color:var(--text); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; box-shadow:0 0 0 3px rgba(13,148,136,0.1); }
+.edit-trigger { display:inline-flex; align-items:center; gap:5px; cursor:pointer; color:var(--text); font-weight:500; }
+.edit-trigger:hover { color:var(--teal); }
+.edit-icon { width:12px; height:12px; color:var(--text-dim); }
+.edit-trigger:hover .edit-icon { color:var(--teal); }
 
-.edit-input {
-  background: var(--bg2);
-  border: 1.5px solid var(--teal);
-  border-radius: 6px;
-  padding: 5px 8px;
-  width: 90px;
-  text-align: right;
-  color: var(--text);
-  font-size: 13px;
-  font-family: 'DM Sans', sans-serif;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
-}
-.edit-trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  color: var(--text);
-  font-weight: 500;
-}
-.edit-trigger:hover { color: var(--teal); }
-.edit-icon {
-  width: 13px;
-  height: 13px;
-  color: var(--text-dim);
-  transition: color 0.2s;
-}
-.edit-trigger:hover .edit-icon { color: var(--teal); }
+.del-btn { background:none; border:none; cursor:pointer; padding:6px; border-radius:6px; color:var(--text-faint); transition:all .18s; display:inline-flex; }
+.del-btn:hover { color:var(--red); background:var(--red-bg); }
 
-.del-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
-  color: var(--text-faint);
-  transition: color 0.2s, background 0.2s;
-  display: inline-flex;
-}
-.del-btn:hover { color: var(--red); background: var(--red-bg); }
+.loading-text, .empty-text { text-align:center; color:var(--text-dim); padding:36px; font-size:13px; letter-spacing:.04em; }
 
-.loading-text, .empty-text {
-  text-align: center;
-  color: var(--text-dim);
-  padding: 36px;
-  font-size: 14px;
-  font-weight: 300;
-  letter-spacing: 0.04em;
+/* ── MOBILE ── */
+@media(max-width:640px){
+  .db-header { padding:16px 0 12px; margin-bottom:18px; }
+  .stat-card { padding:14px 16px; }
+  .stat-value { font-size:22px !important; }
+  .stat-value.sm { font-size:18px !important; }
+  .stat-icon-bg { width:30px; height:30px; font-size:14px; margin-bottom:8px; }
+  .chart-card { padding:16px; }
+  .table-card { padding:14px; }
 }
-
-/* ─── MANAGE OPTIONS ─── */
-.manage-opts-btn {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-  color: var(--teal); background: none; border: none; cursor: pointer;
-  padding: 0; font-family: 'DM Sans',sans-serif; margin-bottom: 10px;
-  transition: opacity .15s;
-}
-.manage-opts-btn:hover { opacity: .7; }
-.manage-opts-panel {
-  background: var(--bg2); border: 1.5px solid var(--border);
-  border-radius: 10px; padding: 14px; margin-bottom: 12px;
-}
-.manage-opts-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-.opt-pill {
-  display: flex; align-items: center; gap: 6px;
-  background: var(--surface); border: 1.5px solid var(--border);
-  border-radius: 20px; padding: 4px 10px 4px 12px;
-  font-size: 12px; font-weight: 600; color: var(--text-med);
-}
-.opt-pill-del {
-  background: none; border: none; cursor: pointer; padding: 2px;
-  border-radius: 50%; color: var(--text-faint); display: flex;
-  transition: color .15s, background .15s; line-height: 1;
-}
-.opt-pill-del:hover { color: var(--red); background: var(--red-bg); }
-.manage-opts-add { display: flex; gap: 8px; }
-.manage-opts-input {
-  flex: 1; background: var(--surface); border: 1.5px solid var(--border);
-  border-radius: 8px; padding: 8px 12px; font-size: 13px;
-  font-family: 'DM Sans',sans-serif; color: var(--text); outline: none;
-  transition: border-color .2s;
-}
-.manage-opts-input:focus { border-color: var(--teal); }
-.manage-opts-save {
-  padding: 8px 16px; background: var(--teal); color: #fff; border: none;
-  border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
-  font-family: 'DM Sans',sans-serif; white-space: nowrap;
-  transition: opacity .15s;
-}
-.manage-opts-save:hover { opacity: .85; }
 `;
 
 /* ═══════════════════════════════════════════════════════════ */
@@ -549,9 +286,9 @@ export default function Dashboard() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
-  const [customPaidTo, setCustomPaidTo] = useState("");
   const [chartType, setChartType] = useState("daily");
   const [chartData, setChartData] = useState([]);
+  const [activeForm, setActiveForm] = useState("income");
 
   const { totalIncome, totalExpense, balance, weeklyBalance } =
     useFinanceSummary(incomes, expenses, today);
@@ -561,19 +298,67 @@ export default function Dashboard() {
   const momTotal = incomes.filter(i => i.given_to_whom === "Mom").reduce((s, i) => s + (i.given_to_home || 0), 0);
   const dadTotal = incomes.filter(i => i.given_to_whom === "Dad").reduce((s, i) => s + (i.given_to_home || 0), 0);
 
-  const DEFAULT_OPTIONS = ["PACHAIYAPPAN FIN", "SAI FIN", "SOTTA FIN", "SPF FIN", "BHAVANI FIN", "JANA SETTIYAR"];
+  /* ── SERVICE OPTIONS ── */
+  const [serviceOptions, setServiceOptions] = useState([]);
+  const [showManageSvc, setShowManageSvc] = useState(false);
+  const [newSvcName, setNewSvcName] = useState("");
+  const [newSvcRate, setNewSvcRate] = useState("");
+  const [svcLoading, setSvcLoading] = useState(false);
+  const [editingSvcId, setEditingSvcId] = useState(null);
+  const [editSvcName, setEditSvcName] = useState("");
+  const [editSvcRate, setEditSvcRate] = useState("");
+
+  const fetchServices = async () => {
+    const { data, error } = await supabase.from("service_options").select("*").order("created_at", { ascending: true });
+    if (error) { console.error("fetchServices:", error.message); return; }
+    setServiceOptions(data || []);
+  };
+
+  const addService = async () => {
+    const name = newSvcName.trim();
+    const rate = Number(newSvcRate);
+    if (!name || !rate || rate <= 0) return;
+    if (serviceOptions.find(o => o.name.toLowerCase() === name.toLowerCase())) { alert("Service already exists!"); return; }
+    setSvcLoading(true);
+    const { error } = await supabase.from("service_options").insert([{ name, rate_per_qty: rate }]);
+    if (error) { alert(error.message); setSvcLoading(false); return; }
+    setNewSvcName(""); setNewSvcRate("");
+    await fetchServices(); setSvcLoading(false);
+  };
+
+  const removeService = async (opt) => {
+    if (!window.confirm(`Remove "${opt.name}"?`)) return;
+    setSvcLoading(true);
+    const { error } = await supabase.from("service_options").delete().eq("id", opt.id);
+    if (error) { alert("Delete failed: " + error.message); setSvcLoading(false); return; }
+    setServiceOptions(prev => prev.filter(s => s.id !== opt.id));
+    await fetchServices(); setSvcLoading(false);
+  };
+
+  const updateService = async (opt) => {
+    const name = editSvcName.trim();
+    const rate = Number(editSvcRate);
+    if (!name || !rate || rate <= 0) return;
+    setSvcLoading(true);
+    const { error } = await supabase.from("service_options").update({ name, rate_per_qty: rate }).eq("id", opt.id);
+    if (error) { alert("Update failed: " + error.message); setSvcLoading(false); return; }
+    if (selectedService === opt.name) { setSelectedService(name); setRatePerQty(String(rate)); }
+    setEditingSvcId(null);
+    await fetchServices(); setSvcLoading(false);
+  };
+
+  /* ── PAID-TO OPTIONS ── */
+  const DEFAULT_PAID_TO = ["PACHAIYAPPAN FIN", "SAI FIN", "SOTTA FIN", "SPF FIN", "BHAVANI FIN", "JANA SETTIYAR"];
   const [paidToOptions, setPaidToOptions] = useState([]);
-  const [showManageOptions, setShowManageOptions] = useState(false);
+  const [showManageOpts, setShowManageOpts] = useState(false);
   const [newOptionName, setNewOptionName] = useState("");
   const [optLoading, setOptLoading] = useState(false);
+  const [customPaidTo, setCustomPaidTo] = useState("");
 
   const fetchOptions = async () => {
     const { data, error } = await supabase.from("paid_to_options").select("*").order("created_at", { ascending: true });
-    if (error || !data || data.length === 0) {
-      setPaidToOptions(DEFAULT_OPTIONS.map(name => ({ name })));
-    } else {
-      setPaidToOptions(data);
-    }
+    if (error || !data || data.length === 0) { setPaidToOptions(DEFAULT_PAID_TO.map(n => ({ name: n }))); }
+    else { setPaidToOptions(data); }
   };
 
   const addOption = async () => {
@@ -583,27 +368,40 @@ export default function Dashboard() {
     setOptLoading(true);
     const { error } = await supabase.from("paid_to_options").insert([{ name }]);
     if (error) { alert(error.message); setOptLoading(false); return; }
-    setNewOptionName("");
-    await fetchOptions();
-    setOptLoading(false);
+    setNewOptionName(""); await fetchOptions(); setOptLoading(false);
   };
 
   const removeOption = async (opt) => {
-    if (!window.confirm(`Remove "${opt.name}" from list?`)) return;
+    if (!window.confirm(`Remove "${opt.name}"?`)) return;
     setOptLoading(true);
-    if (opt.id) {
-      await supabase.from("paid_to_options").delete().eq("id", opt.id);
-    }
-    await fetchOptions();
-    setOptLoading(false);
+    if (opt.id) await supabase.from("paid_to_options").delete().eq("id", opt.id);
+    await fetchOptions(); setOptLoading(false);
   };
 
   const PAID_TO_OPTIONS = [...paidToOptions.map(o => o.name), "Others"];
 
-  const [incomeForm, setIncomeForm] = useState({ date: today, service: "", amount: "" });
-  const [homeForm, setHomeForm] = useState({ given_to_whom: "Mom" });
-  const [expenseForm, setExpenseForm] = useState({ date: today, paid_to: "", amount: "" });
+  /* ── INCOME FORM ── */
+  const [incomeMode, setIncomeMode] = useState("service"); // "service" | "manual"
   const [incomeDate, setIncomeDate] = useState(today);
+  const [selectedService, setSelectedService] = useState("");
+  const [ratePerQty, setRatePerQty] = useState("");
+  const [qty, setQty] = useState(1);
+  const computedAmount = ratePerQty && qty ? Math.round(Number(ratePerQty) * Number(qty)) : 0;
+
+  // Manual income fields
+  const [manualDesc, setManualDesc] = useState("");
+  const [manualAmount, setManualAmount] = useState("");
+
+  const handleServiceChange = (svcName) => {
+    setSelectedService(svcName);
+    const found = serviceOptions.find(s => s.name === svcName);
+    setRatePerQty(found ? String(found.rate_per_qty) : "");
+    setQty(1);
+  };
+
+  /* ── EXPENSE / HOME ── */
+  const [homeForm, setHomeForm] = useState({ given_to_whom: "Mom" });
+  const [expenseForm, setExpenseForm] = useState({ paid_to: "", amount: "" });
   const [expenseDate, setExpenseDate] = useState(today);
 
   /* ── FETCH ── */
@@ -611,16 +409,13 @@ export default function Dashboard() {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { navigate("/"); return; }
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
     const startDate = sevenDaysAgo.toISOString().split("T")[0];
     const [{ data: incomeData }, { data: expenseData }] = await Promise.all([
       supabase.from("income").select("*").gte("date", startDate).lte("date", today).order("created_at", { ascending: false }),
       supabase.from("expense").select("*").gte("date", startDate).lte("date", today).order("created_at", { ascending: false }),
     ]);
-    setIncomes(incomeData || []);
-    setExpenses(expenseData || []);
-    setLoading(false);
+    setIncomes(incomeData || []); setExpenses(expenseData || []); setLoading(false);
   };
 
   const generateChartData = (inc, exp) => {
@@ -634,29 +429,43 @@ export default function Dashboard() {
     return last7;
   };
 
-  useEffect(() => { fetchData(); fetchOptions(); }, []);
+  useEffect(() => { fetchData(); fetchOptions(); fetchServices(); }, []);
   useEffect(() => {
     const check = async () => { const { data } = await supabase.auth.getSession(); if (!data.session) navigate("/"); };
     check();
   }, [navigate]);
   useEffect(() => { setChartData(generateChartData(incomes, expenses)); }, [chartType, incomes, expenses]);
 
-  /* ── ADD ── */
-  const addIncome = async () => {
-    if (!incomeForm.service || !incomeForm.amount) return;
-    const { error } = await supabase.from("income").insert([{ date: incomeDate, service: incomeForm.service, amount: Number(incomeForm.amount), given_to_home: 0 }]);
+  /* ── ADD INCOME (service mode) ── */
+  const addServiceIncome = async () => {
+    if (!selectedService || !computedAmount) return;
+    const { error } = await supabase.from("income").insert([{
+      date: incomeDate, service: selectedService, amount: computedAmount,
+      qty: Number(qty), rate_per_qty: Number(ratePerQty), given_to_home: 0,
+    }]);
     if (error) { alert(error.message); return; }
-    setIncomeForm({ date: today, service: "", amount: "" });
-    fetchData();
+    setSelectedService(""); setRatePerQty(""); setQty(1); fetchData();
   };
+
+  /* ── ADD INCOME (manual mode) ── */
+  const addManualIncome = async () => {
+    const desc = manualDesc.trim();
+    const amount = Number(manualAmount);
+    if (!desc || !amount || amount <= 0) return;
+    const { error } = await supabase.from("income").insert([{
+      date: incomeDate, service: desc, amount, given_to_home: 0,
+    }]);
+    if (error) { alert(error.message); return; }
+    setManualDesc(""); setManualAmount(""); fetchData();
+  };
+
+  /* ── ADD EXPENSE ── */
   const addExpense = async () => {
     let paidTo = expenseForm.paid_to === "Others" ? customPaidTo : expenseForm.paid_to;
     if (!paidTo || !expenseForm.amount) return;
     const { error } = await supabase.from("expense").insert([{ date: expenseDate, paid_to: paidTo, amount: Number(expenseForm.amount) }]);
     if (error) { alert(error.message); return; }
-    setExpenseForm({ date: today, paid_to: "", amount: "" });
-    setCustomPaidTo("");
-    fetchData();
+    setExpenseForm({ paid_to: "", amount: "" }); setCustomPaidTo(""); fetchData();
   };
 
   /* ── UPDATE / DELETE ── */
@@ -666,8 +475,7 @@ export default function Dashboard() {
   };
   const deleteTransaction = async (table, id) => {
     if (!window.confirm("Delete this entry?")) return;
-    await supabase.from(table).delete().eq("id", id);
-    fetchData();
+    await supabase.from(table).delete().eq("id", id); fetchData();
   };
 
   /* ── HOME ── */
@@ -684,7 +492,6 @@ export default function Dashboard() {
       await supabase.from("income").update({ given_to_home: currentGiven + giveAmount, given_to_whom: homeForm.given_to_whom }).eq("id", income.id);
       remaining -= giveAmount;
     }
-    setHomeForm({ amount: "", given_to_whom: "Mom" });
     fetchData();
   };
   const undoLastHomePayment = async () => {
@@ -698,6 +505,8 @@ export default function Dashboard() {
     ...incomes.filter(i => i.date === today).map(i => ({ ...i, type: "Income" })),
     ...expenses.filter(e => e.date === today).map(e => ({ ...e, type: "Expense" })),
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  const fmt = (n) => (n || 0).toLocaleString("en-IN");
 
   /* ── RENDER ── */
   return (
@@ -714,117 +523,211 @@ export default function Dashboard() {
               <h1 className="db-title">Good day, <em>Abdul Jeelani</em></h1>
             </div>
             <div className="db-date">
-              {new Date().toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+              {new Date().toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
             </div>
           </div>
         </div>
 
         <div className="db-wrap">
 
-          {/* TOP 3 STAT CARDS */}
+          {/* STAT CARDS */}
           <div className="stats-grid">
-            <StatCard label="Total Income" value={totalIncome} valCls="green" accent="accent-green" icon="💰" iconBg="#dcfce7" />
-            <StatCard label="Total Expense" value={totalExpense} valCls="red" accent="accent-red" icon="💸" iconBg="#fee2e2" />
-            <StatCard label="Balance" value={balance} valCls={balance >= 0 ? "teal" : "red"} accent={balance >= 0 ? "accent-teal" : "accent-red"} icon="🧮" iconBg="#e0f2f0" />
+            <StatCard label="Total Income" value={fmt(totalIncome)} valCls="green" accent="accent-green" icon="💰" iconBg="#dcfce7" />
+            <StatCard label="Total Expense" value={fmt(totalExpense)} valCls="red" accent="accent-red" icon="💸" iconBg="#fee2e2" />
+            <StatCard label="Balance" value={fmt(balance)} valCls={balance >= 0 ? "teal" : "red"} accent={balance >= 0 ? "accent-teal" : "accent-red"} icon="🧮" iconBg="#e0f2f0" />
           </div>
-
-          {/* BOTTOM 4 STAT CARDS */}
           <div className="stats-grid-4">
-            <StatCard label="Total Given Home" value={totalGivenToHome} valCls="blue" accent="accent-blue" icon="🏠" iconBg="#dbeafe" small />
-            <StatCard label="Remaining" value={remainingAfterHome} valCls="green" accent="accent-green" icon="💼" iconBg="#dcfce7" small />
-            <StatCard label="Mom Total" value={momTotal} valCls="amber" accent="accent-amber" icon="👩" iconBg="#fef3c7" small />
-            <StatCard label="Dad Total" value={dadTotal} valCls="teal" accent="accent-teal" icon="👨" iconBg="#e0f2f0" small />
+            <StatCard label="Given Home" value={fmt(totalGivenToHome)} valCls="blue" accent="accent-blue" icon="🏠" iconBg="#dbeafe" small />
+            <StatCard label="Remaining" value={fmt(remainingAfterHome)} valCls="green" accent="accent-green" icon="💼" iconBg="#dcfce7" small />
+            <StatCard label="Mom Total" value={fmt(momTotal)} valCls="amber" accent="accent-amber" icon="👩" iconBg="#fef3c7" small />
+            <StatCard label="Dad Total" value={fmt(dadTotal)} valCls="purple" accent="accent-purple" icon="👨" iconBg="#ede9fe" small />
           </div>
 
-          {/* FORMS */}
+          {/* QUICK ENTRY — TABBED */}
           <p className="section-title">Quick Entry</p>
-          <div className="forms-grid">
 
-            {/* GIVE TO HOME */}
-            <div className="form-card">
-              <div className="form-card-title">🏠 Give to Home</div>
-              <div className="field-wrap">
-                <label className="field-label">Available Balance</label>
-                <input className="db-input db-input-readonly" readOnly value={`₹${balance > 0 ? balance : 0}`} />
-              </div>
-              <div className="field-wrap">
-                <label className="field-label">Give To</label>
-                <select className="db-select" value={homeForm.given_to_whom} onChange={e => setHomeForm({ ...homeForm, given_to_whom: e.target.value })}>
-                  <option value="Mom">Mom</option>
-                  <option value="Dad">Dad</option>
-                </select>
-              </div>
-              <div style={{ flex: 1 }} />
-              <button className="btn btn-teal" onClick={giveToHome}>Save Home Payment</button>
-              <button className="btn btn-ghost" onClick={undoLastHomePayment}>Undo Last Payment</button>
-            </div>
+          <div className="forms-tabs">
+            {[
+              { key: "income", label: "➕ Add Income" },
+              { key: "expense", label: "➖ Add Expense" },
+              { key: "home", label: "🏠 Give Home" },
+            ].map(t => (
+              <button key={t.key} className={`forms-tab${activeForm === t.key ? " active" : ""}`} onClick={() => setActiveForm(t.key)}>
+                {t.label}
+              </button>
+            ))}
+          </div>
 
-            {/* ADD INCOME */}
-            <div className="form-card">
-              <div className="form-card-title">➕ Add Income</div>
+          {/* ── INCOME PANEL ── */}
+          {activeForm === "income" && (
+            <div className="form-panel">
+
+              {/* Date */}
               <div className="field-wrap">
                 <label className="field-label">Date</label>
-                <input className="db-input" type="date" value={incomeDate}
-                  onChange={e => setIncomeDate(e.target.value)} />
+                <input className="db-input" type="date" value={incomeDate} onChange={e => setIncomeDate(e.target.value)} />
               </div>
-              <div className="field-wrap">
-                <label className="field-label">Service / Work</label>
-                <input className="db-input" placeholder="e.g. Loan recovery" value={incomeForm.service} onChange={e => setIncomeForm({ ...incomeForm, service: e.target.value })} />
-              </div>
-              <div className="field-wrap">
-                <label className="field-label">Amount (₹)</label>
-                <input className="db-input" type="number" placeholder="0" value={incomeForm.amount} onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })} />
-              </div>
-              <div style={{ flex: 1 }} />
-              <button className="btn btn-green" onClick={addIncome}>Save Income</button>
-            </div>
 
-            {/* ADD EXPENSE */}
-            <div className="form-card">
-              <div className="form-card-title">➖ Add Expense</div>
+              {/* Mode toggle */}
+              <div className="income-mode-row">
+                <button className={`income-mode-btn${incomeMode === "service" ? " active" : ""}`} onClick={() => setIncomeMode("service")}>
+                  ⚡ By Service
+                </button>
+                <button className={`income-mode-btn${incomeMode === "manual" ? " active" : ""}`} onClick={() => setIncomeMode("manual")}>
+                  ✏️ Manual
+                </button>
+              </div>
+
+              {/* ── SERVICE MODE ── */}
+              {incomeMode === "service" && (
+                <>
+                  <button className="manage-opts-btn" onClick={() => setShowManageSvc(p => !p)}>
+                    ⚙️ {showManageSvc ? "Hide" : "Manage"} Services
+                  </button>
+
+                  {showManageSvc && (
+                    <div className="manage-opts-panel">
+                      <div className="manage-opts-list">
+                        {serviceOptions.map(opt => (
+                          <div className={`opt-pill${editingSvcId === opt.id ? " opt-pill-editing" : ""}`} key={opt.id}>
+                            {editingSvcId === opt.id ? (
+                              <div className="opt-pill-edit-inputs">
+                                <input className="opt-pill-input name-input" value={editSvcName}
+                                  onChange={e => setEditSvcName(e.target.value)}
+                                  onKeyDown={e => { if (e.key === "Enter") updateService(opt); if (e.key === "Escape") setEditingSvcId(null); }}
+                                  autoFocus disabled={svcLoading} placeholder="Service name" />
+                                <input className="opt-pill-input rate-input" type="number" value={editSvcRate}
+                                  onChange={e => setEditSvcRate(e.target.value)}
+                                  onKeyDown={e => { if (e.key === "Enter") updateService(opt); if (e.key === "Escape") setEditingSvcId(null); }}
+                                  disabled={svcLoading} placeholder="₹/qty" />
+                                <button className="opt-pill-save" onClick={() => updateService(opt)} disabled={svcLoading}>{svcLoading ? "…" : "Save"}</button>
+                                <button className="opt-pill-cancel" onClick={() => setEditingSvcId(null)} disabled={svcLoading}>Cancel</button>
+                              </div>
+                            ) : (
+                              <>
+                                {opt.name}
+                                <span className="opt-pill-rate">₹{opt.rate_per_qty}/qty</span>
+                                <button className="opt-pill-edit-btn" title="Edit" disabled={svcLoading}
+                                  onClick={() => { setEditingSvcId(opt.id); setEditSvcName(opt.name); setEditSvcRate(String(opt.rate_per_qty)); }}>
+                                  <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                                    <path d="M15.232 5.232l3.536 3.536M4 20l4-1 10-10-3-3L5 16l-1 4z" />
+                                  </svg>
+                                </button>
+                                <button className="opt-pill-del" onClick={() => removeService(opt)} title="Remove" disabled={svcLoading}>
+                                  <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                    <path d="M18 6L6 18M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="svc-add-row">
+                        <input className="manage-opts-input" placeholder="Service name" value={newSvcName}
+                          onChange={e => setNewSvcName(e.target.value)} onKeyDown={e => e.key === "Enter" && addService()} disabled={svcLoading} />
+                        <input className="manage-opts-input" type="number" placeholder="₹/qty" value={newSvcRate}
+                          onChange={e => setNewSvcRate(e.target.value)} onKeyDown={e => e.key === "Enter" && addService()} disabled={svcLoading} />
+                        <button className="manage-opts-save" onClick={addService} disabled={svcLoading}>{svcLoading ? "…" : "+ Add"}</button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="field-wrap">
+                    <label className="field-label">Service / Work</label>
+                    <select className="db-select" value={selectedService} onChange={e => handleServiceChange(e.target.value)}>
+                      <option value="">Select Service</option>
+                      {serviceOptions.map(s => (
+                        <option key={s.id} value={s.name}>{s.name} — ₹{s.rate_per_qty}/qty</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="qty-rate-row">
+                    <div className="field-wrap">
+                      <label className="field-label" style={{ color: !selectedService ? "var(--text-faint)" : undefined }}>Qty</label>
+                      <input className="db-input" type="number" min="1"
+                        placeholder={selectedService ? "Enter qty" : "—"}
+                        value={qty} disabled={!selectedService} onChange={e => setQty(e.target.value)}
+                        style={{ opacity: !selectedService ? 0.4 : 1, cursor: !selectedService ? "not-allowed" : "text" }} />
+                    </div>
+                    <div className="field-wrap">
+                      <label className="field-label" style={{ color: !selectedService ? "var(--text-faint)" : undefined }}>Rate / qty (₹)</label>
+                      <input className="db-input" type="number" placeholder="₹" value={ratePerQty}
+                        disabled={!selectedService} onChange={e => setRatePerQty(e.target.value)}
+                        style={{ opacity: !selectedService ? 0.4 : 1, cursor: !selectedService ? "not-allowed" : "text" }} />
+                    </div>
+                  </div>
+
+                  {computedAmount > 0 && (
+                    <div className="auto-amount-box">
+                      <span className="auto-amount-label">{qty} × ₹{ratePerQty} =</span>
+                      <span className="auto-amount-value">₹{fmt(computedAmount)}</span>
+                    </div>
+                  )}
+
+                  <button className="btn btn-green" onClick={addServiceIncome} disabled={!selectedService || !computedAmount}>
+                    Save Income
+                  </button>
+                </>
+              )}
+
+              {/* ── MANUAL MODE ── */}
+              {incomeMode === "manual" && (
+                <>
+                  <div className="field-wrap">
+                    <label className="field-label">Description / Source</label>
+                    <input className="db-input" placeholder="e.g. Cash received, Commission…"
+                      value={manualDesc} onChange={e => setManualDesc(e.target.value)} />
+                  </div>
+                  <div className="field-wrap">
+                    <label className="field-label">Amount (₹)</label>
+                    <input className="db-input" type="number" placeholder="0"
+                      value={manualAmount} onChange={e => setManualAmount(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && addManualIncome()} />
+                  </div>
+                  <button className="btn btn-green" onClick={addManualIncome}
+                    disabled={!manualDesc.trim() || !manualAmount || Number(manualAmount) <= 0}>
+                    Save Manual Income
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ── EXPENSE PANEL ── */}
+          {activeForm === "expense" && (
+            <div className="form-panel">
               <div className="field-wrap">
                 <label className="field-label">Date</label>
-                <input className="db-input" type="date" value={expenseDate}
-                  onChange={e => setExpenseDate(e.target.value)} />
+                <input className="db-input" type="date" value={expenseDate} onChange={e => setExpenseDate(e.target.value)} />
               </div>
               <div className="field-wrap">
                 <label className="field-label">Paid To</label>
-
-                {/* ── Manage Options ── */}
-                <button className="manage-opts-btn" onClick={() => setShowManageOptions(p => !p)}>
-                  ⚙️ {showManageOptions ? "Hide" : "Manage"} Options
+                <button className="manage-opts-btn" onClick={() => setShowManageOpts(p => !p)}>
+                  ⚙️ {showManageOpts ? "Hide" : "Manage"} Options
                 </button>
-                {showManageOptions && (
+                {showManageOpts && (
                   <div className="manage-opts-panel">
                     <div className="manage-opts-list">
                       {paidToOptions.map(opt => (
                         <div className="opt-pill" key={opt.id || opt.name}>
                           {opt.name}
-                          <button className="opt-pill-del" onClick={() => removeOption(opt)} title="Remove" disabled={optLoading}>
-                            <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                              <path d="M18 6L6 18M6 6l12 12" />
-                            </svg>
+                          <button className="opt-pill-del" onClick={() => removeOption(opt)} disabled={optLoading}>
+                            <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" /></svg>
                           </button>
                         </div>
                       ))}
                     </div>
-                    <div className="manage-opts-add">
-                      <input
-                        className="manage-opts-input"
-                        placeholder="New name e.g. RAJAN FIN"
-                        value={newOptionName}
-                        onChange={e => setNewOptionName(e.target.value)}
-                        onKeyDown={e => e.key === "Enter" && addOption()}
-                        disabled={optLoading}
-                      />
-                      <button className="manage-opts-save" onClick={addOption} disabled={optLoading}>
-                        {optLoading ? "..." : "+ Add"}
-                      </button>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <input className="manage-opts-input" placeholder="e.g. RAJAN FIN" value={newOptionName}
+                        onChange={e => setNewOptionName(e.target.value)} onKeyDown={e => e.key === "Enter" && addOption()} disabled={optLoading} />
+                      <button className="manage-opts-save" onClick={addOption} disabled={optLoading}>{optLoading ? "..." : "+ Add"}</button>
                     </div>
                   </div>
                 )}
-
-                <select className="db-select" value={expenseForm.paid_to} onChange={e => { setExpenseForm({ ...expenseForm, paid_to: e.target.value }); if (e.target.value !== "Others") setCustomPaidTo(""); }}>
+                <select className="db-select" value={expenseForm.paid_to}
+                  onChange={e => { setExpenseForm({ ...expenseForm, paid_to: e.target.value }); if (e.target.value !== "Others") setCustomPaidTo(""); }}>
                   <option value="">Select Paid To</option>
                   {PAID_TO_OPTIONS.map(p => <option key={p}>{p}</option>)}
                 </select>
@@ -837,118 +740,142 @@ export default function Dashboard() {
               )}
               <div className="field-wrap">
                 <label className="field-label">Amount (₹)</label>
-                <input className="db-input" type="number" placeholder="0" value={expenseForm.amount} onChange={e => setExpenseForm({ ...expenseForm, amount: e.target.value })} />
+                <input className="db-input" type="number" placeholder="0" value={expenseForm.amount}
+                  onChange={e => setExpenseForm({ ...expenseForm, amount: e.target.value })} />
               </div>
-              <div style={{ flex: 1 }} />
               <button className="btn btn-red" onClick={addExpense}>Save Expense</button>
             </div>
+          )}
 
-          </div>
+          {/* ── HOME PANEL ── */}
+          {activeForm === "home" && (
+            <div className="form-panel">
+              <div className="field-wrap">
+                <label className="field-label">Available Balance</label>
+                <input className="db-input db-input-readonly" readOnly value={`₹${balance > 0 ? fmt(balance) : 0}`} />
+              </div>
+              <div className="field-wrap">
+                <label className="field-label">Give To</label>
+                <select className="db-select" value={homeForm.given_to_whom} onChange={e => setHomeForm({ ...homeForm, given_to_whom: e.target.value })}>
+                  <option value="Mom">Mom</option>
+                  <option value="Dad">Dad</option>
+                </select>
+              </div>
+              <button className="btn btn-teal" onClick={giveToHome}>Save Home Payment</button>
+              <button className="btn btn-ghost" onClick={undoLastHomePayment}>Undo Last Payment</button>
+            </div>
+          )}
 
           {/* CHART */}
+          <p className="section-title">Income vs Expense</p>
           <div className="chart-card">
-            <p className="section-title">Income vs Expense</p>
             <div className="chart-toggle">
-              <button className={`toggle-btn${chartType === "daily" ? " active" : ""}`} onClick={() => setChartType("daily")}>Daily</button>
+              <button className={`toggle-btn${chartType === "daily" ? " active" : ""}`} onClick={() => setChartType("daily")}>Today</button>
               <button className={`toggle-btn${chartType === "weekly" ? " active" : ""}`} onClick={() => setChartType("weekly")}>7 Days</button>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={240}>
               <BarChart data={chartData} barGap={6}>
                 <XAxis dataKey="name" tick={{ fill: "#9a9187", fontSize: 11, fontFamily: "DM Sans" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#9a9187", fontSize: 11, fontFamily: "DM Sans" }} axisLine={false} tickLine={false} />
-                <Tooltip
-                  contentStyle={{ background: "#fff", border: "1.5px solid #e2dcd4", borderRadius: "10px", color: "#1c1a17", fontFamily: "DM Sans", fontSize: 13, boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}
-                  cursor={{ fill: "rgba(0,0,0,0.03)" }}
-                />
-                <Legend wrapperStyle={{ fontSize: 12, fontFamily: "DM Sans", color: "#9a9187" }} />
-                <Bar dataKey="Income" fill="#16a34a" radius={[6, 6, 0, 0]} animationDuration={700} />
-                <Bar dataKey="Expense" fill="#dc2626" radius={[6, 6, 0, 0]} animationDuration={700} />
+                <Tooltip contentStyle={{ background: "#fff", border: "1.5px solid #e2dcd4", borderRadius: "10px", color: "#1c1a17", fontFamily: "DM Sans", fontSize: 13, boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }} cursor={{ fill: "rgba(0,0,0,0.03)" }} />
+                <Legend wrapperStyle={{ fontSize: 11, fontFamily: "DM Sans", color: "#9a9187" }} />
+                <Bar dataKey="Income" fill="#16a34a" radius={[5, 5, 0, 0]} animationDuration={600} />
+                <Bar dataKey="Expense" fill="#dc2626" radius={[5, 5, 0, 0]} animationDuration={600} />
               </BarChart>
             </ResponsiveContainer>
             <div className="chart-result-row">
               <div className="result-box">
                 <div className="result-label">Today's Result</div>
                 <div className={`result-value ${balance >= 0 ? "profit" : "loss"}`}>
-                  {balance >= 0 ? `↑ Profit ₹${balance}` : `↓ Loss ₹${Math.abs(balance)}`}
+                  {balance >= 0 ? `↑ ₹${fmt(balance)}` : `↓ ₹${fmt(Math.abs(balance))}`}
                 </div>
               </div>
               <div className="result-box">
                 <div className="result-label">7-Day Result</div>
                 <div className={`result-value ${weeklyBalance >= 0 ? "profit" : "loss"}`}>
-                  {weeklyBalance >= 0 ? `↑ ₹${weeklyBalance}` : `↓ ₹${Math.abs(weeklyBalance)}`}
+                  {weeklyBalance >= 0 ? `↑ ₹${fmt(weeklyBalance)}` : `↓ ₹${fmt(Math.abs(weeklyBalance))}`}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* TRANSACTIONS TABLE */}
+          {/* TODAY'S TRANSACTIONS */}
+          <p className="section-title">Today's Transactions</p>
           <div className="table-card">
-            <p className="section-title">Today's Transactions</p>
-            {loading ? (
-              <div className="loading-text">Loading transactions…</div>
-            ) : todayRows.length === 0 ? (
-              <div className="empty-text">No transactions recorded for today</div>
-            ) : (
-              <table className="db-table">
-                <thead>
-                  <tr>
-                    <th>Type</th>
-                    <th>Description</th>
-                    <th className="right">Amount</th>
-                    <th className="right">Home</th>
-                    <th className="center">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {todayRows.map(row => (
-                    <tr key={`${row.type}-${row.id}`} className={row.type === "Income" && (row.given_to_home || 0) < row.amount ? "row-pending" : ""}>
-                      <td><span className={`badge badge-${row.type.toLowerCase()}`}>{row.type}</span></td>
-                      <td style={{ fontWeight: 500 }}>{row.service || row.paid_to}</td>
-                      <td className="right">
-                        {editing === `${row.type}-${row.id}` ? (
-                          <input className="edit-input" type="number" defaultValue={row.amount} autoFocus
-                            onBlur={e => updateTransaction(row.type === "Income" ? "income" : "expense", row.id, e.target.value)} />
-                        ) : (
-                          <span className="edit-trigger" onClick={() => setEditing(`${row.type}-${row.id}`)}>
-                            <span style={{ fontWeight: 600 }}>₹{row.amount}</span>
-                            <svg className="edit-icon" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path d="M15.232 5.232l3.536 3.536M4 20l4-1 10-10-3-3L5 16l-1 4z" />
-                            </svg>
-                          </span>
-                        )}
-                      </td>
-                      <td className="right" style={{ color: "var(--text-dim)", fontSize: 12 }}>
-                        {row.type === "Income"
-                          ? <span className="badge badge-home">₹{row.given_to_home || 0} · {row.given_to_whom || "—"}</span>
-                          : <span style={{ color: "var(--text-faint)" }}>—</span>}
-                      </td>
-                      <td className="center">
-                        <button className="del-btn" onClick={() => deleteTransaction(row.type === "Income" ? "income" : "expense", row.id)}>
-                          <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+            <span className="table-scroll-hint">← scroll to see all columns →</span>
+            {loading ? <div className="loading-text">Loading…</div>
+              : todayRows.length === 0 ? <div className="empty-text">No transactions recorded for today</div>
+                : (
+                  <table className="db-table">
+                    <thead>
+                      <tr>
+                        <th>Type</th><th>Description</th>
+                        <th className="center">Qty</th><th className="right">Amount</th>
+                        <th className="right">Home</th><th className="center">Del</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {todayRows.map(row => (
+                        <tr key={`${row.type}-${row.id}`} className={row.type === "Income" && (row.given_to_home || 0) < row.amount ? "row-pending" : ""}>
+                          <td>
+                            <span className={`badge badge-${row.type.toLowerCase()}`}>{row.type}</span>
+                            {row.type === "Income" && !row.qty && (
+                              <span className="badge badge-manual" style={{ marginLeft: 4 }}>Manual</span>
+                            )}
+                          </td>
+                          <td style={{ fontWeight: 500 }}>
+                            {row.service || row.paid_to}
+                            {row.type === "Income" && row.rate_per_qty && (
+                              <span style={{ fontSize: 10, color: "var(--text-dim)", marginLeft: 6 }}>₹{row.rate_per_qty}/qty</span>
+                            )}
+                          </td>
+                          <td className="center" style={{ color: "var(--text-med)", fontWeight: 600 }}>
+                            {row.type === "Income" && row.qty ? row.qty : "—"}
+                          </td>
+                          <td className="right">
+                            {editing === `${row.type}-${row.id}` ? (
+                              <input className="edit-input" type="number" defaultValue={row.amount} autoFocus
+                                onBlur={e => updateTransaction(row.type === "Income" ? "income" : "expense", row.id, e.target.value)} />
+                            ) : (
+                              <span className="edit-trigger" onClick={() => setEditing(`${row.type}-${row.id}`)}>
+                                <span style={{ fontWeight: 600 }}>₹{fmt(row.amount)}</span>
+                                <svg className="edit-icon" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                  <path d="M15.232 5.232l3.536 3.536M4 20l4-1 10-10-3-3L5 16l-1 4z" />
+                                </svg>
+                              </span>
+                            )}
+                          </td>
+                          <td className="right" style={{ fontSize: 12 }}>
+                            {row.type === "Income"
+                              ? <span className="badge badge-home">₹{row.given_to_home || 0} · {row.given_to_whom || "—"}</span>
+                              : <span style={{ color: "var(--text-faint)" }}>—</span>}
+                          </td>
+                          <td className="center">
+                            <button className="del-btn" onClick={() => deleteTransaction(row.type === "Income" ? "income" : "expense", row.id)}>
+                              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
           </div>
 
           {/* HOME PAYMENT HISTORY */}
+          <p className="section-title">Home Payment History</p>
           <div className="table-card">
-            <p className="section-title">Home Payment History</p>
+            <span className="table-scroll-hint">← scroll to see all columns →</span>
             {incomes.filter(i => (i.given_to_home || 0) > 0).length === 0 ? (
               <div className="empty-text">No home payments recorded</div>
             ) : (
               <table className="db-table">
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Service</th>
-                    <th className="right">Amount Given</th>
-                    <th>Given To</th>
+                    <th>Date</th><th>Service</th>
+                    <th className="right">Amount Given</th><th>Given To</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -956,7 +883,9 @@ export default function Dashboard() {
                     <tr key={i.id}>
                       <td style={{ color: "var(--text-med)" }}>{i.date}</td>
                       <td style={{ fontWeight: 500 }}>{i.service}</td>
-                      <td className="right" style={{ color: "var(--teal)", fontFamily: "Playfair Display, serif", fontWeight: 700 }}>₹{i.given_to_home}</td>
+                      <td className="right" style={{ color: "var(--teal)", fontFamily: "Playfair Display,serif", fontWeight: 700 }}>
+                        ₹{fmt(i.given_to_home)}
+                      </td>
                       <td><span className="badge badge-home">{i.given_to_whom}</span></td>
                     </tr>
                   ))}
@@ -977,6 +906,6 @@ const StatCard = ({ label, value, valCls, accent, icon, iconBg, small }) => (
     <div className={`stat-card-accent ${accent}`} />
     <div className="stat-icon-bg" style={{ background: iconBg }}>{icon}</div>
     <div className="stat-label">{label}</div>
-    <div className={`stat-value ${valCls}`} style={small ? { fontSize: 24 } : {}}>₹{value}</div>
+    <div className={`stat-value ${valCls}${small ? " sm" : ""}`}>₹{value}</div>
   </div>
 );
