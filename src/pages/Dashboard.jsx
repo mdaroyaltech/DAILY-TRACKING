@@ -49,6 +49,120 @@ const CSS = `
   padding-bottom: 80px;
 }
 
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; } to { opacity: 1; }
+}
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.85); }
+  65%  { transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes rowSlide {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes badgePop {
+  0%   { opacity: 0; transform: scale(0.5) rotate(-10deg); }
+  70%  { transform: scale(1.15) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.db-header    { animation: fadeIn .45s ease both; }
+.db-wrap > .section-title { animation: slideRight .4s ease both; }
+
+.stats-grid   { animation: fadeUp .5s .08s ease both; }
+.stats-grid-4 { animation: fadeUp .5s .16s ease both; }
+
+.stat-card { animation: popIn .4s ease both; }
+.stat-card:nth-child(1) { animation-delay: .04s; }
+.stat-card:nth-child(2) { animation-delay: .10s; }
+.stat-card:nth-child(3) { animation-delay: .16s; }
+.stat-card:nth-child(4) { animation-delay: .22s; }
+.stat-value { animation: fadeUp .35s .3s ease both; }
+
+.forms-tabs  { animation: fadeUp .45s .25s ease both; }
+.form-panel  { animation: fadeUp .35s ease both; }
+.chart-card  { animation: fadeUp .5s .3s ease both; }
+.table-card  { animation: fadeUp .5s .35s ease both; }
+
+/* table row stagger */
+.db-table tbody tr { animation: rowSlide .3s ease both; }
+.db-table tbody tr:nth-child(1)  { animation-delay: .03s; }
+.db-table tbody tr:nth-child(2)  { animation-delay: .07s; }
+.db-table tbody tr:nth-child(3)  { animation-delay: .11s; }
+.db-table tbody tr:nth-child(4)  { animation-delay: .15s; }
+.db-table tbody tr:nth-child(5)  { animation-delay: .19s; }
+.db-table tbody tr:nth-child(6)  { animation-delay: .23s; }
+.db-table tbody tr:nth-child(7)  { animation-delay: .27s; }
+.db-table tbody tr:nth-child(8)  { animation-delay: .31s; }
+.db-table tbody tr:nth-child(9)  { animation-delay: .35s; }
+.db-table tbody tr:nth-child(10) { animation-delay: .39s; }
+
+/* stat card hover pulse */
+.stat-card:hover .stat-value { transform: scale(1.04); transition: transform .15s; }
+
+/* tab active dot */
+.forms-tab.active::after {
+  content: '';
+  display: inline-block;
+  width: 5px; height: 5px;
+  background: var(--teal);
+  border-radius: 50%;
+  margin-left: 6px;
+  vertical-align: middle;
+  animation: popIn .3s ease;
+}
+
+/* ── GROUPED ROW ── */
+.row-grouped td {
+  background: linear-gradient(90deg, #f0fdf4, #f5f2ed) !important;
+  border-left: 3px solid var(--green) !important;
+}
+.row-grouped:hover td { background: #dcfce7 !important; }
+.row-grouped td:first-child { border-left: 3px solid var(--green) !important; }
+
+/* ── MULTIPLIER BADGE ── */
+.multi-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #059669, #0d9488);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .03em;
+  padding: 2px 7px;
+  border-radius: 10px;
+  margin-left: 6px;
+  box-shadow: 0 2px 8px rgba(13,148,136,0.4);
+  animation: badgePop .4s cubic-bezier(.22,1,.36,1) both;
+  vertical-align: middle;
+}
+
+/* grouped total shimmer effect */
+.grouped-total {
+  background: linear-gradient(90deg, var(--green) 0%, #34d399 50%, var(--green) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 2.5s linear infinite;
+  font-weight: 800 !important;
+}
+
 /* ── HEADER ── */
 .db-header {
   background: var(--surface);
@@ -111,8 +225,7 @@ const CSS = `
 /* ── FORMS TABS ── */
 .forms-tabs {
   display:flex; background:var(--surface); border:1.5px solid var(--border);
-  border-radius:12px 12px 0 0; overflow:hidden;
-  margin-bottom:0;
+  border-radius:12px 12px 0 0; overflow:hidden; margin-bottom:0;
 }
 .forms-tab {
   flex:1; padding:12px 8px; font-size:11px; font-weight:600; letter-spacing:.08em;
@@ -265,6 +378,29 @@ const CSS = `
 
 .loading-text, .empty-text { text-align:center; color:var(--text-dim); padding:36px; font-size:13px; letter-spacing:.04em; }
 
+/* ── WHATSAPP COPY BUTTON ── */
+.wa-copy-btn {
+  display:inline-flex; align-items:center; gap:8px;
+  background:linear-gradient(135deg,#25d366,#128c7e);
+  color:#fff; border:none; border-radius:10px;
+  padding:10px 18px; font-family:'DM Sans',sans-serif;
+  font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+  cursor:pointer; transition:all .2s; box-shadow:0 2px 10px rgba(37,211,102,0.35);
+}
+.wa-copy-btn:hover { opacity:.88; transform:translateY(-1px); box-shadow:0 4px 16px rgba(37,211,102,0.4); }
+.wa-copy-btn:active { transform:translateY(0); }
+.wa-copy-btn.copied { background:linear-gradient(135deg,#16a34a,#0d9488); }
+.wa-btn-row { display:flex; justify-content:flex-end; margin-bottom:12px; }
+
+/* ── TABLE TOTALS FOOTER ── */
+.table-totals-row td {
+  background:var(--bg2) !important;
+  border-top:2px solid var(--border2) !important;
+  font-weight:700 !important; font-size:13px !important;
+  padding:12px !important;
+}
+.totals-label { font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim); }
+
 /* ── MOBILE ── */
 @media(max-width:640px){
   .db-header { padding:16px 0 12px; margin-bottom:18px; }
@@ -293,10 +429,7 @@ export default function Dashboard() {
   const { totalIncome, totalExpense, balance, weeklyBalance } =
     useFinanceSummary(incomes, expenses, today);
 
-  const totalGivenToHome = incomes.reduce((s, i) => s + (i.given_to_home || 0), 0);
-  const remainingAfterHome = totalIncome - totalGivenToHome;
-  const momTotal = incomes.filter(i => i.given_to_whom === "Mom").reduce((s, i) => s + (i.given_to_home || 0), 0);
-  const dadTotal = incomes.filter(i => i.given_to_whom === "Dad").reduce((s, i) => s + (i.given_to_home || 0), 0);
+
 
   /* ── SERVICE OPTIONS ── */
   const [serviceOptions, setServiceOptions] = useState([]);
@@ -381,14 +514,13 @@ export default function Dashboard() {
   const PAID_TO_OPTIONS = [...paidToOptions.map(o => o.name), "Others"];
 
   /* ── INCOME FORM ── */
-  const [incomeMode, setIncomeMode] = useState("service"); // "service" | "manual"
+  const [incomeMode, setIncomeMode] = useState("service");
   const [incomeDate, setIncomeDate] = useState(today);
   const [selectedService, setSelectedService] = useState("");
   const [ratePerQty, setRatePerQty] = useState("");
   const [qty, setQty] = useState(1);
   const computedAmount = ratePerQty && qty ? Math.round(Number(ratePerQty) * Number(qty)) : 0;
 
-  // Manual income fields
   const [manualDesc, setManualDesc] = useState("");
   const [manualAmount, setManualAmount] = useState("");
 
@@ -400,7 +532,6 @@ export default function Dashboard() {
   };
 
   /* ── EXPENSE / HOME ── */
-  const [homeForm, setHomeForm] = useState({ given_to_whom: "Mom" });
   const [expenseForm, setExpenseForm] = useState({ paid_to: "", amount: "" });
   const [expenseDate, setExpenseDate] = useState(today);
 
@@ -419,12 +550,20 @@ export default function Dashboard() {
   };
 
   const generateChartData = (inc, exp) => {
-    if (chartType === "daily") return [{ name: "Today", Income: inc.filter(i => i.date === today).reduce((s, i) => s + i.amount, 0), Expense: exp.filter(e => e.date === today).reduce((s, e) => s + e.amount, 0) }];
+    if (chartType === "daily") return [{
+      name: "Today",
+      Income: inc.filter(i => i.date === today).reduce((s, i) => s + i.amount, 0),
+      Expense: exp.filter(e => e.date === today).reduce((s, e) => s + e.amount, 0),
+    }];
     const last7 = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(); d.setDate(d.getDate() - i);
       const ds = d.toISOString().split("T")[0];
-      last7.push({ name: ds.slice(5), Income: inc.filter(i => i.date === ds).reduce((s, i) => s + i.amount, 0), Expense: exp.filter(e => e.date === ds).reduce((s, e) => s + e.amount, 0) });
+      last7.push({
+        name: ds.slice(5),
+        Income: inc.filter(i => i.date === ds).reduce((s, i) => s + i.amount, 0),
+        Expense: exp.filter(e => e.date === ds).reduce((s, e) => s + e.amount, 0),
+      });
     }
     return last7;
   };
@@ -436,24 +575,24 @@ export default function Dashboard() {
   }, [navigate]);
   useEffect(() => { setChartData(generateChartData(incomes, expenses)); }, [chartType, incomes, expenses]);
 
-  /* ── ADD INCOME (service mode) ── */
+  /* ── ADD INCOME (service) ── */
   const addServiceIncome = async () => {
     if (!selectedService || !computedAmount) return;
     const { error } = await supabase.from("income").insert([{
       date: incomeDate, service: selectedService, amount: computedAmount,
-      qty: Number(qty), rate_per_qty: Number(ratePerQty), given_to_home: 0,
+      qty: Number(qty), rate_per_qty: Number(ratePerQty),
     }]);
     if (error) { alert(error.message); return; }
     setSelectedService(""); setRatePerQty(""); setQty(1); fetchData();
   };
 
-  /* ── ADD INCOME (manual mode) ── */
+  /* ── ADD INCOME (manual) ── */
   const addManualIncome = async () => {
     const desc = manualDesc.trim();
     const amount = Number(manualAmount);
     if (!desc || !amount || amount <= 0) return;
     const { error } = await supabase.from("income").insert([{
-      date: incomeDate, service: desc, amount, given_to_home: 0,
+      date: incomeDate, service: desc, amount,
     }]);
     if (error) { alert(error.message); return; }
     setManualDesc(""); setManualAmount(""); fetchData();
@@ -477,36 +616,96 @@ export default function Dashboard() {
     if (!window.confirm("Delete this entry?")) return;
     await supabase.from(table).delete().eq("id", id); fetchData();
   };
-
-  /* ── HOME ── */
-  const giveToHome = async () => {
-    if (balance <= 0) { alert("No balance available to give"); return; }
-    let remaining = balance;
-    const todayIncomes = incomes.filter(i => i.date === today).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-    for (let income of todayIncomes) {
-      if (remaining <= 0) break;
-      const currentGiven = income.given_to_home || 0;
-      const available = income.amount - currentGiven;
-      if (available <= 0) continue;
-      const giveAmount = Math.min(available, remaining);
-      await supabase.from("income").update({ given_to_home: currentGiven + giveAmount, given_to_whom: homeForm.given_to_whom }).eq("id", income.id);
-      remaining -= giveAmount;
-    }
-    fetchData();
-  };
-  const undoLastHomePayment = async () => {
-    const last = incomes.filter(i => (i.given_to_home || 0) > 0).sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
-    if (!last) { alert("No home payment found"); return; }
-    await supabase.from("income").update({ given_to_home: 0, given_to_whom: null }).eq("id", last.id);
+  // Delete a grouped row — deletes ALL sibling ids
+  const deleteGrouped = async (ids) => {
+    if (!window.confirm(`Delete all ${ids.length} entries for this service?`)) return;
+    for (const id of ids) await supabase.from("income").delete().eq("id", id);
     fetchData();
   };
 
-  const todayRows = [
+  /* ── BUILD DISPLAY ROWS (group same-name income) ── */
+  const buildDisplayRows = (rows) => {
+    const result = [];
+    const usedIds = new Set();
+
+    rows.forEach(row => {
+      if (usedIds.has(row.id)) return;
+
+      if (row.type === "Income") {
+        // Find ALL income rows with same service name today that haven't been consumed yet
+        const siblings = rows.filter(
+          r => r.type === "Income" &&
+            r.service === row.service &&
+            !usedIds.has(r.id)
+        );
+
+        if (siblings.length > 1) {
+          const totalAmt = siblings.reduce((s, r) => s + (r.amount || 0), 0);
+          const totalQty = siblings.every(r => r.qty) ? siblings.reduce((s, r) => s + (r.qty || 0), 0) : null;
+          const isManual = siblings.every(r => !r.qty);
+
+          siblings.forEach(r => usedIds.add(r.id));
+          result.push({
+            ...row,
+            _grouped: true,
+            _count: siblings.length,
+            _ids: siblings.map(r => r.id),
+            amount: totalAmt,
+            qty: totalQty,
+            _isManual: isManual,
+          });
+        } else {
+          usedIds.add(row.id);
+          result.push({ ...row, _grouped: false });
+        }
+      } else {
+        usedIds.add(row.id);
+        result.push({ ...row, _grouped: false });
+      }
+    });
+
+    return result;
+  };
+
+  const todayRawRows = [
     ...incomes.filter(i => i.date === today).map(i => ({ ...i, type: "Income" })),
     ...expenses.filter(e => e.date === today).map(e => ({ ...e, type: "Expense" })),
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
+  const displayRows = buildDisplayRows(todayRawRows);
+
   const fmt = (n) => (n || 0).toLocaleString("en-IN");
+
+  /* ── WHATSAPP COPY ── */
+  const [waCopied, setWaCopied] = useState(false);
+  const copyWhatsApp = () => {
+    const today_incomes = incomes.filter(i => i.date === today);
+    const today_expenses = expenses.filter(e => e.date === today);
+    const todayInc = today_incomes.reduce((s, i) => s + i.amount, 0);
+    const todayExp = today_expenses.reduce((s, e) => s + e.amount, 0);
+    const todayBal = todayInc - todayExp;
+
+    const dateStr = new Date().toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+    let lines = [
+      `📊 *Daily Finance Summary*`,
+      `📅 ${dateStr}`,
+      ``,
+      `💰 *Income:* ₹${fmt(todayInc)}`,
+      `💸 *Expense:* ₹${fmt(todayExp)}`,
+      `🧮 *Balance:* ₹${fmt(todayBal)}`,
+    ];
+    if (today_incomes.length > 0) {
+      lines.push(``, `*Income Breakdown:*`);
+      today_incomes.forEach(i => lines.push(`  • ${i.service} — ₹${fmt(i.amount)}${i.qty ? ` (${i.qty} qty)` : ""}`));
+    }
+    if (today_expenses.length > 0) {
+      lines.push(``, `*Expenses:*`);
+      today_expenses.forEach(e => lines.push(`  • ${e.paid_to} — ₹${fmt(e.amount)}`));
+    }
+    navigator.clipboard.writeText(lines.join("\n")).then(() => {
+      setWaCopied(true); setTimeout(() => setWaCopied(false), 2500);
+    });
+  };
 
   /* ── RENDER ── */
   return (
@@ -536,21 +735,13 @@ export default function Dashboard() {
             <StatCard label="Total Expense" value={fmt(totalExpense)} valCls="red" accent="accent-red" icon="💸" iconBg="#fee2e2" />
             <StatCard label="Balance" value={fmt(balance)} valCls={balance >= 0 ? "teal" : "red"} accent={balance >= 0 ? "accent-teal" : "accent-red"} icon="🧮" iconBg="#e0f2f0" />
           </div>
-          <div className="stats-grid-4">
-            <StatCard label="Given Home" value={fmt(totalGivenToHome)} valCls="blue" accent="accent-blue" icon="🏠" iconBg="#dbeafe" small />
-            <StatCard label="Remaining" value={fmt(remainingAfterHome)} valCls="green" accent="accent-green" icon="💼" iconBg="#dcfce7" small />
-            <StatCard label="Mom Total" value={fmt(momTotal)} valCls="amber" accent="accent-amber" icon="👩" iconBg="#fef3c7" small />
-            <StatCard label="Dad Total" value={fmt(dadTotal)} valCls="purple" accent="accent-purple" icon="👨" iconBg="#ede9fe" small />
-          </div>
 
-          {/* QUICK ENTRY — TABBED */}
+          {/* QUICK ENTRY */}
           <p className="section-title">Quick Entry</p>
-
           <div className="forms-tabs">
             {[
               { key: "income", label: "➕ Add Income" },
               { key: "expense", label: "➖ Add Expense" },
-              { key: "home", label: "🏠 Give Home" },
             ].map(t => (
               <button key={t.key} className={`forms-tab${activeForm === t.key ? " active" : ""}`} onClick={() => setActiveForm(t.key)}>
                 {t.label}
@@ -561,30 +752,20 @@ export default function Dashboard() {
           {/* ── INCOME PANEL ── */}
           {activeForm === "income" && (
             <div className="form-panel">
-
-              {/* Date */}
               <div className="field-wrap">
                 <label className="field-label">Date</label>
                 <input className="db-input" type="date" value={incomeDate} onChange={e => setIncomeDate(e.target.value)} />
               </div>
-
-              {/* Mode toggle */}
               <div className="income-mode-row">
-                <button className={`income-mode-btn${incomeMode === "service" ? " active" : ""}`} onClick={() => setIncomeMode("service")}>
-                  ⚡ By Service
-                </button>
-                <button className={`income-mode-btn${incomeMode === "manual" ? " active" : ""}`} onClick={() => setIncomeMode("manual")}>
-                  ✏️ Manual
-                </button>
+                <button className={`income-mode-btn${incomeMode === "service" ? " active" : ""}`} onClick={() => setIncomeMode("service")}>⚡ By Service</button>
+                <button className={`income-mode-btn${incomeMode === "manual" ? " active" : ""}`} onClick={() => setIncomeMode("manual")}>✏️ Manual</button>
               </div>
 
-              {/* ── SERVICE MODE ── */}
               {incomeMode === "service" && (
                 <>
                   <button className="manage-opts-btn" onClick={() => setShowManageSvc(p => !p)}>
                     ⚙️ {showManageSvc ? "Hide" : "Manage"} Services
                   </button>
-
                   {showManageSvc && (
                     <div className="manage-opts-panel">
                       <div className="manage-opts-list">
@@ -614,9 +795,7 @@ export default function Dashboard() {
                                   </svg>
                                 </button>
                                 <button className="opt-pill-del" onClick={() => removeService(opt)} title="Remove" disabled={svcLoading}>
-                                  <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                    <path d="M18 6L6 18M6 6l12 12" />
-                                  </svg>
+                                  <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" /></svg>
                                 </button>
                               </>
                             )}
@@ -632,7 +811,6 @@ export default function Dashboard() {
                       </div>
                     </div>
                   )}
-
                   <div className="field-wrap">
                     <label className="field-label">Service / Work</label>
                     <select className="db-select" value={selectedService} onChange={e => handleServiceChange(e.target.value)}>
@@ -642,37 +820,31 @@ export default function Dashboard() {
                       ))}
                     </select>
                   </div>
-
                   <div className="qty-rate-row">
                     <div className="field-wrap">
                       <label className="field-label" style={{ color: !selectedService ? "var(--text-faint)" : undefined }}>Qty</label>
                       <input className="db-input" type="number" min="1"
-                        placeholder={selectedService ? "Enter qty" : "—"}
-                        value={qty} disabled={!selectedService} onChange={e => setQty(e.target.value)}
+                        placeholder={selectedService ? "Enter qty" : "—"} value={qty} disabled={!selectedService}
+                        onChange={e => setQty(e.target.value)}
                         style={{ opacity: !selectedService ? 0.4 : 1, cursor: !selectedService ? "not-allowed" : "text" }} />
                     </div>
                     <div className="field-wrap">
                       <label className="field-label" style={{ color: !selectedService ? "var(--text-faint)" : undefined }}>Rate / qty (₹)</label>
-                      <input className="db-input" type="number" placeholder="₹" value={ratePerQty}
-                        disabled={!selectedService} onChange={e => setRatePerQty(e.target.value)}
+                      <input className="db-input" type="number" placeholder="₹" value={ratePerQty} disabled={!selectedService}
+                        onChange={e => setRatePerQty(e.target.value)}
                         style={{ opacity: !selectedService ? 0.4 : 1, cursor: !selectedService ? "not-allowed" : "text" }} />
                     </div>
                   </div>
-
                   {computedAmount > 0 && (
                     <div className="auto-amount-box">
                       <span className="auto-amount-label">{qty} × ₹{ratePerQty} =</span>
                       <span className="auto-amount-value">₹{fmt(computedAmount)}</span>
                     </div>
                   )}
-
-                  <button className="btn btn-green" onClick={addServiceIncome} disabled={!selectedService || !computedAmount}>
-                    Save Income
-                  </button>
+                  <button className="btn btn-green" onClick={addServiceIncome} disabled={!selectedService || !computedAmount}>Save Income</button>
                 </>
               )}
 
-              {/* ── MANUAL MODE ── */}
               {incomeMode === "manual" && (
                 <>
                   <div className="field-wrap">
@@ -747,25 +919,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* ── HOME PANEL ── */}
-          {activeForm === "home" && (
-            <div className="form-panel">
-              <div className="field-wrap">
-                <label className="field-label">Available Balance</label>
-                <input className="db-input db-input-readonly" readOnly value={`₹${balance > 0 ? fmt(balance) : 0}`} />
-              </div>
-              <div className="field-wrap">
-                <label className="field-label">Give To</label>
-                <select className="db-select" value={homeForm.given_to_whom} onChange={e => setHomeForm({ ...homeForm, given_to_whom: e.target.value })}>
-                  <option value="Mom">Mom</option>
-                  <option value="Dad">Dad</option>
-                </select>
-              </div>
-              <button className="btn btn-teal" onClick={giveToHome}>Save Home Payment</button>
-              <button className="btn btn-ghost" onClick={undoLastHomePayment}>Undo Last Payment</button>
-            </div>
-          )}
-
           {/* CHART */}
           <p className="section-title">Income vs Expense</p>
           <div className="chart-card">
@@ -801,97 +954,116 @@ export default function Dashboard() {
 
           {/* TODAY'S TRANSACTIONS */}
           <p className="section-title">Today's Transactions</p>
-          <div className="table-card">
-            <span className="table-scroll-hint">← scroll to see all columns →</span>
-            {loading ? <div className="loading-text">Loading…</div>
-              : todayRows.length === 0 ? <div className="empty-text">No transactions recorded for today</div>
-                : (
-                  <table className="db-table">
-                    <thead>
-                      <tr>
-                        <th>Type</th><th>Description</th>
-                        <th className="center">Qty</th><th className="right">Amount</th>
-                        <th className="right">Home</th><th className="center">Del</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {todayRows.map(row => (
-                        <tr key={`${row.type}-${row.id}`} className={row.type === "Income" && (row.given_to_home || 0) < row.amount ? "row-pending" : ""}>
-                          <td>
-                            <span className={`badge badge-${row.type.toLowerCase()}`}>{row.type}</span>
-                            {row.type === "Income" && !row.qty && (
-                              <span className="badge badge-manual" style={{ marginLeft: 4 }}>Manual</span>
-                            )}
-                          </td>
-                          <td style={{ fontWeight: 500 }}>
-                            {row.service || row.paid_to}
-                            {row.type === "Income" && row.rate_per_qty && (
-                              <span style={{ fontSize: 10, color: "var(--text-dim)", marginLeft: 6 }}>₹{row.rate_per_qty}/qty</span>
-                            )}
-                          </td>
-                          <td className="center" style={{ color: "var(--text-med)", fontWeight: 600 }}>
-                            {row.type === "Income" && row.qty ? row.qty : "—"}
-                          </td>
-                          <td className="right">
-                            {editing === `${row.type}-${row.id}` ? (
-                              <input className="edit-input" type="number" defaultValue={row.amount} autoFocus
-                                onBlur={e => updateTransaction(row.type === "Income" ? "income" : "expense", row.id, e.target.value)} />
-                            ) : (
-                              <span className="edit-trigger" onClick={() => setEditing(`${row.type}-${row.id}`)}>
-                                <span style={{ fontWeight: 600 }}>₹{fmt(row.amount)}</span>
-                                <svg className="edit-icon" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                  <path d="M15.232 5.232l3.536 3.536M4 20l4-1 10-10-3-3L5 16l-1 4z" />
-                                </svg>
-                              </span>
-                            )}
-                          </td>
-                          <td className="right" style={{ fontSize: 12 }}>
-                            {row.type === "Income"
-                              ? <span className="badge badge-home">₹{row.given_to_home || 0} · {row.given_to_whom || "—"}</span>
-                              : <span style={{ color: "var(--text-faint)" }}>—</span>}
-                          </td>
-                          <td className="center">
-                            <button className="del-btn" onClick={() => deleteTransaction(row.type === "Income" ? "income" : "expense", row.id)}>
-                              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-                              </svg>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
+          <div className="wa-btn-row">
+            <button className={`wa-copy-btn${waCopied ? " copied" : ""}`} onClick={copyWhatsApp}>
+              {waCopied ? "✅ Copied!" : "📋 Copy for WhatsApp"}
+            </button>
           </div>
-
-          {/* HOME PAYMENT HISTORY */}
-          <p className="section-title">Home Payment History</p>
           <div className="table-card">
             <span className="table-scroll-hint">← scroll to see all columns →</span>
-            {incomes.filter(i => (i.given_to_home || 0) > 0).length === 0 ? (
-              <div className="empty-text">No home payments recorded</div>
-            ) : (
-              <table className="db-table">
-                <thead>
-                  <tr>
-                    <th>Date</th><th>Service</th>
-                    <th className="right">Amount Given</th><th>Given To</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {incomes.filter(i => (i.given_to_home || 0) > 0).map(i => (
-                    <tr key={i.id}>
-                      <td style={{ color: "var(--text-med)" }}>{i.date}</td>
-                      <td style={{ fontWeight: 500 }}>{i.service}</td>
-                      <td className="right" style={{ color: "var(--teal)", fontFamily: "Playfair Display,serif", fontWeight: 700 }}>
-                        ₹{fmt(i.given_to_home)}
-                      </td>
-                      <td><span className="badge badge-home">{i.given_to_whom}</span></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+            {loading
+              ? <div className="loading-text">Loading…</div>
+              : displayRows.length === 0
+                ? <div className="empty-text">No transactions recorded for today</div>
+                : (() => {
+                  const todayInc = incomes.filter(i => i.date === today).reduce((s, i) => s + i.amount, 0);
+                  const todayExp = expenses.filter(e => e.date === today).reduce((s, e) => s + e.amount, 0);
+                  const todayBal = todayInc - todayExp;
+                  return (
+                    <table className="db-table">
+                      <thead>
+                        <tr>
+                          <th>Type</th>
+                          <th>Description</th>
+                          <th className="center">Qty</th>
+                          <th className="right">Amount</th>
+                          <th className="center">Del</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {displayRows.map((row, idx) => {
+                          const rowKey = row._grouped ? `grouped-${row.service}-${idx}` : `${row.type}-${row.id}`;
+                          const rowCls = row._grouped ? "row-grouped" : "";
+
+                          return (
+                            <tr key={rowKey} className={rowCls}>
+                              {/* TYPE */}
+                              <td>
+                                <span className={`badge badge-${row.type.toLowerCase()}`}>{row.type}</span>
+                                {row.type === "Income" && !row.qty && !row._grouped && (
+                                  <span className="badge badge-manual" style={{ marginLeft: 4 }}>Manual</span>
+                                )}
+                                {row.type === "Income" && row._grouped && row._isManual && (
+                                  <span className="badge badge-manual" style={{ marginLeft: 4 }}>Manual</span>
+                                )}
+                              </td>
+
+                              {/* DESCRIPTION + multiplier badge */}
+                              <td style={{ fontWeight: 500 }}>
+                                {row.service || row.paid_to}
+                                {row._grouped && (
+                                  <span className="multi-badge">×{row._count}</span>
+                                )}
+                                {row.type === "Income" && row.rate_per_qty && !row._grouped && (
+                                  <span style={{ fontSize: 10, color: "var(--text-dim)", marginLeft: 6 }}>
+                                    ₹{row.rate_per_qty}/qty
+                                  </span>
+                                )}
+                              </td>
+
+                              {/* QTY */}
+                              <td className="center" style={{ color: "var(--text-med)", fontWeight: 600 }}>
+                                {row.type === "Income" && row.qty ? row.qty : "—"}
+                              </td>
+
+                              {/* AMOUNT — grouped rows show shimmer total, singles show edit */}
+                              <td className="right">
+                                {row._grouped ? (
+                                  <span className="grouped-total">₹{fmt(row.amount)}</span>
+                                ) : editing === `${row.type}-${row.id}` ? (
+                                  <input className="edit-input" type="number" defaultValue={row.amount} autoFocus
+                                    onBlur={e => updateTransaction(row.type === "Income" ? "income" : "expense", row.id, e.target.value)} />
+                                ) : (
+                                  <span className="edit-trigger" onClick={() => setEditing(`${row.type}-${row.id}`)}>
+                                    <span style={{ fontWeight: 600 }}>₹{fmt(row.amount)}</span>
+                                    <svg className="edit-icon" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                      <path d="M15.232 5.232l3.536 3.536M4 20l4-1 10-10-3-3L5 16l-1 4z" />
+                                    </svg>
+                                  </span>
+                                )}
+                              </td>
+
+                              {/* DELETE */}
+                              <td className="center">
+                                <button className="del-btn"
+                                  onClick={() => row._grouped
+                                    ? deleteGrouped(row._ids)
+                                    : deleteTransaction(row.type === "Income" ? "income" : "expense", row.id)
+                                  }>
+                                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                                  </svg>
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                      <tfoot>
+                        <tr className="table-totals-row">
+                          <td colSpan={3}><span className="totals-label">Today's Total</span></td>
+                          <td className="right">
+                            <div style={{ color: "var(--green)", fontFamily: "Playfair Display,serif" }}>+₹{fmt(todayInc)}</div>
+                            <div style={{ color: "var(--red)", fontFamily: "Playfair Display,serif" }}>−₹{fmt(todayExp)}</div>
+                            <div style={{ color: todayBal >= 0 ? "var(--teal)" : "var(--red)", fontFamily: "Playfair Display,serif", fontSize: 15 }}>= ₹{fmt(todayBal)}</div>
+                          </td>
+                          <td />
+                        </tr>
+                      </tfoot>
+                    </table>
+                  );
+                })()
+            }
           </div>
 
         </div>

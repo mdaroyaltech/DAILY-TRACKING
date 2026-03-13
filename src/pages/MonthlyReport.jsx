@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "../lib/supabase";
 import Navbar from "../components/Navbar";
 import {
@@ -27,7 +27,10 @@ const CSS = `
   --green-bg:  #dcfce7;
   --red:       #dc2626;
   --red-bg:    #fee2e2;
+  --amber:     #b45309;
+  --amber-bg:  #fef3c7;
   --blue:      #1d4ed8;
+  --purple:    #7c3aed;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   --shadow:    0 4px 16px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
   --repeat-bg:    #fffbeb;
@@ -90,6 +93,39 @@ const CSS = `
 }
 .export-btn:hover  { transform:translateY(-1px); box-shadow:0 4px 16px rgba(0,0,0,0.22); }
 .export-btn:active { transform:translateY(0); opacity:0.9; }
+
+/* ─── SAVINGS RATE RING ─── */
+.savings-ring-card {
+  background:var(--surface); border:1.5px solid var(--border); border-radius:14px;
+  padding:24px; box-shadow:var(--shadow-sm);
+  display:flex; align-items:center; gap:24px; flex-wrap:wrap; margin-bottom:32px;
+}
+.ring-wrap { position:relative; flex-shrink:0; }
+.ring-wrap svg { transform:rotate(-90deg); }
+.ring-center {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+.ring-pct { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; color:var(--teal); line-height:1; }
+.ring-sub  { font-size:9px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim); margin-top:2px; }
+.ring-info { flex:1; min-width:180px; }
+.ring-title { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.ring-desc  { font-size:13px; color:var(--text-dim); margin-bottom:14px; line-height:1.5; }
+.ring-pills { display:flex; flex-wrap:wrap; gap:8px; }
+.ring-pill  { display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:20px; border:1.5px solid var(--border); background:var(--bg2); font-size:12px; font-weight:600; color:var(--text-med); }
+.ring-pill-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+/* ─── BEST/WORST DAY ─── */
+.bw-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:32px; }
+@media(max-width:600px){ .bw-grid{grid-template-columns:1fr;} }
+.bw-card {
+  background:var(--surface); border:1.5px solid var(--border); border-radius:12px;
+  padding:18px 20px; box-shadow:var(--shadow-sm); position:relative; overflow:hidden;
+}
+.bw-accent { position:absolute; top:0; left:0; right:0; height:3px; border-radius:12px 12px 0 0; }
+.bw-label { font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim); margin-bottom:6px; }
+.bw-date  { font-family:'Playfair Display',serif; font-size:15px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.bw-amount{ font-family:'Playfair Display',serif; font-size:28px; font-weight:700; }
 
 /* ─── WRAP ─── */
 .mr-wrap { max-width:1100px; margin:auto; padding:0 24px; }
@@ -157,6 +193,36 @@ const CSS = `
 .spender-card:nth-child(1) .spender-bar { background:linear-gradient(90deg,#f59e0b,#ef4444); }
 .spender-card:nth-child(2) .spender-bar { background:linear-gradient(90deg,#6366f1,#8b5cf6); }
 .spender-card:nth-child(3) .spender-bar { background:linear-gradient(90deg,#0d9488,#06b6d4); }
+/* ─── TOP GAINERS ─── */
+.top-gainers-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:28px; }
+@media(max-width:1000px){ .top-gainers-grid{grid-template-columns:repeat(3,1fr);} }
+@media(max-width:640px) { .top-gainers-grid{grid-template-columns:repeat(2,1fr);} }
+.gainer-card {
+  background:var(--surface); border:1.5px solid var(--border); border-radius:14px;
+  padding:18px 16px; box-shadow:var(--shadow-sm); position:relative; overflow:hidden;
+  transition:transform 0.2s,box-shadow 0.2s; display:flex; flex-direction:column; gap:6px;
+}
+.gainer-card:hover { transform:translateY(-2px); box-shadow:var(--shadow); }
+.gainer-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:14px 14px 0 0; }
+.gainer-card:nth-child(1)::before { background:linear-gradient(90deg,#16a34a,#0d9488); }
+.gainer-card:nth-child(2)::before { background:linear-gradient(90deg,#0d9488,#0891b2); }
+.gainer-card:nth-child(3)::before { background:linear-gradient(90deg,#1d4ed8,#6366f1); }
+.gainer-card:nth-child(4)::before { background:linear-gradient(90deg,#7c3aed,#db2777); }
+.gainer-card:nth-child(5)::before { background:linear-gradient(90deg,#b45309,#f59e0b); }
+.gainer-rank-row { display:flex; align-items:center; justify-content:space-between; }
+.gainer-rank { font-family:'Playfair Display',serif; font-size:28px; font-weight:900; line-height:1; }
+.gainer-card:nth-child(1) .gainer-rank { color:#16a34a; }
+.gainer-card:nth-child(2) .gainer-rank { color:#0d9488; }
+.gainer-card:nth-child(3) .gainer-rank { color:#1d4ed8; }
+.gainer-card:nth-child(4) .gainer-rank { color:#7c3aed; }
+.gainer-card:nth-child(5) .gainer-rank { color:#b45309; }
+.gainer-count-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:var(--green-bg); color:var(--green); }
+.gainer-name { font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.gainer-count { font-size:11px; color:var(--text-dim); }
+.gainer-amount { font-family:'Playfair Display',serif; font-size:19px; font-weight:700; color:var(--green); }
+.gainer-bar-wrap { background:var(--bg2); border-radius:4px; height:4px; overflow:hidden; margin-top:4px; }
+.gainer-bar { height:100%; border-radius:4px; transition:width 0.8s cubic-bezier(.4,0,.2,1); background:linear-gradient(90deg,var(--green),var(--teal)); }
+
 
 /* ─── CHART GRID ─── */
 .chart-grid { display:grid; grid-template-columns:1fr 1.6fr; gap:20px; margin-bottom:28px; }
@@ -212,11 +278,6 @@ const CSS = `
 .chart-card { background:var(--surface); border:1.5px solid var(--border); border-radius:14px; padding:28px; margin-bottom:28px; box-shadow:var(--shadow-sm); }
 
 /* ─── HOME PILLS ─── */
-.home-stats-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:28px; }
-.home-stat-pill { display:flex; align-items:center; gap:10px; background:var(--surface); border:1.5px solid var(--border); border-radius:12px; padding:14px 20px; box-shadow:var(--shadow-sm); flex:1; min-width:140px; }
-.home-stat-icon { width:36px; height:36px; border-radius:10px; background:var(--teal-light); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
-.home-stat-label { font-size:10px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-dim); margin-bottom:2px; }
-.home-stat-value { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:var(--teal); }
 
 /* ─── BULK ─── */
 .bulk-section { background:var(--surface); border:2px solid #7c3aed; border-radius:16px; overflow:hidden; margin-bottom:28px; box-shadow:0 4px 20px rgba(124,58,237,.08); }
@@ -352,10 +413,6 @@ export default function MonthlyReport() {
   const totalIncome = incomes.reduce((s, i) => s + i.amount, 0);
   const totalExpense = expenses.reduce((s, e) => s + e.amount, 0);
   const balance = totalIncome - totalExpense;
-  const totalGivenToHome = incomes.reduce((s, i) => s + (Number(i.given_to_home) || 0), 0);
-  const remainingAfterHome = totalIncome - totalGivenToHome;
-  const momTotal = incomes.filter(i => i.given_to_whom === "Mom").reduce((s, i) => s + (i.given_to_home || 0), 0);
-  const dadTotal = incomes.filter(i => i.given_to_whom === "Dad").reduce((s, i) => s + (i.given_to_home || 0), 0);
   const totalBulkReceived = bulkIncomes.reduce((s, i) => s + i.amount, 0);
   const totalBulkIndivExp = bulkExpenses.reduce((s, e) => s + e.amount, 0);
   const totalSharedExp = sharedExpenses.reduce((s, e) => s + e.total_amount, 0);
@@ -377,6 +434,26 @@ export default function MonthlyReport() {
     })), [incomes, expenses]);
 
   const hasData = incomes.length > 0 || expenses.length > 0;
+
+  /* ── BEST / WORST DAY ── */
+  const dayIncome = {};
+  const dayExpense = {};
+  incomes.forEach(i => { dayIncome[i.date] = (dayIncome[i.date] || 0) + i.amount; });
+  expenses.forEach(e => { dayExpense[e.date] = (dayExpense[e.date] || 0) + e.amount; });
+  const allDayDates = [...new Set([...Object.keys(dayIncome), ...Object.keys(dayExpense)])];
+  let bestDay = null, worstDay = null;
+  allDayDates.forEach(d => {
+    const inc = dayIncome[d] || 0;
+    if (!bestDay || inc > (dayIncome[bestDay] || 0)) bestDay = d;
+    const exp = dayExpense[d] || 0;
+    if (!worstDay || exp > (dayExpense[worstDay] || 0)) worstDay = d;
+  });
+
+  /* ── SAVINGS RATE ── */
+  const savingsRate = totalIncome > 0 ? Math.round(((totalIncome - totalExpense) / totalIncome) * 100) : 0;
+  const clampedRate = Math.max(0, Math.min(100, savingsRate));
+  const RING_R = 54; const RING_C = 2 * Math.PI * RING_R;
+  const ringDash = (clampedRate / 100) * RING_C;
 
   /* ── TOP SPENDERS ── */
   const expSumMap = useMemo(() => sumByKey(expenses, r => r.paid_to), [expenses]);
@@ -411,6 +488,21 @@ export default function MonthlyReport() {
   const expenseSumMap = useMemo(() => sumByKey(expenses, r => r.paid_to), [expenses]);
   const repeatIncomeNames = Object.values(incomeRepeatMap).filter(v => v >= 2).length;
   const repeatExpenseNames = Object.values(expenseRepeatMap).filter(v => v >= 2).length;
+
+
+  /* ── TOP GAINERS ── */
+  const incSumMap2 = useMemo(() => sumByKey(incomes, r => r.service), [incomes]);
+  const incCntMap2 = useMemo(() => countByKey(incomes, r => r.service), [incomes]);
+  const topGainers = useMemo(() =>
+    Object.entries(incSumMap2)
+      .map(([key, total]) => ({
+        name: incomes.find(i => (i.service || "").toLowerCase().trim() === key)?.service || key,
+        total,
+        count: incCntMap2[key] || 1,
+      }))
+      .sort((a, b) => b.total - a.total).slice(0, 5),
+    [incSumMap2, incCntMap2, incomes]);
+  const maxGain = topGainers[0]?.total || 1;
 
   const monthOptions = Array.from({ length: 12 }, (_, i) => {
     const d = new Date(); d.setMonth(d.getMonth() - i);
@@ -480,8 +572,6 @@ export default function MonthlyReport() {
                 <StatCard label="Total Income" value={totalIncome} valCls="green" accentColor="#16a34a" percent={incomeChange} />
                 <StatCard label="Total Expense" value={totalExpense} valCls="red" accentColor="#dc2626" percent={expenseChange} />
                 <StatCard label="Balance" value={balance} valCls={balance >= 0 ? "teal" : "red"} accentColor={balance >= 0 ? "#0d9488" : "#dc2626"} percent={balanceChange} />
-                <StatCard label="Given To Home" value={totalGivenToHome} valCls="blue" accentColor="#1d4ed8" percent={null} />
-                <StatCard label="Remaining" value={remainingAfterHome} valCls="green" accentColor="#16a34a" percent={null} />
               </div>
 
               {/* ── TOP SPENDERS ── */}
@@ -506,17 +596,91 @@ export default function MonthlyReport() {
                 </>
               )}
 
-              {/* ── HOME DIST ── */}
-              {(momTotal > 0 || dadTotal > 0) && (
+
+              {/* ── TOP GAINERS ── */}
+              {topGainers.length > 0 && (
                 <>
-                  <p className="section-title">Home Distribution</p>
-                  <div className="home-stats-row">
-                    <div className="home-stat-pill"><div className="home-stat-icon">👩</div><div><div className="home-stat-label">Mom Total</div><div className="home-stat-value">₹{momTotal}</div></div></div>
-                    <div className="home-stat-pill"><div className="home-stat-icon">👨</div><div><div className="home-stat-label">Dad Total</div><div className="home-stat-value">₹{dadTotal}</div></div></div>
-                    <div className="home-stat-pill"><div className="home-stat-icon">🏠</div><div><div className="home-stat-label">Total Given</div><div className="home-stat-value">₹{totalGivenToHome}</div></div></div>
+                  <p className="section-title">Top 5 Gainers</p>
+                  <div className="top-gainers-grid">
+                    {topGainers.map((g, i) => (
+                      <div className="gainer-card" key={g.name}>
+                        <div className="gainer-rank-row">
+                          <span className="gainer-rank">#{i + 1}</span>
+                          <span className="gainer-count-badge">{g.count}x</span>
+                        </div>
+                        <div className="gainer-name" title={g.name}>{g.name}</div>
+                        <div className="gainer-count">{g.count} transaction{g.count > 1 ? "s" : ""}</div>
+                        <div className="gainer-amount">₹{fmt(g.total)}</div>
+                        <div className="gainer-bar-wrap">
+                          <div className="gainer-bar" style={{ width: `${(g.total / maxGain) * 100}%` }} />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </>
               )}
+
+              {/* ── SAVINGS RATE RING ── */}
+              <p className="section-title">Savings Rate</p>
+              <div className="savings-ring-card">
+                <div className="ring-wrap">
+                  <svg width="130" height="130" viewBox="0 0 130 130">
+                    <circle cx="65" cy="65" r={RING_R} fill="none" stroke="var(--border2)" strokeWidth="10" />
+                    <circle cx="65" cy="65" r={RING_R} fill="none"
+                      stroke={savingsRate >= 50 ? "#0d9488" : savingsRate >= 20 ? "#b45309" : "#dc2626"}
+                      strokeWidth="10" strokeLinecap="round"
+                      strokeDasharray={`${ringDash} ${RING_C}`}
+                      style={{ transition: "stroke-dasharray 1s ease" }}
+                    />
+                  </svg>
+                  <div className="ring-center">
+                    <span className="ring-pct">{clampedRate}%</span>
+                    <span className="ring-sub">saved</span>
+                  </div>
+                </div>
+                <div className="ring-info">
+                  <div className="ring-title">
+                    {savingsRate >= 60 ? "💚 Excellent savings!" : savingsRate >= 30 ? "🟡 Good progress" : savingsRate >= 0 ? "🔴 Low savings" : "⚠️ Overspent"}
+                  </div>
+                  <div className="ring-desc">
+                    {savingsRate >= 0
+                      ? `You saved ₹${fmt(totalIncome - totalExpense)} out of ₹${fmt(totalIncome)} earned this month.`
+                      : `Expenses exceeded income by ₹${fmt(Math.abs(totalIncome - totalExpense))}.`}
+                  </div>
+                  <div className="ring-pills">
+                    <div className="ring-pill"><div className="ring-pill-dot" style={{ background: "var(--green)" }} />Income ₹{fmt(totalIncome)}</div>
+                    <div className="ring-pill"><div className="ring-pill-dot" style={{ background: "var(--red)" }} />Spent ₹{fmt(totalExpense)}</div>
+                    <div className="ring-pill"><div className="ring-pill-dot" style={{ background: "var(--teal)" }} />Saved ₹{fmt(Math.max(0, totalIncome - totalExpense))}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── BEST / WORST DAY ── */}
+              {(bestDay || worstDay) && (
+                <>
+                  <p className="section-title">Best & Worst Day</p>
+                  <div className="bw-grid">
+                    {bestDay && (
+                      <div className="bw-card">
+                        <div className="bw-accent" style={{ background: "var(--green)" }} />
+                        <div className="bw-label">🏆 Best Income Day</div>
+                        <div className="bw-date">{new Date(bestDay).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}</div>
+                        <div className="bw-amount" style={{ color: "var(--green)" }}>₹{fmt(dayIncome[bestDay] || 0)}</div>
+                      </div>
+                    )}
+                    {worstDay && (
+                      <div className="bw-card">
+                        <div className="bw-accent" style={{ background: "var(--red)" }} />
+                        <div className="bw-label">💸 Highest Expense Day</div>
+                        <div className="bw-date">{new Date(worstDay).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}</div>
+                        <div className="bw-amount" style={{ color: "var(--red)" }}>₹{fmt(dayExpense[worstDay] || 0)}</div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* ── HOME DIST ── */}
             </>
           )}
 
@@ -583,7 +747,7 @@ export default function MonthlyReport() {
                 </div>
               )}
               <table className="mr-table">
-                <thead><tr><th>Date</th><th>Service</th><th className="right">Amount</th><th className="right">Home</th></tr></thead>
+                <thead><tr><th>Date</th><th>Service</th><th className="right">Amount</th></tr></thead>
                 <tbody>
                   {incomes.map(row => {
                     const key = (row.service || "").toLowerCase().trim();
@@ -598,11 +762,6 @@ export default function MonthlyReport() {
                           {isRepeat && <RepeatBadge count={count} total={total} />}
                         </td>
                         <td className="right" style={{ fontWeight: 600, color: "var(--green)" }}>₹{row.amount}</td>
-                        <td className="right">
-                          {(Number(row.given_to_home) || 0) > 0
-                            ? <span className="badge badge-home">₹{row.given_to_home} · {row.given_to_whom || "—"}</span>
-                            : <span style={{ color: "var(--text-faint)" }}>—</span>}
-                        </td>
                       </tr>
                     );
                   })}

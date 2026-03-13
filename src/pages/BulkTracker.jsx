@@ -157,6 +157,54 @@ const CSS = `
 .empty-sub{font-size:13px;color:var(--text-dim);}
 .loading-text{text-align:center;color:var(--text-dim);padding:48px;font-size:14px;}
 .no-shared-history{text-align:center;padding:28px;font-size:13px;color:var(--text-faint);font-style:italic;}
+
+/* ── SEARCH / FILTER / SORT BAR ── */
+.filter-bar {
+  background:var(--surface); border:1.5px solid var(--border); border-radius:12px;
+  padding:14px 18px; margin-bottom:20px;
+  display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+  box-shadow:var(--shadow-sm);
+}
+.filter-search {
+  flex:1; min-width:180px; background:var(--bg2); border:1.5px solid var(--border);
+  border-radius:8px; padding:9px 13px; font-size:14px; font-family:'DM Sans',sans-serif;
+  color:var(--text); outline:none; transition:border-color .2s,box-shadow .2s;
+}
+.filter-search::placeholder { color:var(--text-faint); }
+.filter-search:focus { border-color:var(--teal); box-shadow:0 0 0 3px rgba(13,148,136,.1); background:var(--surface); }
+.filter-pills { display:flex; gap:6px; flex-wrap:wrap; }
+.filter-pill {
+  padding:6px 14px; border-radius:20px; font-size:11px; font-weight:600;
+  border:1.5px solid var(--border); background:var(--bg2); color:var(--text-dim);
+  cursor:pointer; transition:all .15s; font-family:'DM Sans',sans-serif;
+}
+.filter-pill:hover { border-color:var(--teal); color:var(--teal); background:var(--teal-light); }
+.filter-pill.active { background:var(--teal); border-color:var(--teal); color:#fff; }
+.filter-pill.all.active    { background:var(--teal); border-color:var(--teal); }
+.filter-pill.pending.active{ background:var(--amber); border-color:var(--amber); }
+.filter-pill.partial.active{ background:var(--blue); border-color:var(--blue); }
+.filter-pill.settled.active{ background:var(--green); border-color:var(--green); }
+.sort-select {
+  background:var(--bg2); border:1.5px solid var(--border); border-radius:8px;
+  padding:8px 12px; font-size:12px; font-family:'DM Sans',sans-serif;
+  color:var(--text-med); outline:none; cursor:pointer;
+  transition:border-color .2s; appearance:none;
+}
+.sort-select:focus { border-color:var(--teal); }
+.filter-count { font-size:12px; color:var(--text-dim); margin-left:auto; white-space:nowrap; }
+
+/* ── SETTLE BUTTON ── */
+.settle-btn {
+  display:flex; align-items:center; gap:6px;
+  padding:8px 18px; border-radius:8px; font-size:11px; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase;
+  background:var(--green-bg); color:var(--green); border:1.5px solid rgba(22,163,74,0.3);
+  cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; white-space:nowrap;
+}
+.settle-btn:hover { background:var(--green); color:#fff; border-color:var(--green); transform:translateY(-1px); }
+.settle-btn.settled-state { background:var(--surface2); color:var(--text-faint); border-color:var(--border); cursor:default; }
+.settle-btn.settled-state:hover { transform:none; }
+.settled-at { font-size:10px; color:var(--text-faint); margin-top:2px; font-style:italic; }
 `;
 
 const fmt = (n) => Math.round(n).toLocaleString("en-IN");
@@ -181,6 +229,27 @@ export default function BulkTracker() {
   const [manualAmounts, setManualAmounts] = useState({}); // { [bulk_income_id]: string }
 
   const [popupPersonId, setPopupPersonId] = useState(null);
+
+  /* ── SEARCH / FILTER / SORT ── */
+  const [searchQ, setSearchQ] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
+
+  /* ── SETTLE ── */
+  const [settledMap, setSettledMap] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("bt_settled") || "{}"); } catch { return {}; }
+  });
+  const markSettled = (id) => {
+    if (!window.confirm("Mark this person as fully settled?")) return;
+    const updated = { ...settledMap, [id]: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) };
+    setSettledMap(updated);
+    localStorage.setItem("bt_settled", JSON.stringify(updated));
+  };
+  const unsettle = (id) => {
+    const updated = { ...settledMap }; delete updated[id];
+    setSettledMap(updated);
+    localStorage.setItem("bt_settled", JSON.stringify(updated));
+  };
 
   /* AUTH */
   useEffect(() => {
@@ -326,6 +395,29 @@ export default function BulkTracker() {
   const totalSharedExp = sharedExpenses.reduce((s, e) => s + e.total_amount, 0);
   const totalRemaining = totalBulkIn - totalIndivExp - totalSharedExp;
 
+  /* ── FILTERED + SORTED PERSONS ── */
+  const filteredPersons = bulkIncomes
+    .filter(inc => {
+      const indivSpent = getIndivExp(inc.id);
+      const sharedCut = getSharedCut(inc.id);
+      const totalSpent = indivSpent + sharedCut;
+      const status = getStatus(inc.amount, totalSpent);
+      const manualSettled = settledMap[inc.id] ? "settled" : null;
+      const effectiveStatus = manualSettled || status;
+      const matchesSearch = inc.person_name.toLowerCase().includes(searchQ.toLowerCase()) ||
+        (inc.note || "").toLowerCase().includes(searchQ.toLowerCase());
+      const matchesFilter = filterStatus === "all" || effectiveStatus === filterStatus;
+      return matchesSearch && matchesFilter;
+    })
+    .sort((a, b) => {
+      if (sortBy === "balance-high") return Math.max(0, getRemaining(b)) - Math.max(0, getRemaining(a));
+      if (sortBy === "balance-low") return Math.max(0, getRemaining(a)) - Math.max(0, getRemaining(b));
+      if (sortBy === "name") return a.person_name.localeCompare(b.person_name);
+      if (sortBy === "amount-high") return b.amount - a.amount;
+      // newest first (default)
+      return new Date(b.created_at || b.date) - new Date(a.created_at || a.date);
+    });
+
   /* POPUP */
   const popupPerson = popupPersonId ? bulkIncomes.find(i => i.id === popupPersonId) : null;
   const popupIndivExp = popupPersonId ? bulkExpenses.filter(e => e.bulk_income_id === popupPersonId) : [];
@@ -420,6 +512,35 @@ export default function BulkTracker() {
             💡 Check the checkbox on a card to include in shared expense · Click ✏️ to edit · Click "Expense History" to view all entries
           </p>
 
+          {/* ── FILTER BAR ── */}
+          {!loading && bulkIncomes.length > 0 && (
+            <div className="filter-bar">
+              <input
+                className="filter-search"
+                placeholder="🔍 Search by name or note…"
+                value={searchQ}
+                onChange={e => setSearchQ(e.target.value)}
+              />
+              <div className="filter-pills">
+                {["all", "pending", "partial", "settled"].map(s => (
+                  <button key={s}
+                    className={`filter-pill ${s}${filterStatus === s ? " active" : ""}`}
+                    onClick={() => setFilterStatus(s)}>
+                    {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
+                  </button>
+                ))}
+              </div>
+              <select className="sort-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
+                <option value="newest">↕ Newest first</option>
+                <option value="balance-high">↓ Balance high→low</option>
+                <option value="balance-low">↑ Balance low→high</option>
+                <option value="amount-high">↓ Amount high→low</option>
+                <option value="name">A→Z Name</option>
+              </select>
+              <span className="filter-count">{filteredPersons.length} of {bulkIncomes.length}</span>
+            </div>
+          )}
+
           {loading ? (
             <div className="loading-text">Loading…</div>
           ) : bulkIncomes.length === 0 ? (
@@ -428,15 +549,23 @@ export default function BulkTracker() {
               <div className="empty-title">No bulk income added yet</div>
               <div className="empty-sub">Enter a person name and amount in the form above to get started</div>
             </div>
+          ) : filteredPersons.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">🔍</div>
+              <div className="empty-title">No results found</div>
+              <div className="empty-sub">Try a different search term or filter</div>
+            </div>
           ) : (
             <div className="persons-grid">
-              {bulkIncomes.map(inc => {
+              {filteredPersons.map(inc => {
                 const indivSpent = getIndivExp(inc.id);
                 const sharedCut = getSharedCut(inc.id);
                 const totalSpent = indivSpent + sharedCut;
                 const remaining = inc.amount - totalSpent;
                 const pct = Math.min(100, inc.amount > 0 ? Math.round((totalSpent / inc.amount) * 100) : 0);
-                const status = getStatus(inc.amount, totalSpent);
+                const autoStatus = getStatus(inc.amount, totalSpent);
+                const isManuallySettled = !!settledMap[inc.id];
+                const status = isManuallySettled ? "settled" : autoStatus;
                 const isOpen = openExpForm === inc.id;
                 const isSelected = selectedIds.includes(inc.id);
                 const isEditing = editingIncome?.id === inc.id;
@@ -460,7 +589,9 @@ export default function BulkTracker() {
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="person-name">{inc.person_name}</div>
-                        <div className="person-date">{inc.date}{inc.note ? ` · ${inc.note}` : ""}</div>
+                        <div className="person-date">{inc.date}{inc.note ? ` · ${inc.note}` : ""}
+                          {isManuallySettled && <span className="settled-at"> · ✅ Settled {settledMap[inc.id]}</span>}
+                        </div>
                       </div>
                       <span className={`badge badge-${status}`}>
                         {status === "settled" ? "Settled" : status === "partial" ? "Partial" : "Pending"}
@@ -530,6 +661,19 @@ export default function BulkTracker() {
                       <div className="progress-track">
                         <div className="progress-fill" style={{ width: `${pct}%`, background: fillColor }} />
                       </div>
+                    </div>
+
+                    {/* SETTLE BUTTON */}
+                    <div style={{ padding: "8px 18px 0" }}>
+                      {isManuallySettled ? (
+                        <button className="settle-btn settled-state" onClick={() => unsettle(inc.id)}>
+                          ✅ Settled — tap to undo
+                        </button>
+                      ) : (
+                        <button className="settle-btn" onClick={() => markSettled(inc.id)}>
+                          ✓ Mark as Settled
+                        </button>
+                      )}
                     </div>
 
                     {/* ADD INDIVIDUAL EXPENSE */}

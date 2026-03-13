@@ -256,6 +256,29 @@ const CSS = `
 
 .loading-text, .empty-text { text-align:center; color:var(--text-dim); padding:36px; font-size:13px; letter-spacing:.04em; }
 
+/* ── COMPARE ARROWS ── */
+.stat-compare { display:flex; align-items:center; gap:4px; margin-top:6px; font-size:11px; font-weight:600; }
+.compare-up   { color:var(--green); }
+.compare-down { color:var(--red); }
+.compare-same { color:var(--text-dim); }
+
+/* ── WHATSAPP COPY ── */
+.wa-copy-btn {
+  display:inline-flex; align-items:center; gap:8px;
+  background:linear-gradient(135deg,#25d366,#128c7e);
+  color:#fff; border:none; border-radius:10px;
+  padding:10px 18px; font-family:'DM Sans',sans-serif;
+  font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+  cursor:pointer; transition:all .2s; box-shadow:0 2px 10px rgba(37,211,102,0.3);
+}
+.wa-copy-btn:hover { opacity:.88; transform:translateY(-1px); }
+.wa-copy-btn.copied { background:linear-gradient(135deg,#16a34a,#0d9488); }
+.wa-btn-row { display:flex; justify-content:flex-end; margin-bottom:12px; }
+
+/* ── TABLE TOTALS ── */
+.table-totals-row td { background:var(--bg2) !important; border-top:2px solid var(--border2) !important; font-weight:700 !important; padding:12px !important; }
+.totals-label { font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim); }
+
 @media(max-width:640px){
   .dr-header { padding:16px 0 12px; margin-bottom:18px; }
   .stat-card { padding:14px 16px; }
@@ -276,6 +299,9 @@ export default function DailyReport() {
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(null);
   const [activeForm, setActiveForm] = useState("income");
+  const [prevIncomeTotal, setPrevIncomeTotal] = useState(0);
+  const [prevExpenseTotal, setPrevExpenseTotal] = useState(0);
+  const [waCopied, setWaCopied] = useState(false);
 
   /* ── SERVICE OPTIONS ── */
   const [serviceOptions, setServiceOptions] = useState([]);
@@ -369,11 +395,19 @@ export default function DailyReport() {
   const fetchData = async () => {
     if (!date) return;
     setLoading(true);
-    const [{ data: inc }, { data: exp }] = await Promise.all([
+    // Fetch current day AND previous day for comparison
+    const prevDate = new Date(date); prevDate.setDate(prevDate.getDate() - 1);
+    const prevDateStr = prevDate.toISOString().split("T")[0];
+    const [{ data: inc }, { data: exp }, { data: prevInc }, { data: prevExp }] = await Promise.all([
       supabase.from("income").select("*").eq("date", date).order("created_at", { ascending: false }),
       supabase.from("expense").select("*").eq("date", date).order("created_at", { ascending: false }),
+      supabase.from("income").select("amount").eq("date", prevDateStr),
+      supabase.from("expense").select("amount").eq("date", prevDateStr),
     ]);
-    setIncomes(inc || []); setExpenses(exp || []); setLoading(false);
+    setIncomes(inc || []); setExpenses(exp || []);
+    setPrevIncomeTotal((prevInc || []).reduce((s, i) => s + i.amount, 0));
+    setPrevExpenseTotal((prevExp || []).reduce((s, e) => s + e.amount, 0));
+    setLoading(false);
   };
 
   useEffect(() => { fetchData(); fetchOptions(); fetchServices(); }, [date]);
@@ -383,7 +417,7 @@ export default function DailyReport() {
     if (!selectedService || !computedAmount) return;
     const { error } = await supabase.from("income").insert([{
       date, service: selectedService, amount: computedAmount,
-      qty: Number(qty), rate_per_qty: Number(ratePerQty), given_to_home: 0,
+      qty: Number(qty), rate_per_qty: Number(ratePerQty),
     }]);
     if (error) { alert(error.message); return; }
     setSelectedService(""); setRatePerQty(""); setQty(1); fetchData();
@@ -393,7 +427,7 @@ export default function DailyReport() {
   const addManualIncome = async () => {
     const desc = manualDesc.trim(); const amount = Number(manualAmount);
     if (!desc || !amount || amount <= 0) return;
-    const { error } = await supabase.from("income").insert([{ date, service: desc, amount, given_to_home: 0 }]);
+    const { error } = await supabase.from("income").insert([{ date, service: desc, amount }]);
     if (error) { alert(error.message); return; }
     setManualDesc(""); setManualAmount(""); fetchData();
   };
@@ -421,13 +455,33 @@ export default function DailyReport() {
   const totalIncome = incomes.reduce((s, i) => s + i.amount, 0);
   const totalExpense = expenses.reduce((s, e) => s + e.amount, 0);
   const balance = totalIncome - totalExpense;
-  const totalGivenToHome = incomes.reduce((s, i) => s + (i.given_to_home || 0), 0);
-  const remainingAfterHome = totalIncome - totalGivenToHome;
-  const momTotal = incomes.filter(i => i.given_to_whom === "Mom").reduce((s, i) => s + (i.given_to_home || 0), 0);
-  const dadTotal = incomes.filter(i => i.given_to_whom === "Dad").reduce((s, i) => s + (i.given_to_home || 0), 0);
 
   const hasData = incomes.length > 0 || expenses.length > 0;
   const fmt = (n) => (n || 0).toLocaleString("en-IN");
+
+  /* ── COMPARE HELPERS ── */
+  const compareArrow = (curr, prev) => {
+    if (prev === 0 && curr === 0) return null;
+    const diff = curr - prev;
+    const pct = prev === 0 ? 100 : Math.abs((diff / prev) * 100);
+    if (diff > 0) return <span className="stat-compare compare-up">▲ {pct.toFixed(0)}% vs prev day</span>;
+    if (diff < 0) return <span className="stat-compare compare-down">▼ {pct.toFixed(0)}% vs prev day</span>;
+    return <span className="stat-compare compare-same">= same as prev day</span>;
+  };
+
+  /* ── WHATSAPP COPY ── */
+  const copyWhatsApp = () => {
+    const dateStr = new Date(date).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+    let lines = [
+      `📊 *Daily Report — ${dateStr}*`, ``,
+      `💰 *Income:* ₹${fmt(totalIncome)}`,
+      `💸 *Expense:* ₹${fmt(totalExpense)}`,
+      `🧮 *Balance:* ₹${fmt(balance)}`,
+    ];
+    if (incomes.length) { lines.push(``, `*Income:*`); incomes.forEach(i => lines.push(`  • ${i.service} — ₹${fmt(i.amount)}`)); }
+    if (expenses.length) { lines.push(``, `*Expenses:*`); expenses.forEach(e => lines.push(`  • ${e.paid_to} — ₹${fmt(e.amount)}`)); }
+    navigator.clipboard.writeText(lines.join("\n")).then(() => { setWaCopied(true); setTimeout(() => setWaCopied(false), 2500); });
+  };
 
   const allRows = [
     ...incomes.map(i => ({ ...i, t: "income" })),
@@ -436,10 +490,9 @@ export default function DailyReport() {
 
   const pieData = [
     { name: "Expense", value: totalExpense },
-    { name: "Given To Home", value: totalGivenToHome },
-    { name: "Remaining", value: Math.max(0, remainingAfterHome) },
+    { name: "Balance", value: Math.max(0, balance) },
   ];
-  const PIE_COLORS = ["#dc2626", "#1d4ed8", "#16a34a"];
+  const PIE_COLORS = ["#dc2626", "#0d9488"];
 
   /* ── RENDER ── */
   return (
@@ -476,15 +529,9 @@ export default function DailyReport() {
             <>
               {/* ── STAT CARDS (same as Dashboard) ── */}
               <div className="stats-grid-3">
-                <StatCard label="Total Income" value={fmt(totalIncome)} valCls="green" accent="accent-green" icon="💰" iconBg="#dcfce7" />
-                <StatCard label="Total Expense" value={fmt(totalExpense)} valCls="red" accent="accent-red" icon="💸" iconBg="#fee2e2" />
-                <StatCard label="Balance" value={fmt(balance)} valCls={balance >= 0 ? "teal" : "red"} accent={balance >= 0 ? "accent-teal" : "accent-red"} icon="🧮" iconBg="#e0f2f0" />
-              </div>
-              <div className="stats-grid-4">
-                <StatCard label="Given Home" value={fmt(totalGivenToHome)} valCls="blue" accent="accent-blue" icon="🏠" iconBg="#dbeafe" small />
-                <StatCard label="Remaining" value={fmt(remainingAfterHome)} valCls="green" accent="accent-green" icon="💼" iconBg="#dcfce7" small />
-                <StatCard label="Mom Total" value={fmt(momTotal)} valCls="amber" accent="accent-amber" icon="👩" iconBg="#fef3c7" small />
-                <StatCard label="Dad Total" value={fmt(dadTotal)} valCls="purple" accent="accent-purple" icon="👨" iconBg="#ede9fe" small />
+                <StatCard label="Total Income" value={fmt(totalIncome)} valCls="green" accent="accent-green" icon="💰" iconBg="#dcfce7" compare={compareArrow(totalIncome, prevIncomeTotal)} />
+                <StatCard label="Total Expense" value={fmt(totalExpense)} valCls="red" accent="accent-red" icon="💸" iconBg="#fee2e2" compare={compareArrow(totalExpense, prevExpenseTotal)} />
+                <StatCard label="Balance" value={fmt(balance)} valCls={balance >= 0 ? "teal" : "red"} accent={balance >= 0 ? "accent-teal" : "accent-red"} icon="🧮" iconBg="#e0f2f0" compare={compareArrow(balance, prevIncomeTotal - prevExpenseTotal)} />
               </div>
 
               {/* ── QUICK ENTRY — TABBED ── */}
@@ -688,6 +735,11 @@ export default function DailyReport() {
 
               {/* ── TRANSACTIONS TABLE ── */}
               <p className="section-title">Transactions</p>
+              <div className="wa-btn-row">
+                <button className={`wa-copy-btn${waCopied ? " copied" : ""}`} onClick={copyWhatsApp}>
+                  {waCopied ? "✅ Copied!" : "📋 Copy for WhatsApp"}
+                </button>
+              </div>
               <div className="table-card">
                 <span className="table-scroll-hint">← scroll to see all columns →</span>
                 {loading ? <div className="loading-text">Loading…</div>
@@ -699,12 +751,12 @@ export default function DailyReport() {
                         <tr>
                           <th>Type</th><th>Description</th>
                           <th className="center">Qty</th><th className="right">Amount</th>
-                          <th className="right">Home</th><th className="center">Del</th>
+                          <th className="center">Del</th>
                         </tr>
                       </thead>
                       <tbody>
                         {allRows.map(row => (
-                          <tr key={`${row.t}-${row.id}`} className={row.t === "income" && (row.given_to_home || 0) < row.amount ? "row-pending" : ""}>
+                          <tr key={`${row.t}-${row.id}`} className="">
                             <td>
                               <span className={`badge badge-${row.t === "income" ? "income" : "expense"}`}>
                                 {row.t === "income" ? "Income" : "Expense"}
@@ -735,11 +787,6 @@ export default function DailyReport() {
                                 </span>
                               )}
                             </td>
-                            <td className="right" style={{ fontSize: 12 }}>
-                              {row.t === "income"
-                                ? <span className="badge badge-home">₹{row.given_to_home || 0} · {row.given_to_whom || "—"}</span>
-                                : <span style={{ color: "var(--text-faint)" }}>—</span>}
-                            </td>
                             <td className="center">
                               <button className="del-btn" onClick={() => deleteRow(row.t === "income" ? "income" : "expense", row.id)}>
                                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -750,6 +797,17 @@ export default function DailyReport() {
                           </tr>
                         ))}
                       </tbody>
+                      <tfoot>
+                        <tr className="table-totals-row">
+                          <td colSpan={3}><span className="totals-label">Day Total</span></td>
+                          <td className="right">
+                            <div style={{ color: "var(--green)", fontFamily: "Playfair Display,serif" }}>+₹{fmt(totalIncome)}</div>
+                            <div style={{ color: "var(--red)", fontFamily: "Playfair Display,serif" }}>−₹{fmt(totalExpense)}</div>
+                            <div style={{ color: balance >= 0 ? "var(--teal)" : "var(--red)", fontFamily: "Playfair Display,serif", fontSize: 15 }}>= ₹{fmt(balance)}</div>
+                          </td>
+                          <td />
+                        </tr>
+                      </tfoot>
                     </table>
                   )}
               </div>
@@ -762,11 +820,12 @@ export default function DailyReport() {
 }
 
 /* ── STAT CARD — same as Dashboard ── */
-const StatCard = ({ label, value, valCls, accent, icon, iconBg, small }) => (
+const StatCard = ({ label, value, valCls, accent, icon, iconBg, small, compare }) => (
   <div className="stat-card">
     <div className={`stat-card-accent ${accent}`} />
     <div className="stat-icon-bg" style={{ background: iconBg }}>{icon}</div>
     <div className="stat-label">{label}</div>
     <div className={`stat-value ${valCls}${small ? " sm" : ""}`}>₹{value}</div>
+    {compare || null}
   </div>
 );
