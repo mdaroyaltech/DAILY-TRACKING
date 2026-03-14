@@ -13,8 +13,13 @@ export default function Navbar() {
   }, [dark]);
 
   const logout = async () => {
-    try { await supabase.auth.signOut(); navigate("/login"); }
-    catch (err) { alert("Logout failed"); }
+    try {
+      await supabase.auth.signOut();
+      navigate("/login", { replace: true });
+    } catch (err) {
+      console.error(err);
+      alert("Logout failed");
+    }
   };
 
   const closeMenu = () => setMenuOpen(false);

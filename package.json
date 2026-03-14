@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/cli": "^8.2.0",
+    "@capacitor/core": "^8.2.0",
     "@supabase/supabase-js": "^2.93.2",
     "dayjs": "^1.11.19",
     "lucide-react": "^0.563.0",

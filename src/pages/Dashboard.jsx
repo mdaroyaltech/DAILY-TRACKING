@@ -79,6 +79,10 @@ const CSS = `
   0%   { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
+@keyframes collapseOpen {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 .db-header    { animation: fadeIn .45s ease both; }
 .db-wrap > .section-title { animation: slideRight .4s ease both; }
@@ -96,7 +100,6 @@ const CSS = `
 .forms-tabs  { animation: fadeUp .45s .25s ease both; }
 .form-panel  { animation: fadeUp .35s ease both; }
 .chart-card  { animation: fadeUp .5s .3s ease both; }
-.table-card  { animation: fadeUp .5s .35s ease both; }
 
 /* table row stagger */
 .db-table tbody tr { animation: rowSlide .3s ease both; }
@@ -284,11 +287,6 @@ const CSS = `
 .auto-amount-label { font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--teal); }
 .auto-amount-value { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:var(--teal); }
 
-.db-input-readonly {
-  background:var(--teal-light); border-color:var(--teal-mid); color:var(--teal);
-  font-family:'Playfair Display',serif; font-size:18px; font-weight:700; cursor:not-allowed;
-}
-
 /* ── BUTTONS ── */
 .btn { width:100%; padding:12px; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; cursor:pointer; transition:all .18s; margin-top:4px; }
 .btn:hover { opacity:.88; transform:translateY(-1px); box-shadow:var(--shadow); }
@@ -344,27 +342,21 @@ const CSS = `
 .result-value.loss   { color:var(--red); }
 
 /* ── TABLES ── */
-.table-card { background:var(--surface); border:1.5px solid var(--border); border-radius:12px; padding:22px; margin-bottom:20px; box-shadow:var(--shadow-sm); overflow-x:auto; }
-.table-scroll-hint { display:none; font-size:10px; color:var(--text-dim); margin-bottom:8px; text-align:center; letter-spacing:.05em; }
-@media(max-width:580px){ .table-scroll-hint{display:block;} }
-.db-table { width:100%; border-collapse:collapse; font-size:13px; min-width:480px; }
+.db-table { width:100%; border-collapse:collapse; font-size:13px; min-width:380px; }
 .db-table th { font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--text-dim); padding:9px 12px; text-align:left; background:var(--bg2); border-bottom:1.5px solid var(--border); white-space:nowrap; }
 .db-table th:first-child { border-radius:7px 0 0 7px; }
 .db-table th:last-child  { border-radius:0 7px 7px 0; }
 .db-table th.right  { text-align:right; }
 .db-table th.center { text-align:center; }
-.db-table td { padding:12px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
+.db-table td { padding:11px 12px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
 .db-table td.right  { text-align:right; }
 .db-table td.center { text-align:center; }
 .db-table tr:last-child td { border-bottom:none; }
 .db-table tr:hover td { background:var(--surface2); }
-.row-pending td { background:#fffbeb !important; }
-.row-pending:hover td { background:#fef9d0 !important; }
 
 .badge { display:inline-flex; align-items:center; padding:3px 9px; border-radius:12px; font-size:10px; font-weight:600; letter-spacing:.05em; }
 .badge-income  { background:var(--green-bg); color:var(--green); }
 .badge-expense { background:var(--red-bg);   color:var(--red); }
-.badge-home    { background:var(--teal-light); color:var(--teal); }
 .badge-manual  { background:var(--purple-bg); color:var(--purple); }
 
 .edit-input { background:var(--bg2); border:1.5px solid var(--teal); border-radius:6px; padding:5px 8px; width:90px; text-align:right; color:var(--text); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; box-shadow:0 0 0 3px rgba(13,148,136,0.1); }
@@ -390,16 +382,194 @@ const CSS = `
 .wa-copy-btn:hover { opacity:.88; transform:translateY(-1px); box-shadow:0 4px 16px rgba(37,211,102,0.4); }
 .wa-copy-btn:active { transform:translateY(0); }
 .wa-copy-btn.copied { background:linear-gradient(135deg,#16a34a,#0d9488); }
-.wa-btn-row { display:flex; justify-content:flex-end; margin-bottom:12px; }
+.wa-btn-row { display:flex; justify-content:flex-end; margin-bottom:14px; }
 
-/* ── TABLE TOTALS FOOTER ── */
-.table-totals-row td {
-  background:var(--bg2) !important;
-  border-top:2px solid var(--border2) !important;
-  font-weight:700 !important; font-size:13px !important;
-  padding:12px !important;
+/* ══════════════════════════════════════
+   ── COLLAPSIBLE TRANSACTION SECTIONS ──
+   ══════════════════════════════════════ */
+
+.txn-section {
+  border-radius: 14px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1.5px solid var(--border);
+  transition: box-shadow .2s;
 }
-.totals-label { font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim); }
+.txn-section:hover { box-shadow: var(--shadow); }
+
+/* Income header — soft green */
+.txn-header-income {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  cursor: pointer;
+  user-select: none;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-bottom: 1.5px solid transparent;
+  transition: background .18s, border-color .18s;
+}
+.txn-header-income.open { border-bottom-color: #bbf7d0; }
+.txn-header-income:hover { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); }
+
+/* Expense header — soft red */
+.txn-header-expense {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  cursor: pointer;
+  user-select: none;
+  background: linear-gradient(135deg, #fff5f5 0%, #fee2e2 100%);
+  border-bottom: 1.5px solid transparent;
+  transition: background .18s, border-color .18s;
+}
+.txn-header-expense.open { border-bottom-color: #fecaca; }
+.txn-header-expense:hover { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); }
+
+/* Left stripe */
+.txn-header-stripe {
+  width: 5px;
+  align-self: stretch;
+  flex-shrink: 0;
+  border-radius: 0;
+}
+.stripe-income  { background: var(--green); }
+.stripe-expense { background: var(--red); }
+
+.txn-header-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 14px 14px;
+  gap: 10px;
+}
+
+.txn-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.txn-emoji { font-size: 20px; line-height: 1; }
+
+.txn-title-block {}
+.txn-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: .01em;
+}
+.txn-title.income  { color: #15803d; }
+.txn-title.expense { color: #b91c1c; }
+
+.txn-count-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-top: 3px;
+}
+.txn-count-pill.income  { background: #bbf7d0; color: #14532d; }
+.txn-count-pill.expense { background: #fecaca; color: #7f1d1d; }
+
+.txn-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.txn-total {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: .01em;
+}
+.txn-total.income  { color: #15803d; }
+.txn-total.expense { color: #b91c1c; }
+
+.txn-arrow-btn {
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  transition: all .18s;
+  flex-shrink: 0;
+}
+.txn-arrow-btn.income  { background: rgba(22,163,74,0.1); border-color: rgba(22,163,74,0.2); color: var(--green); }
+.txn-arrow-btn.income:hover { background: rgba(22,163,74,0.2); }
+.txn-arrow-btn.expense { background: rgba(220,38,38,0.1); border-color: rgba(220,38,38,0.2); color: var(--red); }
+.txn-arrow-btn.expense:hover { background: rgba(220,38,38,0.2); }
+.txn-arrow-icon {
+  transition: transform .22s cubic-bezier(.4,0,.2,1);
+  display: block;
+}
+.txn-arrow-icon.open { transform: rotate(180deg); }
+
+/* Body */
+.txn-body {
+  background: var(--surface);
+  overflow-x: auto;
+  animation: collapseOpen .22s ease both;
+}
+
+.txn-empty {
+  text-align: center;
+  padding: 28px 16px;
+  font-size: 13px;
+  color: var(--text-dim);
+  letter-spacing: .03em;
+}
+
+/* scroll hint mobile */
+.table-scroll-hint { display:none; font-size:10px; color:var(--text-dim); padding:6px 12px; text-align:center; letter-spacing:.05em; border-bottom:1px solid var(--border); }
+@media(max-width:580px){ .table-scroll-hint{display:block;} }
+
+/* ── NET BALANCE CARD ── */
+.net-balance-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 36px;
+  box-shadow: var(--shadow-sm);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.net-balance-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.net-balance-label::before {
+  content: '';
+  display: inline-block;
+  width: 14px; height: 2px;
+  background: var(--teal);
+  border-radius: 2px;
+}
+.net-balance-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: .01em;
+}
+.net-balance-value.profit { color: var(--teal); }
+.net-balance-value.loss   { color: var(--red); }
 
 /* ── MOBILE ── */
 @media(max-width:640px){
@@ -409,7 +579,9 @@ const CSS = `
   .stat-value.sm { font-size:18px !important; }
   .stat-icon-bg { width:30px; height:30px; font-size:14px; margin-bottom:8px; }
   .chart-card { padding:16px; }
-  .table-card { padding:14px; }
+  .txn-total { font-size:16px; }
+  .txn-title { font-size:14px; }
+  .net-balance-value { font-size:20px; }
 }
 `;
 
@@ -426,10 +598,12 @@ export default function Dashboard() {
   const [chartData, setChartData] = useState([]);
   const [activeForm, setActiveForm] = useState("income");
 
+  // Collapsible state
+  const [incomeOpen, setIncomeOpen] = useState(true);
+  const [expenseOpen, setExpenseOpen] = useState(true);
+
   const { totalIncome, totalExpense, balance, weeklyBalance } =
     useFinanceSummary(incomes, expenses, today);
-
-
 
   /* ── SERVICE OPTIONS ── */
   const [serviceOptions, setServiceOptions] = useState([]);
@@ -616,7 +790,6 @@ export default function Dashboard() {
     if (!window.confirm("Delete this entry?")) return;
     await supabase.from(table).delete().eq("id", id); fetchData();
   };
-  // Delete a grouped row — deletes ALL sibling ids
   const deleteGrouped = async (ids) => {
     if (!window.confirm(`Delete all ${ids.length} entries for this service?`)) return;
     for (const id of ids) await supabase.from("income").delete().eq("id", id);
@@ -627,33 +800,18 @@ export default function Dashboard() {
   const buildDisplayRows = (rows) => {
     const result = [];
     const usedIds = new Set();
-
     rows.forEach(row => {
       if (usedIds.has(row.id)) return;
-
       if (row.type === "Income") {
-        // Find ALL income rows with same service name today that haven't been consumed yet
         const siblings = rows.filter(
-          r => r.type === "Income" &&
-            r.service === row.service &&
-            !usedIds.has(r.id)
+          r => r.type === "Income" && r.service === row.service && !usedIds.has(r.id)
         );
-
         if (siblings.length > 1) {
           const totalAmt = siblings.reduce((s, r) => s + (r.amount || 0), 0);
           const totalQty = siblings.every(r => r.qty) ? siblings.reduce((s, r) => s + (r.qty || 0), 0) : null;
           const isManual = siblings.every(r => !r.qty);
-
           siblings.forEach(r => usedIds.add(r.id));
-          result.push({
-            ...row,
-            _grouped: true,
-            _count: siblings.length,
-            _ids: siblings.map(r => r.id),
-            amount: totalAmt,
-            qty: totalQty,
-            _isManual: isManual,
-          });
+          result.push({ ...row, _grouped: true, _count: siblings.length, _ids: siblings.map(r => r.id), amount: totalAmt, qty: totalQty, _isManual: isManual });
         } else {
           usedIds.add(row.id);
           result.push({ ...row, _grouped: false });
@@ -663,7 +821,6 @@ export default function Dashboard() {
         result.push({ ...row, _grouped: false });
       }
     });
-
     return result;
   };
 
@@ -673,6 +830,12 @@ export default function Dashboard() {
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   const displayRows = buildDisplayRows(todayRawRows);
+  const incomeDisplayRows = displayRows.filter(r => r.type === "Income");
+  const expenseDisplayRows = displayRows.filter(r => r.type === "Expense");
+
+  const todayIncTotal = incomes.filter(i => i.date === today).reduce((s, i) => s + i.amount, 0);
+  const todayExpTotal = expenses.filter(e => e.date === today).reduce((s, e) => s + e.amount, 0);
+  const todayNet = todayIncTotal - todayExpTotal;
 
   const fmt = (n) => (n || 0).toLocaleString("en-IN");
 
@@ -681,17 +844,14 @@ export default function Dashboard() {
   const copyWhatsApp = () => {
     const today_incomes = incomes.filter(i => i.date === today);
     const today_expenses = expenses.filter(e => e.date === today);
-    const todayInc = today_incomes.reduce((s, i) => s + i.amount, 0);
-    const todayExp = today_expenses.reduce((s, e) => s + e.amount, 0);
-    const todayBal = todayInc - todayExp;
-
+    const todayBal = todayIncTotal - todayExpTotal;
     const dateStr = new Date().toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
     let lines = [
       `📊 *Daily Finance Summary*`,
       `📅 ${dateStr}`,
       ``,
-      `💰 *Income:* ₹${fmt(todayInc)}`,
-      `💸 *Expense:* ₹${fmt(todayExp)}`,
+      `💰 *Income:* ₹${fmt(todayIncTotal)}`,
+      `💸 *Expense:* ₹${fmt(todayExpTotal)}`,
       `🧮 *Balance:* ₹${fmt(todayBal)}`,
     ];
     if (today_incomes.length > 0) {
@@ -952,28 +1112,56 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* TODAY'S TRANSACTIONS */}
+          {/* ════════════════════════════════
+              TODAY'S TRANSACTIONS
+              ════════════════════════════════ */}
           <p className="section-title">Today's Transactions</p>
+
+          {/* WhatsApp copy */}
           <div className="wa-btn-row">
             <button className={`wa-copy-btn${waCopied ? " copied" : ""}`} onClick={copyWhatsApp}>
               {waCopied ? "✅ Copied!" : "📋 Copy for WhatsApp"}
             </button>
           </div>
-          <div className="table-card">
-            <span className="table-scroll-hint">← scroll to see all columns →</span>
-            {loading
-              ? <div className="loading-text">Loading…</div>
-              : displayRows.length === 0
-                ? <div className="empty-text">No transactions recorded for today</div>
-                : (() => {
-                  const todayInc = incomes.filter(i => i.date === today).reduce((s, i) => s + i.amount, 0);
-                  const todayExp = expenses.filter(e => e.date === today).reduce((s, e) => s + e.amount, 0);
-                  const todayBal = todayInc - todayExp;
-                  return (
+
+          {/* ── INCOME COLLAPSIBLE ── */}
+          <div className="txn-section">
+            <div
+              className={`txn-header-income${incomeOpen ? " open" : ""}`}
+              onClick={() => setIncomeOpen(p => !p)}
+            >
+              <div className="txn-header-stripe stripe-income" />
+              <div className="txn-header-content">
+                <div className="txn-header-left">
+                  <span className="txn-emoji">💰</span>
+                  <div className="txn-title-block">
+                    <div className="txn-title income">Income</div>
+                    <div className="txn-count-pill income">{incomeDisplayRows.length} {incomeDisplayRows.length === 1 ? "entry" : "entries"}</div>
+                  </div>
+                </div>
+                <div className="txn-header-right">
+                  <span className="txn-total income">+₹{fmt(todayIncTotal)}</span>
+                  <div className={`txn-arrow-btn income`}>
+                    <svg className={`txn-arrow-icon${incomeOpen ? " open" : ""}`} width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {incomeOpen && (
+              <div className="txn-body">
+                {loading ? (
+                  <div className="txn-empty">Loading…</div>
+                ) : incomeDisplayRows.length === 0 ? (
+                  <div className="txn-empty">No income recorded today 📭</div>
+                ) : (
+                  <>
+                    <div className="table-scroll-hint">← scroll to see all →</div>
                     <table className="db-table">
                       <thead>
                         <tr>
-                          <th>Type</th>
                           <th>Description</th>
                           <th className="center">Qty</th>
                           <th className="right">Amount</th>
@@ -981,50 +1169,30 @@ export default function Dashboard() {
                         </tr>
                       </thead>
                       <tbody>
-                        {displayRows.map((row, idx) => {
-                          const rowKey = row._grouped ? `grouped-${row.service}-${idx}` : `${row.type}-${row.id}`;
-                          const rowCls = row._grouped ? "row-grouped" : "";
-
+                        {incomeDisplayRows.map((row, idx) => {
+                          const rowKey = row._grouped ? `g-inc-${row.service}-${idx}` : `inc-${row.id}`;
                           return (
-                            <tr key={rowKey} className={rowCls}>
-                              {/* TYPE */}
-                              <td>
-                                <span className={`badge badge-${row.type.toLowerCase()}`}>{row.type}</span>
-                                {row.type === "Income" && !row.qty && !row._grouped && (
-                                  <span className="badge badge-manual" style={{ marginLeft: 4 }}>Manual</span>
-                                )}
-                                {row.type === "Income" && row._grouped && row._isManual && (
-                                  <span className="badge badge-manual" style={{ marginLeft: 4 }}>Manual</span>
-                                )}
-                              </td>
-
-                              {/* DESCRIPTION + multiplier badge */}
+                            <tr key={rowKey} className={row._grouped ? "row-grouped" : ""}>
                               <td style={{ fontWeight: 500 }}>
-                                {row.service || row.paid_to}
-                                {row._grouped && (
-                                  <span className="multi-badge">×{row._count}</span>
-                                )}
-                                {row.type === "Income" && row.rate_per_qty && !row._grouped && (
-                                  <span style={{ fontSize: 10, color: "var(--text-dim)", marginLeft: 6 }}>
-                                    ₹{row.rate_per_qty}/qty
-                                  </span>
+                                {row.service}
+                                {row._grouped && <span className="multi-badge">×{row._count}</span>}
+                                {!row.qty && !row._grouped && <span className="badge badge-manual" style={{ marginLeft: 6 }}>Manual</span>}
+                                {row._grouped && row._isManual && <span className="badge badge-manual" style={{ marginLeft: 6 }}>Manual</span>}
+                                {row.rate_per_qty && !row._grouped && (
+                                  <span style={{ fontSize: 10, color: "var(--text-dim)", marginLeft: 6 }}>₹{row.rate_per_qty}/qty</span>
                                 )}
                               </td>
-
-                              {/* QTY */}
                               <td className="center" style={{ color: "var(--text-med)", fontWeight: 600 }}>
-                                {row.type === "Income" && row.qty ? row.qty : "—"}
+                                {row.qty ? row.qty : "—"}
                               </td>
-
-                              {/* AMOUNT — grouped rows show shimmer total, singles show edit */}
                               <td className="right">
                                 {row._grouped ? (
                                   <span className="grouped-total">₹{fmt(row.amount)}</span>
-                                ) : editing === `${row.type}-${row.id}` ? (
+                                ) : editing === `Income-${row.id}` ? (
                                   <input className="edit-input" type="number" defaultValue={row.amount} autoFocus
-                                    onBlur={e => updateTransaction(row.type === "Income" ? "income" : "expense", row.id, e.target.value)} />
+                                    onBlur={e => updateTransaction("income", row.id, e.target.value)} />
                                 ) : (
-                                  <span className="edit-trigger" onClick={() => setEditing(`${row.type}-${row.id}`)}>
+                                  <span className="edit-trigger" onClick={() => setEditing(`Income-${row.id}`)}>
                                     <span style={{ fontWeight: 600 }}>₹{fmt(row.amount)}</span>
                                     <svg className="edit-icon" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                       <path d="M15.232 5.232l3.536 3.536M4 20l4-1 10-10-3-3L5 16l-1 4z" />
@@ -1032,14 +1200,9 @@ export default function Dashboard() {
                                   </span>
                                 )}
                               </td>
-
-                              {/* DELETE */}
                               <td className="center">
                                 <button className="del-btn"
-                                  onClick={() => row._grouped
-                                    ? deleteGrouped(row._ids)
-                                    : deleteTransaction(row.type === "Income" ? "income" : "expense", row.id)
-                                  }>
+                                  onClick={() => row._grouped ? deleteGrouped(row._ids) : deleteTransaction("income", row.id)}>
                                   <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                     <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
                                   </svg>
@@ -1049,21 +1212,112 @@ export default function Dashboard() {
                           );
                         })}
                       </tbody>
+                      {/* Income subtotal */}
                       <tfoot>
-                        <tr className="table-totals-row">
-                          <td colSpan={3}><span className="totals-label">Today's Total</span></td>
-                          <td className="right">
-                            <div style={{ color: "var(--green)", fontFamily: "Playfair Display,serif" }}>+₹{fmt(todayInc)}</div>
-                            <div style={{ color: "var(--red)", fontFamily: "Playfair Display,serif" }}>−₹{fmt(todayExp)}</div>
-                            <div style={{ color: todayBal >= 0 ? "var(--teal)" : "var(--red)", fontFamily: "Playfair Display,serif", fontSize: 15 }}>= ₹{fmt(todayBal)}</div>
-                          </td>
-                          <td />
+                        <tr>
+                          <td colSpan={2} style={{ padding: "10px 12px", background: "var(--green-bg)", fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--green)" }}>Total Income</td>
+                          <td className="right" style={{ padding: "10px 12px", background: "var(--green-bg)", fontFamily: "Playfair Display,serif", fontSize: 16, fontWeight: 800, color: "var(--green)" }}>+₹{fmt(todayIncTotal)}</td>
+                          <td style={{ background: "var(--green-bg)" }} />
                         </tr>
                       </tfoot>
                     </table>
-                  );
-                })()
-            }
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* ── EXPENSE COLLAPSIBLE ── */}
+          <div className="txn-section">
+            <div
+              className={`txn-header-expense${expenseOpen ? " open" : ""}`}
+              onClick={() => setExpenseOpen(p => !p)}
+            >
+              <div className="txn-header-stripe stripe-expense" />
+              <div className="txn-header-content">
+                <div className="txn-header-left">
+                  <span className="txn-emoji">💸</span>
+                  <div className="txn-title-block">
+                    <div className="txn-title expense">Expense</div>
+                    <div className="txn-count-pill expense">{expenseDisplayRows.length} {expenseDisplayRows.length === 1 ? "entry" : "entries"}</div>
+                  </div>
+                </div>
+                <div className="txn-header-right">
+                  <span className="txn-total expense">−₹{fmt(todayExpTotal)}</span>
+                  <div className={`txn-arrow-btn expense`}>
+                    <svg className={`txn-arrow-icon${expenseOpen ? " open" : ""}`} width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {expenseOpen && (
+              <div className="txn-body">
+                {loading ? (
+                  <div className="txn-empty">Loading…</div>
+                ) : expenseDisplayRows.length === 0 ? (
+                  <div className="txn-empty">No expenses recorded today 🎉</div>
+                ) : (
+                  <>
+                    <div className="table-scroll-hint">← scroll to see all →</div>
+                    <table className="db-table">
+                      <thead>
+                        <tr>
+                          <th>Paid To</th>
+                          <th className="right">Amount</th>
+                          <th className="center">Del</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {expenseDisplayRows.map((row) => (
+                          <tr key={`exp-${row.id}`}>
+                            <td style={{ fontWeight: 500 }}>{row.paid_to}</td>
+                            <td className="right">
+                              {editing === `Expense-${row.id}` ? (
+                                <input className="edit-input" type="number" defaultValue={row.amount} autoFocus
+                                  onBlur={e => updateTransaction("expense", row.id, e.target.value)} />
+                              ) : (
+                                <span className="edit-trigger" onClick={() => setEditing(`Expense-${row.id}`)}>
+                                  <span style={{ fontWeight: 600 }}>₹{fmt(row.amount)}</span>
+                                  <svg className="edit-icon" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                    <path d="M15.232 5.232l3.536 3.536M4 20l4-1 10-10-3-3L5 16l-1 4z" />
+                                  </svg>
+                                </span>
+                              )}
+                            </td>
+                            <td className="center">
+                              <button className="del-btn" onClick={() => deleteTransaction("expense", row.id)}>
+                                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                  <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                                </svg>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      {/* Expense subtotal */}
+                      <tfoot>
+                        <tr>
+                          <td style={{ padding: "10px 12px", background: "var(--red-bg)", fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--red)" }}>Total Expense</td>
+                          <td className="right" style={{ padding: "10px 12px", background: "var(--red-bg)", fontFamily: "Playfair Display,serif", fontSize: 16, fontWeight: 800, color: "var(--red)" }}>−₹{fmt(todayExpTotal)}</td>
+                          <td style={{ background: "var(--red-bg)" }} />
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* ── NET BALANCE ── */}
+          <div className="net-balance-card">
+            <span className="net-balance-label">Today's Net Balance</span>
+            <span className={`net-balance-value ${todayNet >= 0 ? "profit" : "loss"}`}>
+              {todayNet >= 0 ? "+" : "−"}₹{fmt(Math.abs(todayNet))}
+            </span>
           </div>
 
         </div>
