@@ -1,57 +1,98 @@
-// public/sw.js  ← place this in your /public folder
-const CACHE_NAME = "daily-income-v1";
+// public/sw.js  ←  place this file in your /public folder
+// ─────────────────────────────────────────────────────────────
+//  Service Worker  —  Offline support for Daily Income Track
+//  Strategy: Network-first with cache fallback
+// ─────────────────────────────────────────────────────────────
 
-// Files to cache for offline use
-const PRECACHE = [
+const CACHE = "dit-cache-v2";
+const SHELL = [
     "/",
     "/index.html",
     "/manifest.json",
 ];
 
-// ── Install: cache core files ──
+/* ── INSTALL: pre-cache app shell ── */
 self.addEventListener("install", (e) => {
     e.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE))
+        caches.open(CACHE).then(c => {
+            // addAll fails silently if any resource 404s in dev — use individual adds
+            return Promise.allSettled(SHELL.map(url => c.add(url)));
+        })
     );
-    self.skipWaiting();
+    self.skipWaiting(); // activate immediately
 });
 
-// ── Activate: remove old caches ──
+/* ── ACTIVATE: clean old caches ── */
 self.addEventListener("activate", (e) => {
     e.waitUntil(
-        caches.keys().then((keys) =>
-            Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+        caches.keys().then(keys =>
+            Promise.all(
+                keys.filter(k => k !== CACHE).map(k => {
+                    console.log("SW: deleting old cache", k);
+                    return caches.delete(k);
+                })
+            )
         )
     );
     self.clients.claim();
 });
 
-// ── Fetch: network first, fallback to cache ──
+/* ── FETCH: smart routing ── */
 self.addEventListener("fetch", (e) => {
-    // Skip non-GET and chrome-extension requests
-    if (e.request.method !== "GET" || e.request.url.startsWith("chrome-extension")) return;
+    const { request } = e;
+    const url = new URL(request.url);
 
-    // For Supabase API calls — network only (no caching auth/data)
-    if (e.request.url.includes("supabase.co")) {
+    // Skip non-GET, chrome-extension, and dev HMR
+    if (
+        request.method !== "GET" ||
+        url.protocol === "chrome-extension:" ||
+        url.hostname === "localhost" && url.pathname.startsWith("/@")
+    ) return;
+
+    // ── Supabase API: network only (never cache auth/data calls) ──
+    if (url.hostname.includes("supabase.co") || url.hostname.includes("supabase.io")) {
         e.respondWith(
-            fetch(e.request).catch(() =>
-                new Response(JSON.stringify({ error: "You are offline." }), {
-                    headers: { "Content-Type": "application/json" },
-                })
+            fetch(request).catch(() =>
+                new Response(
+                    JSON.stringify({ error: "offline", message: "No internet connection." }),
+                    { status: 503, headers: { "Content-Type": "application/json" } }
+                )
             )
         );
         return;
     }
 
-    // For everything else — network first, then cache fallback
+    // ── Google Fonts: cache-first (fonts rarely change) ──
+    if (url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com") {
+        e.respondWith(
+            caches.match(request).then(cached => {
+                if (cached) return cached;
+                return fetch(request).then(res => {
+                    if (!res || res.status !== 200) return res;
+                    const copy = res.clone();
+                    caches.open(CACHE).then(c => c.put(request, copy));
+                    return res;
+                });
+            })
+        );
+        return;
+    }
+
+    // ── Everything else: network-first, fallback to cache ──
     e.respondWith(
-        fetch(e.request)
-            .then((res) => {
-                // Cache a copy of the response
-                const clone = res.clone();
-                caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+        fetch(request)
+            .then(res => {
+                if (!res || res.status !== 200 || res.type === "opaque") return res;
+                const copy = res.clone();
+                caches.open(CACHE).then(c => c.put(request, copy));
                 return res;
             })
-            .catch(() => caches.match(e.request).then((cached) => cached || caches.match("/index.html")))
+            .catch(() =>
+                caches.match(request).then(cached =>
+                    cached ||
+                    caches.match("/index.html") || // SPA fallback
+                    new Response("Offline", { status: 503 })
+                )
+            )
     );
 });

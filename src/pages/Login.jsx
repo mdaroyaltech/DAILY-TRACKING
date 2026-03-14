@@ -1,40 +1,46 @@
-// Login.jsx — with Biometric login + PWA Install button + Offline support
-import { useEffect, useState, useRef } from "react";
+// ─────────────────────────────────────────────────────────────
+//  Login.jsx  —  Mobile-first  |  Biometric  |  PWA Install  |  Offline
+// ─────────────────────────────────────────────────────────────
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 
-/* ══════════════════════════════════════
-   WEBAUTHN BIOMETRIC HELPERS
-══════════════════════════════════════ */
-const CRED_KEY = "bio_credential_id";
-const USER_ID = new TextEncoder().encode("daily-income-user-001");
-const USER_NAME = "Abdul Jeelani";
+/* ══════════════════════════════════════════════════════
+   WEBAUTHN  ─  rock-solid helpers
+══════════════════════════════════════════════════════ */
+const BIO_KEY = "dit_bio_cred_v1";
+const UID_BYTES = new TextEncoder().encode("dit-user-001");
 
-const toB64 = (buf) =>
+const b64e = (buf) =>
   btoa(String.fromCharCode(...new Uint8Array(buf)))
     .replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 
-const fromB64 = (s) => {
+const b64d = (s) => {
   const b64 = s.replace(/-/g, "+").replace(/_/g, "/");
   return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
 };
 
-async function bioAvailable() {
-  if (!window.PublicKeyCredential) return false;
-  try { return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(); }
-  catch { return false; }
+export async function checkBioAvailable() {
+  try {
+    if (!window.PublicKeyCredential) return false;
+    return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+  } catch { return false; }
 }
 
-async function registerBio() {
+export function hasBioRegistered() {
+  return !!localStorage.getItem(BIO_KEY);
+}
+
+export async function bioRegister() {
   try {
     const cred = await navigator.credentials.create({
       publicKey: {
         challenge: crypto.getRandomValues(new Uint8Array(32)),
         rp: { name: "Daily Income Track" },
-        user: { id: USER_ID, name: USER_NAME, displayName: USER_NAME },
+        user: { id: UID_BYTES, name: "user", displayName: "User" },
         pubKeyCredParams: [
-          { type: "public-key", alg: -7 },
-          { type: "public-key", alg: -257 },
+          { type: "public-key", alg: -7 },  // ES256
+          { type: "public-key", alg: -257 },  // RS256
         ],
         authenticatorSelection: {
           authenticatorAttachment: "platform",
@@ -45,113 +51,430 @@ async function registerBio() {
         attestation: "none",
       },
     });
-    localStorage.setItem(CRED_KEY, toB64(cred.rawId));
+    localStorage.setItem(BIO_KEY, b64e(cred.rawId));
     return { ok: true };
   } catch (e) {
-    return { ok: false, err: e.name === "NotAllowedError" ? "Cancelled." : e.message };
+    if (e.name === "NotAllowedError") return { ok: false, msg: "Cancelled — please try again." };
+    if (e.name === "InvalidStateError") return { ok: false, msg: "Already registered on this device." };
+    return { ok: false, msg: e.message };
   }
 }
 
-async function authenticateBio() {
-  const saved = localStorage.getItem(CRED_KEY);
-  if (!saved) return { ok: false, err: "No fingerprint registered." };
+export async function bioAuthenticate() {
+  const saved = localStorage.getItem(BIO_KEY);
+  if (!saved) return { ok: false, msg: "No fingerprint registered on this device." };
   try {
-    const assertion = await navigator.credentials.get({
+    const result = await navigator.credentials.get({
       publicKey: {
         challenge: crypto.getRandomValues(new Uint8Array(32)),
-        allowCredentials: [{ id: fromB64(saved), type: "public-key", transports: ["internal"] }],
+        allowCredentials: [{ id: b64d(saved), type: "public-key", transports: ["internal"] }],
         userVerification: "required",
         timeout: 60000,
       },
     });
-    return assertion ? { ok: true } : { ok: false, err: "Auth failed." };
+    return result ? { ok: true } : { ok: false, msg: "Authentication failed." };
   } catch (e) {
-    return { ok: false, err: e.name === "NotAllowedError" ? "Cancelled." : e.message };
+    if (e.name === "NotAllowedError") return { ok: false, msg: "Cancelled — please try again." };
+    return { ok: false, msg: e.message };
   }
 }
 
-/* ══════════════════════════════════════
-   FINGERPRINT SVG
-══════════════════════════════════════ */
-function FpIcon({ size = 32, color = "#fff" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-      stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 3.4" />
-      <path d="M14 13.12c0 2.38 0 6.38-1 8.88" />
-      <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02" />
-      <path d="M2 12a10 10 0 0 1 18-6" />
-      <path d="M2 17.5c.4.5 1.28 1.5 3 2.5" />
-      <path d="M20 12c0 2-.4 4.12-1.2 5.5" />
-      <path d="M5.14 9.5A10 10 0 0 0 2 17" />
-      <path d="M8.65 22c.21-.57.55-1.59 1.35-2" />
-      <path d="M9 6.8a6 6 0 0 1 9 5.2v2" />
-    </svg>
-  );
+/* ══════════════════════════════════════════════════════
+   ICONS
+══════════════════════════════════════════════════════ */
+const IconFingerprint = () => (
+  <svg width="30" height="30" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 10a2 2 0 0 0-2 2c0 1-.1 2.5-.26 3.4" />
+    <path d="M14 13.12c0 2.38 0 6.38-1 8.88" />
+    <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02" />
+    <path d="M2 12a10 10 0 0 1 18-6" />
+    <path d="M2 17.5c.4.5 1.28 1.5 3 2.5" />
+    <path d="M20 12c0 2-.4 4.12-1.2 5.5" />
+    <path d="M5.14 9.5A10 10 0 0 0 2 17" />
+    <path d="M8.65 22c.21-.57.55-1.59 1.35-2" />
+    <path d="M9 6.8a6 6 0 0 1 9 5.2v2" />
+  </svg>
+);
+
+const IconInstall = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 16l-5-5h3V4h4v7h3l-5 5z" />
+    <path d="M20 21H4" />
+  </svg>
+);
+
+const IconEmail = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="4" width="20" height="16" rx="2" />
+    <path d="M2 7l10 7 10-7" />
+  </svg>
+);
+
+const IconEye = ({ show }) => show ? (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+    <line x1="1" y1="1" x2="23" y2="23" />
+  </svg>
+) : (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+/* ══════════════════════════════════════════════════════
+   STYLES
+══════════════════════════════════════════════════════ */
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;-webkit-tap-highlight-color:transparent;}
+
+/* keyframes */
+@keyframes lg-spin     {to{transform:rotate(360deg);}}
+@keyframes lg-fadein   {from{opacity:0;}to{opacity:1;}}
+@keyframes lg-up       {from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes lg-scalein  {0%{opacity:0;transform:scale(.8);}65%{transform:scale(1.05);}100%{opacity:1;transform:scale(1);}}
+@keyframes lg-shake    {0%,100%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-5px);}80%{transform:translateX(5px);}}
+@keyframes lg-pulse    {0%,100%{box-shadow:0 0 0 0 rgba(13,148,136,.5);}70%{box-shadow:0 0 0 18px rgba(13,148,136,0);}}
+@keyframes lg-success  {0%{opacity:0;transform:scale(.75);}60%{transform:scale(1.12);}100%{opacity:1;transform:scale(1);}}
+@keyframes lg-banner   {from{transform:translateY(-100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+@keyframes lg-shimmer  {0%{background-position:-200% center;}100%{background-position:200% center;}}
+
+/* ── ROOT ── */
+.lg-root{
+  min-height:100vh;min-height:100dvh;
+  background:#f5f2ed;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Sans',sans-serif;color:#1c1a17;
+  position:relative;overflow-x:hidden;
+  padding:20px 16px;
+}
+.lg-root::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 10%,rgba(13,148,136,.07) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 45% at 85% 88%,rgba(13,148,136,.05) 0%,transparent 60%);
+}
+.lg-root::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(circle,rgba(13,148,136,.07) 1px,transparent 1px);
+  background-size:28px 28px;opacity:.5;
 }
 
-/* ══════════════════════════════════════
-   MAIN COMPONENT
-══════════════════════════════════════ */
+/* ── OFFLINE BANNER ── */
+.lg-offline-bar{
+  position:fixed;top:0;left:0;right:0;z-index:9999;
+  background:#b45309;color:#fff;
+  padding:11px 20px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  font-size:13px;font-weight:600;letter-spacing:.02em;
+  box-shadow:0 3px 14px rgba(0,0,0,.2);
+  animation:lg-banner .3s ease;
+}
+
+/* ── CARD ── */
+.lg-card{
+  position:relative;z-index:1;
+  width:100%;max-width:420px;
+  background:#fff;border-radius:24px;overflow:hidden;
+  box-shadow:0 2px 6px rgba(0,0,0,.05),0 16px 48px rgba(0,0,0,.11),0 0 0 1px rgba(0,0,0,.04);
+  animation:lg-up .5s .05s ease both;
+}
+
+/* ── CARD HEADER BAND ── */
+.lg-band{
+  padding:32px 28px 26px;
+  background:linear-gradient(155deg,#064e3b 0%,#065f46 50%,#047857 100%);
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+}
+.lg-band::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(-50deg,rgba(255,255,255,.025) 0,rgba(255,255,255,.025) 1px,transparent 1px,transparent 26px);
+}
+.lg-band::after{
+  content:'';position:absolute;bottom:-22px;left:-5%;right:-5%;
+  height:44px;background:#fff;border-radius:50% 50% 0 0/100% 100% 0 0;
+}
+.lg-band-icon{
+  width:68px;height:68px;border-radius:20px;
+  background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.22);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#fff;
+  margin-bottom:16px;position:relative;z-index:1;
+  animation:lg-scalein .6s .15s cubic-bezier(.34,1.4,.64,1) both;
+}
+.lg-band-title{
+  font-family:'Playfair Display',serif;font-size:20px;font-weight:700;
+  color:#fff;line-height:1.15;position:relative;z-index:1;
+  animation:lg-up .5s .25s ease both;margin-bottom:4px;
+}
+.lg-band-title em{font-style:italic;color:#6ee7b7;}
+.lg-band-sub{
+  font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(255,255,255,.45);position:relative;z-index:1;
+  animation:lg-up .5s .32s ease both;
+}
+
+/* ── CARD BODY ── */
+.lg-body{padding:28px 24px 24px;}
+
+/* ── INSTALL BUTTON ── */
+.lg-install{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:12px;margin-bottom:18px;
+  background:linear-gradient(135deg,#0f766e,#0d9488);
+  color:#fff;border:none;border-radius:12px;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  box-shadow:0 4px 16px rgba(13,148,136,.28);
+  transition:all .22s;-webkit-tap-highlight-color:transparent;
+  animation:lg-up .4s .35s ease both;
+}
+.lg-install:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(13,148,136,.38);}
+.lg-install:active{transform:scale(.98);}
+.lg-install.done{
+  background:linear-gradient(135deg,#059669,#10b981);
+  pointer-events:none;
+}
+.lg-install-tip{
+  background:#fef3c7;border:1px solid #fde68a;border-radius:10px;
+  padding:10px 14px;margin-bottom:14px;
+  font-size:12px;color:#92400e;text-align:center;line-height:1.6;
+  animation:lg-up .25s ease both;
+}
+
+/* ── BIO SECTION ── */
+.lg-bio{
+  border:1.5px solid #e5e7eb;border-radius:16px;
+  padding:20px 16px;background:#fafaf9;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  margin-bottom:18px;
+  transition:border-color .25s,background .25s;
+  animation:lg-up .4s .4s ease both;
+}
+.lg-bio.state-scanning{background:#f0fdf9;border-color:#99d6d0;}
+.lg-bio.state-success {background:#f0fdf4;border-color:#6ee7b7;}
+.lg-bio.state-error   {background:#fff5f5;border-color:#fecaca;animation:lg-shake .4s ease;}
+
+/* Fingerprint button */
+.lg-fp{
+  width:70px;height:70px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(145deg,#0d9488,#0f766e);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 22px rgba(13,148,136,.35);
+  color:#fff;position:relative;
+  transition:all .22s;-webkit-tap-highlight-color:transparent;
+  -webkit-appearance:none;
+}
+.lg-fp:hover   {transform:scale(1.06);box-shadow:0 10px 28px rgba(13,148,136,.45);}
+.lg-fp:active  {transform:scale(.95);}
+.lg-fp:disabled{opacity:.5;cursor:not-allowed;transform:none!important;}
+.lg-fp.pulsing {animation:lg-pulse 1.1s ease-in-out infinite;}
+.lg-fp.ok-btn  {background:linear-gradient(145deg,#059669,#047857);}
+.lg-fp.err-btn {background:linear-gradient(145deg,#dc2626,#b91c1c);}
+
+/* Spinner inside fp btn */
+.lg-fp-spin{
+  width:26px;height:26px;border-radius:50%;
+  border:3px solid rgba(255,255,255,.25);border-top-color:#fff;
+  animation:lg-spin .7s linear infinite;
+}
+
+.lg-bio-title{
+  font-size:14px;font-weight:600;color:#1f2937;text-align:center;
+}
+.lg-bio-desc{
+  font-size:12px;font-weight:400;color:#9ca3af;text-align:center;line-height:1.5;
+}
+.lg-bio-desc.ok {color:#059669;font-weight:600;}
+.lg-bio-desc.err{color:#dc2626;font-weight:600;}
+
+.lg-bio-links{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px;}
+.lg-bio-text{font-size:11px;color:#d1d5db;}
+.lg-bio-act{
+  font-size:11px;font-weight:700;color:#0d9488;
+  background:none;border:none;cursor:pointer;padding:0;
+  font-family:'DM Sans',sans-serif;
+  text-decoration:underline;text-underline-offset:2px;
+  transition:opacity .15s;-webkit-tap-highlight-color:transparent;
+}
+.lg-bio-act:hover{opacity:.7;}
+.lg-bio-act.danger{color:#dc2626;}
+
+/* ── DIVIDER ── */
+.lg-div{display:flex;align-items:center;gap:10px;margin:4px 0 18px;}
+.lg-div-line{flex:1;height:1px;background:#e5e7eb;}
+.lg-div-txt{font-size:10px;font-weight:600;color:#d1d5db;letter-spacing:.07em;white-space:nowrap;}
+
+/* ── FIELD ── */
+.lg-field{margin-bottom:16px;}
+.lg-label{
+  display:block;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:#6b7280;margin-bottom:7px;transition:color .2s;
+}
+.lg-field.foc .lg-label{color:#0d9488;}
+.lg-wrap{position:relative;}
+.lg-input{
+  width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:11px;
+  padding:13px 44px 13px 16px;font-size:15px;
+  font-family:'DM Sans',sans-serif;font-weight:400;color:#1c1a17;
+  outline:none;-webkit-appearance:none;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+  /* better touch target */
+  min-height:50px;
+}
+.lg-input::placeholder{color:#d1d5db;}
+.lg-input:focus{
+  border-color:#0d9488;background:#fff;
+  box-shadow:0 0 0 4px rgba(13,148,136,.1);
+}
+.lg-icon{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  color:#d1d5db;background:none;border:none;padding:6px;cursor:pointer;
+  display:flex;align-items:center;transition:color .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.lg-field.foc .lg-icon{color:#9ca3af;}
+.lg-icon:hover{color:#0d9488!important;}
+
+/* ── ERROR BOX ── */
+.lg-err{
+  background:#fee2e2;border:1.5px solid rgba(220,38,38,.18);border-radius:10px;
+  padding:12px 16px;font-size:13px;color:#dc2626;text-align:center;
+  font-weight:500;margin:4px 0 12px;animation:lg-up .25s ease;
+}
+
+/* ── SUBMIT BTN ── */
+.lg-submit{
+  width:100%;margin-top:20px;padding:15px;
+  background:linear-gradient(135deg,#0d9488,#0f766e);
+  border:none;border-radius:12px;
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:#fff;cursor:pointer;
+  box-shadow:0 4px 16px rgba(13,148,136,.32);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .22s;-webkit-tap-highlight-color:transparent;
+  min-height:52px;
+}
+.lg-submit:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 22px rgba(13,148,136,.4);}
+.lg-submit:active:not(:disabled){transform:scale(.98);}
+.lg-submit:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;}
+.lg-submit-spin{
+  width:14px;height:14px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.3);border-top-color:#fff;
+  animation:lg-spin .7s linear infinite;flex-shrink:0;
+}
+
+/* ── FOOTER ── */
+.lg-foot{
+  margin-top:24px;text-align:center;
+  font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#c4bdb4;
+}
+
+/* ── SUCCESS OVERLAY ── */
+.lg-overlay{
+  position:fixed;inset:0;z-index:9998;
+  background:rgba(6,78,59,.93);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  animation:lg-fadein .3s ease;
+  padding:24px;
+}
+.lg-ov-icon{font-size:66px;animation:lg-success .55s cubic-bezier(.34,1.56,.64,1) both;}
+.lg-ov-title{
+  font-family:'Playfair Display',serif;font-size:26px;font-weight:700;
+  color:#fff;text-align:center;animation:lg-up .4s .12s ease both;
+}
+.lg-ov-sub{font-size:14px;color:rgba(255,255,255,.65);animation:lg-up .4s .22s ease both;}
+
+/* ── MOBILE SAFE AREA ── */
+@supports(padding:max(0px)){
+  .lg-root{
+    padding-top:max(20px,env(safe-area-inset-top));
+    padding-bottom:max(20px,env(safe-area-inset-bottom));
+    padding-left:max(16px,env(safe-area-inset-left));
+    padding-right:max(16px,env(safe-area-inset-right));
+  }
+}
+`;
+
+/* ══════════════════════════════════════════════════════
+   COMPONENT
+══════════════════════════════════════════════════════ */
 export default function Login({ setLoggedIn }) {
   const navigate = useNavigate();
 
-  // Form
+  // Form state
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [pass, setPass] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [errMsg, setErrMsg] = useState("");
   const [focused, setFocused] = useState(null);
 
-  // Biometric
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const [bioSupported, setBioSupported] = useState(false);
-  const [bioRegistered, setBioRegistered] = useState(false);
-  const [bioStatus, setBioStatus] = useState("idle"); // idle|scanning|success|error
-  const [bioMsg, setBioMsg] = useState("");
-  const [showBioSuccess, setShowBioSuccess] = useState(false);
+  // Biometric state
+  const [bioAvail, setBioAvail] = useState(false);
+  const [bioReg, setBioReg] = useState(false);
+  const [bioState, setBioState] = useState("idle"); // idle|scanning|success|error
+  const [bioDesc, setBioDesc] = useState("");
+  const [showOvlay, setShowOvlay] = useState(false);
 
-  // PWA install
-  const [installPrompt, setInstallPrompt] = useState(null);
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [showInstallTip, setShowInstallTip] = useState(false);
+  // PWA install state
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [installed, setInstalled] = useState(false);
+  const [installTip, setInstallTip] = useState(false);
 
-  // Offline
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  // Network state
+  const [online, setOnline] = useState(navigator.onLine);
 
-  /* ── Init checks ── */
+  // Detect mobile properly
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+  /* ── Init ── */
   useEffect(() => {
-    // Biometric
+    // Check biometric
     if (isMobile) {
-      bioAvailable().then((ok) => {
-        setBioSupported(ok);
-        setBioRegistered(!!localStorage.getItem(CRED_KEY));
+      checkBioAvailable().then(ok => {
+        setBioAvail(ok);
+        setBioReg(hasBioRegistered());
       });
     }
 
-    // PWA install prompt
-    const handler = (e) => { e.preventDefault(); setInstallPrompt(e); };
-    window.addEventListener("beforeinstallprompt", handler);
+    // PWA: already installed?
+    if (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true
+    ) {
+      setInstalled(true);
+    }
 
-    // Already installed check
-    if (window.matchMedia("(display-mode: standalone)").matches) setIsInstalled(true);
-    window.addEventListener("appinstalled", () => { setIsInstalled(true); setInstallPrompt(null); });
+    // PWA: listen for install prompt
+    const onPrompt = (e) => { e.preventDefault(); setDeferredPrompt(e); };
+    window.addEventListener("beforeinstallprompt", onPrompt);
+    window.addEventListener("appinstalled", () => { setInstalled(true); setDeferredPrompt(null); });
 
-    // Online/offline
-    const goOnline = () => setIsOnline(true);
-    const goOffline = () => setIsOnline(false);
+    // Network
+    const goOnline = () => setOnline(true);
+    const goOffline = () => setOnline(false);
     window.addEventListener("online", goOnline);
     window.addEventListener("offline", goOffline);
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("online", goOnline);
       window.removeEventListener("offline", goOffline);
     };
   }, []);
 
-  /* ── Session auto-redirect ── */
+  /* ── Auto-redirect if already logged in ── */
   useEffect(() => {
     const check = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -164,447 +487,259 @@ export default function Login({ setLoggedIn }) {
     return () => listener.subscription.unsubscribe();
   }, [navigate, setLoggedIn]);
 
-  /* ── Email login ── */
-  const handleLogin = async () => {
-    if (!email || !password) { setError("Please enter email and password."); return; }
-    setError(""); setLoading(true);
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+  /* ── Email/password login ── */
+  const handleLogin = useCallback(async () => {
+    if (!email.trim() || !pass) { setErrMsg("Please enter your email and password."); return; }
+    setErrMsg(""); setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: pass });
     setLoading(false);
-    if (err) { setError(err.message); return; }
+    if (error) { setErrMsg(error.message); return; }
     setLoggedIn(true);
     navigate("/dashboard");
-  };
+  }, [email, pass, navigate, setLoggedIn]);
 
   /* ── Biometric authenticate ── */
   const handleBioAuth = async () => {
-    setBioMsg(""); setBioStatus("scanning");
-    const result = await authenticateBio();
-    if (result.ok) {
+    setBioDesc(""); setBioState("scanning");
+    const { ok, msg } = await bioAuthenticate();
+    if (ok) {
       const { data } = await supabase.auth.getSession();
       if (data?.session) {
-        setBioStatus("success"); setBioMsg("Identity verified!");
-        setShowBioSuccess(true);
-        setTimeout(() => { setLoggedIn(true); navigate("/dashboard"); }, 1400);
+        setBioState("success"); setBioDesc("Verified!");
+        setShowOvlay(true);
+        setTimeout(() => { setLoggedIn(true); navigate("/dashboard"); }, 1500);
       } else {
-        setBioStatus("error");
-        setBioMsg("Please sign in with email first, then use fingerprint next time.");
-        setTimeout(() => { setBioStatus("idle"); setBioMsg(""); }, 3000);
+        // No active session — fingerprint passed but no session
+        // This happens when app was logged out; user must sign in with email once
+        setBioState("error");
+        setBioDesc("Session expired. Please sign in with email first.");
+        setTimeout(() => { setBioState("idle"); setBioDesc(""); }, 3500);
       }
     } else {
-      setBioStatus("error"); setBioMsg(result.err || "Failed.");
-      setTimeout(() => { setBioStatus("idle"); setBioMsg(""); }, 2500);
+      setBioState("error"); setBioDesc(msg || "Failed. Try again.");
+      setTimeout(() => { setBioState("idle"); setBioDesc(""); }, 2500);
     }
   };
 
-  /* ── Biometric register (after email login success) ── */
+  /* ── Biometric register ── */
   const handleBioRegister = async () => {
-    setBioMsg(""); setBioStatus("scanning");
-    const result = await registerBio();
-    if (result.ok) {
-      setBioRegistered(true); setBioStatus("success");
-      setBioMsg("Fingerprint saved! Use it to sign in next time.");
-      setTimeout(() => { setBioStatus("idle"); setBioMsg(""); }, 3000);
+    setBioDesc(""); setBioState("scanning");
+    const { ok, msg } = await bioRegister();
+    if (ok) {
+      setBioReg(true); setBioState("success");
+      setBioDesc("Fingerprint saved! Use it next time to sign in.");
+      setTimeout(() => { setBioState("idle"); setBioDesc(""); }, 3000);
     } else {
-      setBioStatus("error"); setBioMsg(result.err);
-      setTimeout(() => { setBioStatus("idle"); setBioMsg(""); }, 2500);
+      setBioState("error"); setBioDesc(msg || "Registration failed.");
+      setTimeout(() => { setBioState("idle"); setBioDesc(""); }, 2500);
     }
+  };
+
+  /* ── Remove biometric ── */
+  const handleBioRemove = () => {
+    localStorage.removeItem(BIO_KEY);
+    setBioReg(false); setBioState("idle"); setBioDesc("");
   };
 
   /* ── PWA install ── */
   const handleInstall = async () => {
-    if (!installPrompt) { setShowInstallTip(true); setTimeout(() => setShowInstallTip(false), 4000); return; }
-    installPrompt.prompt();
-    const { outcome } = await installPrompt.userChoice;
-    if (outcome === "accepted") { setIsInstalled(true); setInstallPrompt(null); }
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") { setInstalled(true); setDeferredPrompt(null); }
+    } else {
+      // iOS / no prompt — show manual tip
+      setInstallTip(true);
+      setTimeout(() => setInstallTip(false), 5000);
+    }
   };
 
   /* ── Biometric button content ── */
-  const fpBtnContent = () => {
-    if (bioStatus === "scanning") return (
-      <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "lg-spin .7s linear infinite" }} />
-    );
-    if (bioStatus === "success") return <span style={{ fontSize: 28 }}>✓</span>;
-    if (bioStatus === "error") return <span style={{ fontSize: 24 }}>✕</span>;
-    return <FpIcon size={30} color="#fff" />;
+  const fpContent = () => {
+    if (bioState === "scanning") return <div className="lg-fp-spin" />;
+    if (bioState === "success") return <span style={{ fontSize: 28 }}>✓</span>;
+    if (bioState === "error") return <span style={{ fontSize: 24 }}>✕</span>;
+    return <IconFingerprint />;
+  };
+
+  const fpTitle = () => {
+    if (bioState === "scanning") return "Scanning…";
+    if (bioState === "success") return "Verified ✓";
+    if (bioState === "error") return "Try again";
+    return bioReg ? "Touch to sign in" : "Set up fingerprint";
+  };
+
+  const fpDesc = () => {
+    if (bioDesc) return bioDesc;
+    if (bioReg) return "Use your fingerprint for instant access";
+    return "Register your fingerprint for faster login next time";
   };
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
+      <style>{CSS}</style>
 
-        *{box-sizing:border-box;margin:0;padding:0;}
+      {/* Success overlay */}
+      {showOvlay && (
+        <div className="lg-overlay">
+          <div className="lg-ov-icon">✅</div>
+          <div className="lg-ov-title">Welcome back!</div>
+          <div className="lg-ov-sub">Fingerprint verified · Signing you in…</div>
+        </div>
+      )}
 
-        @keyframes lg-spin    { to{transform:rotate(360deg);} }
-        @keyframes lg-fadein  { from{opacity:0;}to{opacity:1;} }
-        @keyframes lg-riseup  { from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);} }
-        @keyframes lg-shake   { 0%,100%{transform:translateX(0);}20%{transform:translateX(-7px);}40%{transform:translateX(7px);}60%{transform:translateX(-5px);}80%{transform:translateX(5px);} }
-        @keyframes lg-pulse   { 0%,100%{box-shadow:0 0 0 0 rgba(13,148,136,.45);}70%{box-shadow:0 0 0 14px rgba(13,148,136,0);} }
-        @keyframes lg-success { 0%{opacity:0;transform:scale(.8);}60%{transform:scale(1.1);}100%{opacity:1;transform:scale(1);} }
-        @keyframes lg-slidedown { from{transform:translateY(-100%);opacity:0;}to{transform:translateY(0);opacity:1;} }
-        @keyframes lg-popdown { from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);} }
-
-        .lg-root {
-          min-height:100vh; background:#f5f2ed;
-          display:flex; font-family:'DM Sans',sans-serif;
-          color:#1c1a17; position:relative; overflow:hidden;
-        }
-        .lg-root::before {
-          content:''; position:absolute; inset:0;
-          background:
-            radial-gradient(circle at 80% 10%,rgba(13,148,136,.06) 0%,transparent 50%),
-            radial-gradient(circle at 10% 90%,rgba(13,148,136,.04) 0%,transparent 45%);
-          pointer-events:none;
-        }
-        .bg-circle { position:absolute; border-radius:50%; pointer-events:none; }
-        .bc1{width:560px;height:560px;border:1.5px solid rgba(13,148,136,.08);top:-180px;right:-180px;}
-        .bc2{width:360px;height:360px;border:1.5px solid rgba(13,148,136,.06);bottom:-80px;left:-80px;}
-        .bc3{width:200px;height:200px;border:1px solid rgba(13,148,136,.05);top:40%;right:42%;}
-        .bg-vline{position:absolute;top:0;bottom:0;left:50%;width:1px;background:linear-gradient(to bottom,transparent,rgba(13,148,136,.15),transparent);display:none;}
-        @media(min-width:900px){.bg-vline{display:block;}}
-
-        /* ── OFFLINE BANNER ── */
-        .lg-offline {
-          position:fixed;top:0;left:0;right:0;z-index:9999;
-          background:#b45309;color:#fff;
-          padding:10px 20px;
-          display:flex;align-items:center;justify-content:center;gap:10px;
-          font-size:13px;font-weight:600;
-          box-shadow:0 2px 12px rgba(0,0,0,.2);
-          animation:lg-slidedown .3s ease;
-        }
-
-        /* ── LEFT PANEL ── */
-        .lg-left {
-          display:none;flex:1;padding:56px 60px;flex-direction:column;
-          justify-content:space-between;border-right:1.5px solid #e2dcd4;
-          position:relative;background:#fff;
-        }
-        @media(min-width:900px){.lg-left{display:flex;}}
-        .logo-mark{display:flex;align-items:center;gap:12px;}
-        .logo-diamond{width:28px;height:28px;background:#0d9488;transform:rotate(45deg);flex-shrink:0;border-radius:3px;}
-        .logo-text{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;letter-spacing:.03em;}
-        .left-tag{font-size:11px;font-weight:600;color:#0d9488;letter-spacing:.18em;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:14px;}
-        .left-tag::before{content:'';display:inline-block;width:20px;height:2px;background:#0d9488;border-radius:2px;}
-        .left-h1{font-family:'Playfair Display',serif;font-size:clamp(36px,3.8vw,54px);font-weight:900;line-height:1.08;}
-        .left-h1 em{font-style:italic;color:#0d9488;}
-        .left-desc{margin-top:20px;font-size:14px;font-weight:300;color:#9a9187;line-height:1.7;max-width:340px;}
-        .stats-row{display:flex;margin-top:44px;border:1.5px solid #e2dcd4;border-radius:12px;overflow:hidden;background:#f5f2ed;}
-        .stat{flex:1;display:flex;flex-direction:column;gap:4px;padding:18px 20px;border-right:1.5px solid #e2dcd4;}
-        .stat:last-child{border-right:none;}
-        .stat-num{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#0d9488;}
-        .stat-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#9a9187;}
-        .left-foot{font-size:11px;color:#c4bdb4;letter-spacing:.08em;}
-
-        /* ── RIGHT PANEL ── */
-        .lg-right {
-          width:100%;max-width:480px;margin:auto;padding:48px 36px;
-          display:flex;flex-direction:column;justify-content:center;
-          position:relative;z-index:1;
-        }
-        @media(min-width:900px){.lg-right{flex:0 0 480px;padding:56px 52px;margin:0;}}
-        .corner{position:absolute;width:40px;height:40px;pointer-events:none;}
-        .c-tr{top:22px;right:22px;border-top:2px solid rgba(13,148,136,.25);border-right:2px solid rgba(13,148,136,.25);border-radius:0 4px 0 0;}
-        .c-bl{bottom:22px;left:22px;border-bottom:2px solid rgba(13,148,136,.25);border-left:2px solid rgba(13,148,136,.25);border-radius:0 0 0 4px;}
-        .form-eye{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#0d9488;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-        .form-eye::before{content:'';display:inline-block;width:20px;height:2px;background:#0d9488;border-radius:2px;}
-        .form-title{font-family:'Playfair Display',serif;font-size:36px;font-weight:900;line-height:1.08;margin-bottom:6px;}
-        .form-title em{font-style:italic;color:#0d9488;}
-        .form-sub{font-size:14px;font-weight:300;color:#9a9187;margin-bottom:32px;}
-
-        /* ── INSTALL BUTTON (PWA) ── */
-        .lg-install-btn {
-          display:flex;align-items:center;justify-content:center;gap:8px;
-          width:100%;padding:11px;margin-bottom:20px;
-          background:linear-gradient(135deg,#0f766e,#0d9488);
-          border:none;border-radius:10px;cursor:pointer;
-          font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;
-          letter-spacing:.08em;text-transform:uppercase;color:#fff;
-          box-shadow:0 4px 14px rgba(13,148,136,.28);
-          transition:all .2s;
-          animation:lg-riseup .5s ease both;
-        }
-        .lg-install-btn:hover{transform:translateY(-2px);box-shadow:0 7px 20px rgba(13,148,136,.38);}
-        .lg-install-btn.installed{background:linear-gradient(135deg,#059669,#10b981);cursor:default;}
-        .lg-install-btn.installed:hover{transform:none;}
-        .lg-install-tip{
-          background:#fef3c7;border:1px solid #fde68a;
-          border-radius:10px;padding:10px 14px;margin-bottom:14px;
-          font-size:12px;color:#92400e;text-align:center;line-height:1.5;
-          animation:lg-popdown .3s ease;
-        }
-
-        /* ── BIOMETRIC SECTION ── */
-        .lg-bio {
-          border:1.5px solid #e2dcd4;border-radius:16px;
-          padding:20px 16px;margin-bottom:20px;
-          background:#fafaf9;
-          display:flex;flex-direction:column;align-items:center;gap:10px;
-          transition:border-color .2s,background .2s;
-          animation:lg-riseup .5s .1s ease both;
-        }
-        .lg-bio.scanning{background:#f0fdf9;border-color:#99d6d0;}
-        .lg-bio.success {background:#f0fdf4;border-color:#6ee7b7;}
-        .lg-bio.error   {background:#fff5f5;border-color:#fecaca;animation:lg-shake .4s ease;}
-
-        .lg-fp-btn {
-          width:72px;height:72px;border-radius:50%;border:none;cursor:pointer;
-          background:linear-gradient(145deg,#0d9488,#0f766e);
-          display:flex;align-items:center;justify-content:center;
-          box-shadow:0 8px 24px rgba(13,148,136,.32);
-          transition:all .22s;position:relative;
-        }
-        .lg-fp-btn:hover{transform:scale(1.07);box-shadow:0 12px 30px rgba(13,148,136,.42);}
-        .lg-fp-btn:active{transform:scale(.95);}
-        .lg-fp-btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;}
-        .lg-fp-btn.pulsing{animation:lg-pulse 1.2s ease-in-out infinite;}
-        .lg-fp-btn.success-btn{background:linear-gradient(145deg,#059669,#047857);}
-        .lg-fp-btn.error-btn  {background:linear-gradient(145deg,#dc2626,#b91c1c);}
-
-        .lg-bio-label{font-size:13px;font-weight:600;color:#374151;text-align:center;}
-        .lg-bio-sub{font-size:11px;font-weight:400;color:#9ca3af;text-align:center;line-height:1.5;}
-        .lg-bio-sub.ok {color:#059669;font-weight:600;}
-        .lg-bio-sub.err{color:#dc2626;font-weight:600;}
-
-        .lg-bio-link-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px;}
-        .lg-bio-link{font-size:11px;color:#9ca3af;}
-        .lg-bio-action{font-size:11px;font-weight:700;color:#0d9488;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline;text-underline-offset:2px;transition:opacity .15s;padding:0;}
-        .lg-bio-action:hover{opacity:.7;}
-        .lg-bio-action.remove{color:#dc2626;}
-
-        /* ── DIVIDER ── */
-        .lg-divider{display:flex;align-items:center;gap:12px;margin:16px 0;}
-        .lg-div-line{flex:1;height:1px;background:#e2dcd4;}
-        .lg-div-txt{font-size:11px;font-weight:600;color:#c4bdb4;letter-spacing:.06em;white-space:nowrap;}
-
-        /* ── FIELDS ── */
-        .field-group{margin-bottom:18px;}
-        .field-lbl{display:block;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#5a5449;margin-bottom:7px;transition:color .2s;}
-        .field-group.foc .field-lbl{color:#0d9488;}
-        .field-wrap{position:relative;}
-        .field-input{
-          width:100%;background:#fff;border:1.5px solid #e2dcd4;border-radius:8px;
-          padding:13px 44px 13px 16px;font-size:15px;
-          font-family:'DM Sans',sans-serif;font-weight:400;color:#1c1a17;
-          outline:none;transition:border-color .2s,box-shadow .2s;
-        }
-        .field-input::placeholder{color:#c4bdb4;}
-        .field-input:focus{border-color:#0d9488;box-shadow:0 0 0 3px rgba(13,148,136,.1);}
-        .field-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#c4bdb4;cursor:pointer;background:none;border:none;padding:0;display:flex;align-items:center;transition:color .2s;}
-        .field-group.foc .field-icon{color:#9a9187;}
-        .field-icon:hover{color:#0d9488!important;}
-
-        /* ── ERROR ── */
-        .lg-error{margin:12px 0;padding:12px 16px;background:#fee2e2;border:1.5px solid rgba(220,38,38,.2);border-radius:8px;font-size:13px;color:#dc2626;text-align:center;font-weight:500;}
-
-        /* ── LOGIN BTN ── */
-        .lg-btn{
-          width:100%;margin-top:24px;padding:15px;background:#0d9488;border:none;border-radius:8px;
-          font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
-          color:#fff;cursor:pointer;transition:opacity .2s,transform .15s,box-shadow .15s;
-          box-shadow:0 4px 14px rgba(13,148,136,.3);
-          display:flex;align-items:center;justify-content:center;gap:8px;
-        }
-        .lg-btn:hover:not(:disabled){opacity:.9;transform:translateY(-1px);box-shadow:0 6px 20px rgba(13,148,136,.35);}
-        .lg-btn:active:not(:disabled){transform:translateY(0);}
-        .lg-btn:disabled{opacity:.5;cursor:not-allowed;}
-
-        /* ── SPINNER ── */
-        .sp{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:lg-spin .7s linear infinite;}
-
-        /* ── SUCCESS OVERLAY ── */
-        .lg-success-overlay{
-          position:fixed;inset:0;z-index:9998;
-          background:rgba(13,148,136,.92);
-          display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
-          animation:lg-fadein .3s ease;
-        }
-        .lg-success-icon{font-size:60px;animation:lg-success .5s cubic-bezier(.34,1.56,.64,1) both;}
-        .lg-success-txt{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;animation:lg-riseup .4s .15s ease both;}
-        .lg-success-sub{font-size:13px;color:rgba(255,255,255,.7);animation:lg-riseup .4s .25s ease both;}
-
-        .lg-footer{margin-top:32px;text-align:center;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#c4bdb4;}
-      `}</style>
-
-      {/* ── OFFLINE BANNER ── */}
-      {!isOnline && (
-        <div className="lg-offline">
+      {/* Offline banner */}
+      {!online && (
+        <div className="lg-offline-bar">
           <span>📡</span>
-          <span>You're offline — limited functionality</span>
+          <span>No internet connection</span>
         </div>
       )}
 
-      {/* ── BIOMETRIC SUCCESS OVERLAY ── */}
-      {showBioSuccess && (
-        <div className="lg-success-overlay">
-          <div className="lg-success-icon">✅</div>
-          <div className="lg-success-txt">Welcome back!</div>
-          <div className="lg-success-sub">Fingerprint verified</div>
-        </div>
-      )}
+      <div className="lg-root" style={{ paddingTop: !online ? 60 : undefined }}>
+        <div className="lg-card">
 
-      <div className="lg-root" style={{ paddingTop: !isOnline ? 42 : 0 }}>
-        <div className="bg-circle bc1" />
-        <div className="bg-circle bc2" />
-        <div className="bg-circle bc3" />
-        <div className="bg-vline" />
-
-        {/* ── LEFT PANEL ── */}
-        <div className="lg-left">
-          <div className="logo-mark">
-            <div className="logo-diamond" />
-            <span className="logo-text">Daily Income Track</span>
-          </div>
-          <div>
-            <div className="left-tag">Financial clarity, daily</div>
-            <h1 className="left-h1">Track every<br /><em>income stream</em><br />with precision.</h1>
-            <p className="left-desc">A clean, focused dashboard to record your daily income, expenses and payments — all in one place.</p>
-            <div className="stats-row">
-              <div className="stat"><span className="stat-num">100%</span><span className="stat-lbl">Accurate</span></div>
-              <div className="stat"><span className="stat-num">Live</span><span className="stat-lbl">Real-time</span></div>
-              <div className="stat"><span className="stat-num">Safe</span><span className="stat-lbl">& Private</span></div>
-            </div>
-          </div>
-          <p className="left-foot">© 2026 Daily Income Track</p>
-        </div>
-
-        {/* ── RIGHT PANEL ── */}
-        <div className="lg-right">
-          <div className="corner c-tr" />
-          <div className="corner c-bl" />
-
-          <div className="form-eye">Secure Access</div>
-          <h2 className="form-title">Welcome<br /><em>back.</em></h2>
-          <p className="form-sub">Sign in to your dashboard</p>
-
-          {/* ══ PWA INSTALL BUTTON ══ */}
-          {!isInstalled && (
-            <>
-              {showInstallTip && (
-                <div className="lg-install-tip">
-                  📱 On iOS: tap <strong>Share → Add to Home Screen</strong><br />
-                  On Android: tap menu → <strong>Install App</strong>
-                </div>
-              )}
-              <button className={`lg-install-btn${isInstalled ? " installed" : ""}`} onClick={handleInstall}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-                  <line x1="12" y1="18" x2="12.01" y2="18" />
-                </svg>
-                {isInstalled ? "✓ App Installed" : "📲 Install App"}
-              </button>
-            </>
-          )}
-
-          {/* ══ BIOMETRIC SECTION (mobile only) ══ */}
-          {isMobile && bioSupported && (
-            <>
-              <div className={`lg-bio${bioStatus !== "idle" ? ` ${bioStatus}` : ""}`}>
-
-                {/* Fingerprint button */}
-                <button
-                  className={`lg-fp-btn${bioStatus === "scanning" ? " pulsing" : ""}${bioStatus === "success" ? " success-btn" : ""}${bioStatus === "error" ? " error-btn" : ""}`}
-                  onClick={bioRegistered ? handleBioAuth : handleBioRegister}
-                  disabled={bioStatus === "scanning"}
-                >
-                  {fpBtnContent()}
-                </button>
-
-                <div className="lg-bio-label">
-                  {bioStatus === "scanning" ? "Scanning…"
-                    : bioStatus === "success" ? "Verified ✓"
-                      : bioStatus === "error" ? "Try again"
-                        : bioRegistered ? "Touch to sign in"
-                          : "Register fingerprint"}
-                </div>
-
-                <div className={`lg-bio-sub${bioStatus === "success" ? " ok" : bioStatus === "error" ? " err" : ""}`}>
-                  {bioMsg || (bioRegistered
-                    ? "Use your fingerprint for instant access"
-                    : "Sign in with email first, then register fingerprint")}
-                </div>
-
-                {/* Register / Remove link */}
-                <div className="lg-bio-link-row">
-                  {bioRegistered ? (
-                    <>
-                      <span className="lg-bio-link">Not your device?</span>
-                      <button className="lg-bio-action remove" onClick={() => {
-                        localStorage.removeItem(CRED_KEY);
-                        setBioRegistered(false); setBioStatus("idle"); setBioMsg("");
-                      }}>Remove</button>
-                    </>
-                  ) : (
-                    <>
-                      <span className="lg-bio-link">Already registered?</span>
-                      <button className="lg-bio-action" onClick={handleBioAuth}>Authenticate</button>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="lg-divider">
-                <div className="lg-div-line" />
-                <span className="lg-div-txt">or sign in with email</span>
-                <div className="lg-div-line" />
-              </div>
-            </>
-          )}
-
-          {/* ══ EMAIL FORM ══ */}
-          <div className={`field-group${focused === "email" ? " foc" : ""}`}>
-            <label className="field-lbl">Email Address</label>
-            <div className="field-wrap">
-              <input
-                type="email" className="field-input"
-                placeholder="you@example.com" value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onFocus={() => setFocused("email")} onBlur={() => setFocused(null)}
-              />
-              <span className="field-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <rect x="2" y="4" width="20" height="16" rx="2" />
-                  <path d="M2 7l10 7 10-7" />
-                </svg>
-              </span>
-            </div>
+          {/* ── HEADER BAND ── */}
+          <div className="lg-band">
+            <div className="lg-band-icon">₹</div>
+            <h1 className="lg-band-title">Daily <em>Income</em> Tracking</h1>
+            <p className="lg-band-sub">Finance Manager</p>
           </div>
 
-          <div className={`field-group${focused === "password" ? " foc" : ""}`}>
-            <label className="field-lbl">Password</label>
-            <div className="field-wrap">
-              <input
-                type={showPwd ? "text" : "password"} className="field-input"
-                placeholder="••••••••" value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onFocus={() => setFocused("password")} onBlur={() => setFocused(null)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-              />
-              <button type="button" className="field-icon" onClick={() => setShowPwd(!showPwd)} tabIndex={-1}>
-                {showPwd ? (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                    <line x1="1" y1="1" x2="23" y2="23" />
-                  </svg>
-                ) : (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
+          {/* ── BODY ── */}
+          <div className="lg-body">
+
+            {/* ── PWA INSTALL ── */}
+            {!installed && (
+              <>
+                {installTip && (
+                  <div className="lg-install-tip">
+                    📱 <strong>iOS:</strong> Safari → Share → "Add to Home Screen"<br />
+                    🤖 <strong>Android:</strong> Chrome menu → "Install App"
+                  </div>
                 )}
-              </button>
+                <button
+                  className={`lg-install${installed ? " done" : ""}`}
+                  onClick={handleInstall}
+                >
+                  <IconInstall />
+                  {installed ? "✓ App Installed" : "📲 Install App on Device"}
+                </button>
+              </>
+            )}
+
+            {/* ── BIOMETRIC ── */}
+            {isMobile && bioAvail && (
+              <>
+                <div className={`lg-bio${bioState !== "idle" ? ` state-${bioState}` : ""}`}>
+
+                  <button
+                    className={`lg-fp${bioState === "scanning" ? " pulsing" :
+                        bioState === "success" ? " ok-btn" :
+                          bioState === "error" ? " err-btn" : ""
+                      }`}
+                    onClick={bioReg ? handleBioAuth : handleBioRegister}
+                    disabled={bioState === "scanning"}
+                  >
+                    {fpContent()}
+                  </button>
+
+                  <div className="lg-bio-title">{fpTitle()}</div>
+
+                  <div className={`lg-bio-desc${bioState === "success" ? " ok" :
+                      bioState === "error" ? " err" : ""
+                    }`}>{fpDesc()}</div>
+
+                  {/* Links row */}
+                  <div className="lg-bio-links">
+                    {bioReg ? (
+                      <>
+                        <span className="lg-bio-text">Not your device?</span>
+                        <button className="lg-bio-act danger" onClick={handleBioRemove}>
+                          Remove fingerprint
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="lg-bio-text">Already set up?</span>
+                        <button className="lg-bio-act" onClick={handleBioAuth}>
+                          Authenticate
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="lg-div">
+                  <div className="lg-div-line" />
+                  <span className="lg-div-txt">or use email</span>
+                  <div className="lg-div-line" />
+                </div>
+              </>
+            )}
+
+            {/* ── EMAIL FIELD ── */}
+            <div className={`lg-field${focused === "email" ? " foc" : ""}`}>
+              <label className="lg-label">Email Address</label>
+              <div className="lg-wrap">
+                <input
+                  className="lg-input"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  onFocus={() => setFocused("email")}
+                  onBlur={() => setFocused(null)}
+                />
+                <span className="lg-icon"><IconEmail /></span>
+              </div>
             </div>
+
+            {/* ── PASSWORD FIELD ── */}
+            <div className={`lg-field${focused === "pass" ? " foc" : ""}`}>
+              <label className="lg-label">Password</label>
+              <div className="lg-wrap">
+                <input
+                  className="lg-input"
+                  type={showPwd ? "text" : "password"}
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  value={pass}
+                  onChange={e => setPass(e.target.value)}
+                  onFocus={() => setFocused("pass")}
+                  onBlur={() => setFocused(null)}
+                  onKeyDown={e => e.key === "Enter" && handleLogin()}
+                />
+                <button
+                  className="lg-icon"
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPwd(p => !p)}
+                >
+                  <IconEye show={showPwd} />
+                </button>
+              </div>
+            </div>
+
+            {/* ── ERROR ── */}
+            {errMsg && <div className="lg-err">{errMsg}</div>}
+
+            {/* ── SUBMIT ── */}
+            <button
+              className="lg-submit"
+              onClick={handleLogin}
+              disabled={loading}
+            >
+              {loading
+                ? <><div className="lg-submit-spin" /> Signing in…</>
+                : "Sign In"
+              }
+            </button>
+
+            <p className="lg-foot">© 2026 Daily Income Track</p>
           </div>
-
-          {error && <div className="lg-error">{error}</div>}
-
-          <button className="lg-btn" onClick={handleLogin} disabled={loading}>
-            {loading ? <><span className="sp" /> Signing in…</> : "Sign In"}
-          </button>
-
-          <p className="lg-footer">© 2026 Daily Income Track</p>
         </div>
       </div>
     </>
