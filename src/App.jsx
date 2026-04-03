@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import MonthlyReport from "./pages/MonthlyReport";
 import DailyReport from "./pages/DailyReport";
+import CashBox from "./pages/CashBox";
 import BulkTracker from "./pages/BulkTracker";
 import Reports from "./pages/Reports";
 import SplashScreen from "./components/SplashScreen";
@@ -111,6 +112,7 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login setLoggedIn={setLoggedIn} />} />
           <Route path="/dashboard" element={loggedIn ? <Dashboard /> : <Navigate to="/login" replace />} />
+          <Route path="/cashbox" element={loggedIn ? <CashBox /> : <Navigate to="/login" replace />} />
           <Route path="/daily" element={loggedIn ? <DailyReport /> : <Navigate to="/login" replace />} />
           <Route path="/monthly" element={loggedIn ? <MonthlyReport /> : <Navigate to="/login" replace />} />
           <Route path="/bulk" element={loggedIn ? <BulkTracker /> : <Navigate to="/login" replace />} />

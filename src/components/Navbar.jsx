@@ -209,6 +209,7 @@ export default function Navbar() {
 
           <div className="nav-links">
             <NavLink to="/dashboard" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Dashboard</NavLink>
+            <NavLink to="/cashbox" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Cash Box</NavLink>
             <NavLink to="/daily" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Daily</NavLink>
             <NavLink to="/monthly" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Monthly</NavLink>
             <NavLink to="/bulk" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Bulk Tracker</NavLink>
@@ -234,6 +235,7 @@ export default function Navbar() {
         <div className={`nav-mobile-drawer${menuOpen ? " open" : ""}`}>
           {[
             { to: "/dashboard", label: "Dashboard", icon: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></> },
+            { to: "/cashbox", label: "Cash Box", icon: <><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></> },
             { to: "/daily", label: "Daily", icon: <><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></> },
             { to: "/monthly", label: "Monthly", icon: <><path d="M3 3v18h18" /><path d="M7 16l4-4 4 4 4-6" /></> },
             { to: "/bulk", label: "Bulk Tracker", icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></> },
