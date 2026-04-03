@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import MonthlyReport from "./pages/MonthlyReport";
 import DailyReport from "./pages/DailyReport";
 import BulkTracker from "./pages/BulkTracker";
+import Reports from "./pages/Reports";
 import SplashScreen from "./components/SplashScreen";
 import { supabase } from "./lib/supabase";
 
@@ -113,6 +114,7 @@ export default function App() {
           <Route path="/daily" element={loggedIn ? <DailyReport /> : <Navigate to="/login" replace />} />
           <Route path="/monthly" element={loggedIn ? <MonthlyReport /> : <Navigate to="/login" replace />} />
           <Route path="/bulk" element={loggedIn ? <BulkTracker /> : <Navigate to="/login" replace />} />
+          <Route path="/reports" element={loggedIn ? <Reports /> : <Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

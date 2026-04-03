@@ -635,8 +635,8 @@ export default function Login({ setLoggedIn }) {
 
                   <button
                     className={`lg-fp${bioState === "scanning" ? " pulsing" :
-                        bioState === "success" ? " ok-btn" :
-                          bioState === "error" ? " err-btn" : ""
+                      bioState === "success" ? " ok-btn" :
+                        bioState === "error" ? " err-btn" : ""
                       }`}
                     onClick={bioReg ? handleBioAuth : handleBioRegister}
                     disabled={bioState === "scanning"}
@@ -647,7 +647,7 @@ export default function Login({ setLoggedIn }) {
                   <div className="lg-bio-title">{fpTitle()}</div>
 
                   <div className={`lg-bio-desc${bioState === "success" ? " ok" :
-                      bioState === "error" ? " err" : ""
+                    bioState === "error" ? " err" : ""
                     }`}>{fpDesc()}</div>
 
                   {/* Links row */}

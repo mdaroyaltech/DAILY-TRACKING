@@ -212,6 +212,8 @@ export default function Navbar() {
             <NavLink to="/daily" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Daily</NavLink>
             <NavLink to="/monthly" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Monthly</NavLink>
             <NavLink to="/bulk" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Bulk Tracker</NavLink>
+            <NavLink to="/reports" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Reports</NavLink>
+
             <div className="nav-divider" />
             <button className="theme-toggle" onClick={() => setDark(d => !d)} title="Toggle dark mode">
               {dark ? "☀️" : "🌙"}
@@ -235,6 +237,16 @@ export default function Navbar() {
             { to: "/daily", label: "Daily", icon: <><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></> },
             { to: "/monthly", label: "Monthly", icon: <><path d="M3 3v18h18" /><path d="M7 16l4-4 4 4 4-6" /></> },
             { to: "/bulk", label: "Bulk Tracker", icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></> },
+            {
+              to: "/reports",
+              label: "Reports",
+              icon: (
+                <>
+                  <path d="M3 3v18h18" />
+                  <path d="M7 16l4-4 4 4 4-6" />
+                </>
+              ),
+            },
           ].map(item => (
             <NavLink key={item.to} to={item.to} onClick={closeMenu} className={({ isActive }) => `mob-link${isActive ? " active" : ""}`}>
               <div className="mob-link-icon">

@@ -82,7 +82,12 @@ const CSS = `
 }
 .mr-select:focus { border-color:var(--teal); box-shadow:0 0 0 3px rgba(13,148,136,0.1); }
 
-/* ─── EXPORT BUTTON ─── */
+/* ─── EXPORT BUTTONS GROUP ─── */
+.export-btn-group {
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+}
+
+/* PDF Export Button */
 .export-btn {
   display:inline-flex; align-items:center; gap:7px;
   background:linear-gradient(135deg,#1c1a17 0%,#3a3530 100%);
@@ -93,6 +98,103 @@ const CSS = `
 }
 .export-btn:hover  { transform:translateY(-1px); box-shadow:0 4px 16px rgba(0,0,0,0.22); }
 .export-btn:active { transform:translateY(0); opacity:0.9; }
+
+/* CSV Income Button */
+.csv-income-btn {
+  display:inline-flex; align-items:center; gap:7px;
+  background:linear-gradient(135deg,#16a34a 0%,#15803d 100%);
+  color:#fff; border:none; border-radius:9px; padding:9px 18px;
+  font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600;
+  cursor:pointer; transition:transform 0.15s,box-shadow 0.15s;
+  box-shadow:0 2px 8px rgba(22,163,74,0.3); white-space:nowrap;
+}
+.csv-income-btn:hover  { transform:translateY(-1px); box-shadow:0 4px 16px rgba(22,163,74,0.4); }
+.csv-income-btn:active { transform:translateY(0); opacity:0.9; }
+
+/* CSV Expense Button */
+.csv-expense-btn {
+  display:inline-flex; align-items:center; gap:7px;
+  background:linear-gradient(135deg,#dc2626 0%,#b91c1c 100%);
+  color:#fff; border:none; border-radius:9px; padding:9px 18px;
+  font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600;
+  cursor:pointer; transition:transform 0.15s,box-shadow 0.15s;
+  box-shadow:0 2px 8px rgba(220,38,38,0.3); white-space:nowrap;
+}
+.csv-expense-btn:hover  { transform:translateY(-1px); box-shadow:0 4px 16px rgba(220,38,38,0.4); }
+.csv-expense-btn:active { transform:translateY(0); opacity:0.9; }
+
+/* CSV Both Button */
+.csv-both-btn {
+  display:inline-flex; align-items:center; gap:7px;
+  background:linear-gradient(135deg,#7c3aed 0%,#6d28d9 100%);
+  color:#fff; border:none; border-radius:9px; padding:9px 18px;
+  font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600;
+  cursor:pointer; transition:transform 0.15s,box-shadow 0.15s;
+  box-shadow:0 2px 8px rgba(124,58,237,0.3); white-space:nowrap;
+}
+.csv-both-btn:hover  { transform:translateY(-1px); box-shadow:0 4px 16px rgba(124,58,237,0.4); }
+.csv-both-btn:active { transform:translateY(0); opacity:0.9; }
+
+/* ─── EXPORT DROPDOWN ─── */
+.export-dropdown-wrap {
+  position: relative;
+  display: inline-block;
+}
+.export-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+  padding: 8px;
+  min-width: 220px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: dropIn 0.18s ease;
+}
+@keyframes dropIn {
+  from { opacity:0; transform:translateY(-6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.export-dropdown-header {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 4px 10px 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.export-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+  transition: background 0.15s;
+  width: 100%;
+}
+.export-menu-item:hover { background: var(--bg2); }
+.export-menu-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+}
+.export-menu-item-text { display: flex; flex-direction: column; gap: 1px; }
+.export-menu-item-sub { font-size: 11px; font-weight: 400; color: var(--text-dim); }
 
 /* ─── SAVINGS RATE RING ─── */
 .savings-ring-card {
@@ -193,6 +295,7 @@ const CSS = `
 .spender-card:nth-child(1) .spender-bar { background:linear-gradient(90deg,#f59e0b,#ef4444); }
 .spender-card:nth-child(2) .spender-bar { background:linear-gradient(90deg,#6366f1,#8b5cf6); }
 .spender-card:nth-child(3) .spender-bar { background:linear-gradient(90deg,#0d9488,#06b6d4); }
+
 /* ─── TOP GAINERS ─── */
 .top-gainers-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:28px; }
 @media(max-width:1000px){ .top-gainers-grid{grid-template-columns:repeat(3,1fr);} }
@@ -223,7 +326,6 @@ const CSS = `
 .gainer-bar-wrap { background:var(--bg2); border-radius:4px; height:4px; overflow:hidden; margin-top:4px; }
 .gainer-bar { height:100%; border-radius:4px; transition:width 0.8s cubic-bezier(.4,0,.2,1); background:linear-gradient(90deg,var(--green),var(--teal)); }
 
-
 /* ─── CHART GRID ─── */
 .chart-grid { display:grid; grid-template-columns:1fr 1.6fr; gap:20px; margin-bottom:28px; }
 @media(max-width:780px){ .chart-grid{grid-template-columns:1fr;} }
@@ -238,6 +340,9 @@ const CSS = `
 
 /* ─── TABLES ─── */
 .table-card { background:var(--surface); border:1.5px solid var(--border); border-radius:14px; padding:28px; margin-bottom:24px; box-shadow:var(--shadow-sm); overflow-x:auto; }
+.table-card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+.table-card-title { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; display:flex; align-items:center; gap:10px; }
+.table-card-title::after { content:''; flex:1; height:1.5px; background:var(--border); border-radius:2px; min-width:20px; }
 .table-footer { margin-top:16px; text-align:right; font-family:'Playfair Display',serif; font-size:17px; font-weight:700; padding-top:14px; border-top:1.5px solid var(--border); }
 .mr-table { width:100%; border-collapse:collapse; font-size:13px; min-width:380px; }
 .mr-table th { font-size:10px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dim); padding:10px 14px; text-align:left; background:var(--bg2); border-bottom:1.5px solid var(--border); white-space:nowrap; }
@@ -277,8 +382,6 @@ const CSS = `
 /* ─── CHART CARD ─── */
 .chart-card { background:var(--surface); border:1.5px solid var(--border); border-radius:14px; padding:28px; margin-bottom:28px; box-shadow:var(--shadow-sm); }
 
-/* ─── HOME PILLS ─── */
-
 /* ─── BULK ─── */
 .bulk-section { background:var(--surface); border:2px solid #7c3aed; border-radius:16px; overflow:hidden; margin-bottom:28px; box-shadow:0 4px 20px rgba(124,58,237,.08); }
 .bulk-section-header { background:linear-gradient(135deg,#7c3aed 0%,#6d28d9 100%); padding:18px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
@@ -303,13 +406,302 @@ const CSS = `
 .split-pill { display:flex; align-items:center; gap:5px; padding:3px 10px 3px 7px; border-radius:99px; background:#ede9fe; border:1px solid rgba(124,58,237,.2); font-size:11px; font-weight:500; color:#5a5449; }
 .split-pill-av { width:16px; height:16px; border-radius:50%; color:#fff; font-size:8px; font-weight:700; display:flex; align-items:center; justify-content:center; }
 
+/* ─── INLINE CSV BUTTONS (inside table cards) ─── */
+.table-csv-btn {
+  display:inline-flex; align-items:center; gap:5px;
+  border:none; border-radius:7px; padding:6px 14px;
+  font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600;
+  cursor:pointer; transition:transform 0.15s,box-shadow 0.15s;
+  white-space:nowrap; flex-shrink:0;
+}
+.table-csv-btn:hover  { transform:translateY(-1px); }
+.table-csv-btn:active { transform:translateY(0); opacity:0.9; }
+.table-csv-btn.income { background:var(--green-bg); color:var(--green); box-shadow:0 1px 4px rgba(22,163,74,0.15); }
+.table-csv-btn.income:hover { box-shadow:0 3px 10px rgba(22,163,74,0.25); }
+.table-csv-btn.expense { background:var(--red-bg); color:var(--red); box-shadow:0 1px 4px rgba(220,38,38,0.15); }
+.table-csv-btn.expense:hover { box-shadow:0 3px 10px rgba(220,38,38,0.25); }
+
+/* ─── COLLAPSE BUTTON ─── */
+.collapse-btn {
+  display:inline-flex; align-items:center; gap:5px;
+  border:none; border-radius:7px; padding:6px 12px;
+  font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600;
+  cursor:pointer; transition:all 0.15s; flex-shrink:0;
+  background:var(--bg2); color:var(--text-med);
+  border:1.5px solid var(--border);
+}
+.collapse-btn:hover { background:var(--border); color:var(--text); transform:translateY(-1px); }
+.collapse-btn:active { transform:translateY(0); }
+.collapse-arrow { display:inline-block; transition:transform 0.25s ease; font-size:10px; }
+.collapse-arrow.open { transform:rotate(180deg); }
+.table-collapsible {
+  overflow:hidden;
+  transition:max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
+  max-height:9999px;
+  opacity:1;
+}
+.table-collapsible.collapsed {
+  max-height:0 !important;
+  opacity:0;
+}
+
 /* ─── PRINT ─── */
 @media print {
-  .no-print, .export-btn { display:none !important; }
-  .mr-root { padding-bottom:0; background:#fff !important; }
-  .stat-card,.table-card,.chart-card,.spender-card,.bulk-section { break-inside:avoid; }
-  .chart-grid { grid-template-columns:1fr 1.6fr !important; }
+  /* Hide website UI elements */
+  .mr-root,
+  .mr-header,
+  .mr-wrap,
+  .no-print,
+  .export-btn-group,
+  .table-csv-btn,
+  .export-dropdown-wrap,
+  .collapse-btn,
+  nav {
+    display: none !important;
+  }
+  /* Force print view visible */
+  #pdf-print-view {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    overflow: visible !important;
+  }
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }
+
+/* ─── PRINT VIEW (hidden on screen, shown on print) ─── */
+#pdf-print-view {
+  display: none;
+  font-family: Arial, sans-serif;
+  color: #1c1a17;
+  background: #fff;
+  width: 100%;
+}
+
+/* Page setup — A4, proper margins */
+@page {
+  size: A4 portrait;
+  margin: 15mm 12mm 15mm 12mm;
+}
+
+/* ── Header ── */
+.pdf-report-header {
+  width: 100%;
+  border-bottom: 2px solid #1c1a17;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.pdf-report-title {
+  font-family: Georgia, serif;
+  font-size: 20pt;
+  font-weight: 900;
+  color: #1c1a17;
+  float: left;
+}
+.pdf-report-title span { font-style: italic; color: #0d9488; }
+.pdf-report-meta {
+  float: right;
+  text-align: right;
+  font-size: 8pt;
+  color: #5a5449;
+  line-height: 1.7;
+}
+.pdf-report-month { font-size: 10pt; font-weight: 700; color: #1c1a17; }
+.pdf-clearfix { clear: both; }
+
+/* ── Summary — use TABLE not flex (flex breaks in print) ── */
+.pdf-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 14px;
+  table-layout: fixed;
+}
+.pdf-summary-table td {
+  border: 1.5px solid #d0c9be;
+  padding: 8px 10px;
+  text-align: center;
+  vertical-align: middle;
+}
+.pdf-summary-label {
+  font-size: 6.5pt;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9a9187;
+  display: block;
+  margin-bottom: 4px;
+}
+.pdf-summary-value {
+  font-family: Georgia, serif;
+  font-size: 14pt;
+  font-weight: 700;
+  display: block;
+  line-height: 1;
+}
+.pdf-summary-value.green { color: #16a34a; }
+.pdf-summary-value.red   { color: #dc2626; }
+.pdf-summary-value.teal  { color: #0d9488; }
+
+/* ── Section title ── */
+.pdf-section-title {
+  font-family: Georgia, serif;
+  font-size: 12pt;
+  font-weight: 700;
+  color: #1c1a17;
+  margin: 10px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1.5px solid #aaa;
+  overflow: hidden;
+}
+.pdf-section-badge {
+  float: right;
+  font-size: 6.5pt;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-top: 2px;
+}
+.pdf-section-badge.income  { background: #dcfce7; color: #16a34a; }
+.pdf-section-badge.expense { background: #fee2e2; color: #dc2626; }
+
+/* ── Main data table ── */
+.pdf-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8.5pt;
+  table-layout: fixed;
+  margin-bottom: 4px;
+}
+.pdf-table thead tr {
+  background: #f0ede8;
+}
+.pdf-table th {
+  font-size: 7pt;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #777;
+  padding: 6px 8px;
+  text-align: left;
+  border: 1px solid #ccc;
+  background: #f0ede8;
+}
+.pdf-table th.right { text-align: right; }
+.pdf-table th.center { text-align: center; }
+/* thead repeats on every page */
+.pdf-table thead { display: table-header-group; }
+.pdf-table tfoot { display: table-footer-group; }
+
+.pdf-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid #e8e4df;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  vertical-align: middle;
+  font-size: 8.5pt;
+  color: #1c1a17;
+  word-break: break-word;
+}
+.pdf-table td.right { text-align: right; font-variant-numeric: tabular-nums; }
+.pdf-table td.center { text-align: center; }
+.pdf-table td.mono { font-family: monospace; font-size: 8pt; color: #666; }
+.pdf-table tr { page-break-inside: avoid; }
+
+/* Alternating rows */
+.pdf-table tbody tr:nth-child(even) td { background: #faf8f5; }
+
+/* Repeat rows */
+.pdf-table tr.pdf-repeat td { background: #fffbeb !important; }
+.pdf-table tr.pdf-repeat td:first-child { border-left: 3px solid #f59e0b !important; padding-left: 5px; }
+.pdf-repeat-tag {
+  font-size: 6.5pt;
+  font-weight: 700;
+  background: #f59e0b;
+  color: #fff;
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+/* Total footer row */
+.pdf-total-row td {
+  font-weight: 700;
+  font-family: Georgia, serif;
+  font-size: 9.5pt;
+  border-top: 2px solid #1c1a17 !important;
+  border-bottom: none !important;
+  padding: 7px 8px;
+  background: #fff !important;
+}
+.pdf-total-label { color: #666; text-transform: uppercase; font-size: 7.5pt; letter-spacing: 0.1em; }
+.pdf-total-income  { color: #16a34a; text-align: right; }
+.pdf-total-expense { color: #dc2626; text-align: right; }
+
+/* Page break between income and expense */
+.pdf-page-break {
+  page-break-before: always;
+  break-before: page;
+  display: block;
+  height: 0;
+}
+
+/* Summary box at end */
+.pdf-summary-box {
+  margin-top: 18px;
+  border: 1.5px solid #ccc;
+  padding: 10px 14px;
+  page-break-inside: avoid;
+}
+.pdf-summary-box-title {
+  font-family: Georgia, serif;
+  font-size: 10pt;
+  font-weight: 700;
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #e0e0e0;
+}
+.pdf-summary-box table {
+  width: 100%;
+  font-size: 8.5pt;
+  border-collapse: collapse;
+}
+.pdf-summary-box td { padding: 3px 0; }
+.pdf-summary-box td:last-child { text-align: right; font-weight: 700; }
+
+/* Savings bar */
+.pdf-savings-outer {
+  background: #e8e4df;
+  height: 7px;
+  width: 100%;
+  margin-top: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.pdf-savings-inner { height: 100%; border-radius: 4px; }
+
+/* Footer */
+.pdf-footer {
+  margin-top: 16px;
+  padding-top: 6px;
+  border-top: 1px solid #ddd;
+  font-size: 7pt;
+  color: #aaa;
+  overflow: hidden;
+}
+.pdf-footer-left { float: left; }
+.pdf-footer-right { float: right; }
+
+
 `;
 
 const CHART_COLORS = [
@@ -344,6 +736,150 @@ const sumByKey = (arr, keyFn) => {
   return map;
 };
 
+/* ── CSV EXPORT HELPERS ── */
+const escapeCsv = (val) => {
+  if (val === null || val === undefined) return "";
+  const str = String(val);
+  if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+};
+
+const downloadCsv = (rows, filename) => {
+  const csv = rows.map(row => row.map(escapeCsv).join(",")).join("\n");
+  const bom = "\uFEFF"; // UTF-8 BOM for Excel
+  const blob = new Blob([bom + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+};
+
+const exportIncomeCSV = (incomes, monthLabel) => {
+  const totalIncome = incomes.reduce((s, i) => s + i.amount, 0);
+  const rows = [
+    [`Monthly Income Report – ${monthLabel}`],
+    [],
+    ["#", "Date", "Service / Source", "Amount (₹)"],
+    ...incomes.map((row, idx) => [idx + 1, row.date, row.service || "", row.amount]),
+    [],
+    ["", "", "TOTAL", totalIncome],
+  ];
+  downloadCsv(rows, `income_${monthLabel.replace(/\s/g, "_")}.csv`);
+};
+
+const exportExpenseCSV = (expenses, monthLabel) => {
+  const totalExpense = expenses.reduce((s, e) => s + e.amount, 0);
+  const rows = [
+    [`Monthly Expense Report – ${monthLabel}`],
+    [],
+    ["#", "Date", "Paid To", "Amount (₹)"],
+    ...expenses.map((row, idx) => [idx + 1, row.date, row.paid_to || "", row.amount]),
+    [],
+    ["", "", "TOTAL", totalExpense],
+  ];
+  downloadCsv(rows, `expense_${monthLabel.replace(/\s/g, "_")}.csv`);
+};
+
+const exportBothCSV = (incomes, expenses, monthLabel) => {
+  const totalIncome = incomes.reduce((s, i) => s + i.amount, 0);
+  const totalExpense = expenses.reduce((s, e) => s + e.amount, 0);
+  const balance = totalIncome - totalExpense;
+
+  const rows = [
+    [`Monthly Financial Report – ${monthLabel}`],
+    [],
+    ["=== INCOME ==="],
+    ["#", "Date", "Service / Source", "Amount (₹)"],
+    ...incomes.map((row, idx) => [idx + 1, row.date, row.service || "", row.amount]),
+    ["", "", "Income Total", totalIncome],
+    [],
+    ["=== EXPENSES ==="],
+    ["#", "Date", "Paid To", "Amount (₹)"],
+    ...expenses.map((row, idx) => [idx + 1, row.date, row.paid_to || "", row.amount]),
+    ["", "", "Expense Total", totalExpense],
+    [],
+    ["=== SUMMARY ==="],
+    ["Total Income", "", "", totalIncome],
+    ["Total Expense", "", "", totalExpense],
+    ["Balance", "", "", balance],
+  ];
+  downloadCsv(rows, `report_${monthLabel.replace(/\s/g, "_")}.csv`);
+};
+
+/* ── EXPORT DROPDOWN COMPONENT ── */
+const ExportDropdown = ({ onPdf, onIncomeCsv, onExpenseCsv, onBothCsv, hasIncome, hasExpense }) => {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const close = () => setOpen(false);
+    if (open) document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [open]);
+
+  return (
+    <div className="export-dropdown-wrap no-print" onClick={e => e.stopPropagation()}>
+      <button
+        className="export-btn"
+        onClick={() => setOpen(v => !v)}
+        title="Export options"
+      >
+        ⬇&nbsp; Export
+        <span style={{ fontSize: 10, opacity: 0.7, marginLeft: 2 }}>▾</span>
+      </button>
+
+      {open && (
+        <div className="export-dropdown-menu">
+          <div className="export-dropdown-header">Export Options</div>
+
+          {/* PDF */}
+          <button className="export-menu-item" onClick={() => { setOpen(false); onPdf(); }}>
+            <div className="export-menu-icon" style={{ background: "#1c1a17", color: "#fff" }}>📄</div>
+            <div className="export-menu-item-text">
+              <span>Export as PDF</span>
+              <span className="export-menu-item-sub">Full report with charts</span>
+            </div>
+          </button>
+
+          {/* CSV Income */}
+          {hasIncome && (
+            <button className="export-menu-item" onClick={() => { setOpen(false); onIncomeCsv(); }}>
+              <div className="export-menu-icon" style={{ background: "var(--green-bg)", color: "var(--green)" }}>💚</div>
+              <div className="export-menu-item-text">
+                <span>Income CSV</span>
+                <span className="export-menu-item-sub">Income transactions only</span>
+              </div>
+            </button>
+          )}
+
+          {/* CSV Expense */}
+          {hasExpense && (
+            <button className="export-menu-item" onClick={() => { setOpen(false); onExpenseCsv(); }}>
+              <div className="export-menu-icon" style={{ background: "var(--red-bg)", color: "var(--red)" }}>❤️</div>
+              <div className="export-menu-item-text">
+                <span>Expense CSV</span>
+                <span className="export-menu-item-sub">Expense transactions only</span>
+              </div>
+            </button>
+          )}
+
+          {/* CSV Both */}
+          {hasIncome && hasExpense && (
+            <button className="export-menu-item" onClick={() => { setOpen(false); onBothCsv(); }}>
+              <div className="export-menu-icon" style={{ background: "#ede9fe", color: "#7c3aed" }}>📊</div>
+              <div className="export-menu-item-text">
+                <span>Full Report CSV</span>
+                <span className="export-menu-item-sub">Income + Expense + Summary</span>
+              </div>
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const RepeatBadge = ({ count, total }) => (
   <span className="repeat-badge">
     <span className="repeat-badge-flash" />
@@ -376,6 +912,8 @@ export default function MonthlyReport() {
   const [loading, setLoading] = useState(false);
   const [prevIncome, setPrevIncome] = useState(0);
   const [prevExpense, setPrevExpense] = useState(0);
+  const [incomeCollapsed, setIncomeCollapsed] = useState(false);
+  const [expenseCollapsed, setExpenseCollapsed] = useState(false);
 
   /* ── FETCH ── */
   const fetchData = async () => {
@@ -489,7 +1027,6 @@ export default function MonthlyReport() {
   const repeatIncomeNames = Object.values(incomeRepeatMap).filter(v => v >= 2).length;
   const repeatExpenseNames = Object.values(expenseRepeatMap).filter(v => v >= 2).length;
 
-
   /* ── TOP GAINERS ── */
   const incSumMap2 = useMemo(() => sumByKey(incomes, r => r.service), [incomes]);
   const incCntMap2 = useMemo(() => countByKey(incomes, r => r.service), [incomes]);
@@ -508,6 +1045,9 @@ export default function MonthlyReport() {
     const d = new Date(); d.setMonth(d.getMonth() - i);
     return { value: d.toISOString().slice(0, 7), label: d.toLocaleString("default", { month: "long", year: "numeric" }) };
   });
+
+  const currentMonthLabel = monthOptions.find(o => o.value === month)?.label || month;
+
   const avatarColor = (name = "") => {
     const cols = ["#0d9488", "#16a34a", "#7c3aed", "#db2777", "#b45309", "#1d4ed8", "#dc2626"];
     let h = 0; for (let c of name) h = c.charCodeAt(0) + ((h << 5) - h);
@@ -515,18 +1055,327 @@ export default function MonthlyReport() {
   };
   const fmt = n => Math.round(n).toLocaleString("en-IN");
 
-  /* ── EXPORT PDF ── */
-  const handleExport = () => {
-    const prev = document.title;
-    const label = monthOptions.find(o => o.value === month)?.label || month;
-    document.title = `Monthly Report – ${label}`;
-    window.print();
-    document.title = prev;
+  /* ── EXPORT HANDLERS ── */
+  const handleExportPdf = () => {
+    const savingsColor = savingsRate >= 50 ? "#0d9488" : savingsRate >= 20 ? "#b45309" : "#dc2626";
+
+    const tableRows = (rows, keyFn, amtColor, repMap) => rows.map((row, idx) => {
+      const key = (keyFn(row) || "").toLowerCase().trim();
+      const isRepeat = (repMap[key] || 1) >= 2;
+      const bg = isRepeat ? "#fffbeb" : idx % 2 === 0 ? "#ffffff" : "#faf8f5";
+      const leftBorder = isRepeat ? "border-left:3px solid #f59e0b;" : "";
+      const repeatTag = isRepeat ? `<span style="font-size:6.5pt;font-weight:700;background:#f59e0b;color:#fff;padding:1px 5px;border-radius:3px;margin-left:5px;">repeat</span>` : "";
+      return `<tr>
+        <td style="padding:5px 8px;border-bottom:1px solid #e8e4df;text-align:center;color:#999;font-size:7.5pt;background:${bg};${leftBorder}">${idx + 1}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e8e4df;font-family:monospace;font-size:8pt;color:#555;background:${bg};">${row.date}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e8e4df;background:${bg};">${keyFn(row) || ""}${repeatTag}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e8e4df;text-align:right;font-weight:700;color:${amtColor};background:${bg};">${Number(row.amount).toLocaleString("en-IN")}</td>
+      </tr>`;
+    }).join("");
+
+    const tableHTML = (title, rows, keyFn, amtColor, totalColor, totalLabel, total, repMap, badgeClass) => `
+      <div style="font-family:Georgia,serif;font-size:12pt;font-weight:700;color:#1c1a17;margin:10px 0 6px;padding-bottom:4px;border-bottom:1.5px solid #999;overflow:hidden;">
+        <span style="float:right;font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:2px 8px;border-radius:10px;margin-top:3px;background:${badgeClass === "income" ? "#dcfce7" : "#fee2e2"};color:${badgeClass === "income" ? "#16a34a" : "#dc2626"};">${rows.length} Records</span>
+        ${title}
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:8.5pt;table-layout:fixed;">
+        <colgroup>
+          <col style="width:28px"/>
+          <col style="width:84px"/>
+          <col/>
+          <col style="width:90px"/>
+        </colgroup>
+        <thead>
+          <tr style="background:#f0ede8;">
+            <th style="padding:6px 8px;text-align:center;font-size:7pt;text-transform:uppercase;letter-spacing:0.08em;color:#777;border-top:1px solid #ccc;border-bottom:1px solid #ccc;">#</th>
+            <th style="padding:6px 8px;font-size:7pt;text-transform:uppercase;letter-spacing:0.08em;color:#777;border-top:1px solid #ccc;border-bottom:1px solid #ccc;">Date</th>
+            <th style="padding:6px 8px;font-size:7pt;text-transform:uppercase;letter-spacing:0.08em;color:#777;border-top:1px solid #ccc;border-bottom:1px solid #ccc;">${badgeClass === "income" ? "Service / Source" : "Paid To"}</th>
+            <th style="padding:6px 8px;text-align:right;font-size:7pt;text-transform:uppercase;letter-spacing:0.08em;color:#777;border-top:1px solid #ccc;border-bottom:1px solid #ccc;">Amount (₹)</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows(rows, keyFn, amtColor, repMap)}</tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" style="padding:7px 8px;font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#666;border-top:2px solid #1c1a17;">${totalLabel}</td>
+            <td style="padding:7px 8px;text-align:right;font-weight:700;font-size:10pt;font-family:Georgia,serif;color:${totalColor};border-top:2px solid #1c1a17;">₹${fmt(total)}</td>
+          </tr>
+        </tfoot>
+      </table>`;
+
+    const headerHTML = (subtitle) => `
+      <div style="border-bottom:2px solid #1c1a17;padding-bottom:8px;margin-bottom:12px;overflow:hidden;">
+        <div style="float:left;font-family:Georgia,serif;font-size:20pt;font-weight:900;color:#1c1a17;line-height:1.1;">Monthly Financial <em style="color:#0d9488;">Report</em></div>
+        <div style="float:right;text-align:right;font-size:8pt;color:#555;line-height:1.7;">
+          <div style="font-size:10pt;font-weight:700;color:#1c1a17;">${currentMonthLabel}${subtitle ? " — " + subtitle : ""}</div>
+          <div>Generated: ${printDate}</div>
+        </div>
+        <div style="clear:both;"></div>
+      </div>`;
+
+    const summaryHTML = `
+      <table style="width:100%;border-collapse:collapse;margin-bottom:14px;table-layout:fixed;">
+        <tbody><tr>
+          <td style="border:1.5px solid #d0c9be;padding:8px 10px;text-align:center;">
+            <span style="display:block;font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#9a9187;margin-bottom:4px;">Total Income</span>
+            <span style="display:block;font-family:Georgia,serif;font-size:14pt;font-weight:700;color:#16a34a;">₹${fmt(totalIncome)}</span>
+          </td>
+          <td style="border:1.5px solid #d0c9be;padding:8px 10px;text-align:center;">
+            <span style="display:block;font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#9a9187;margin-bottom:4px;">Total Expense</span>
+            <span style="display:block;font-family:Georgia,serif;font-size:14pt;font-weight:700;color:#dc2626;">₹${fmt(totalExpense)}</span>
+          </td>
+          <td style="border:1.5px solid #d0c9be;padding:8px 10px;text-align:center;">
+            <span style="display:block;font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#9a9187;margin-bottom:4px;">Balance</span>
+            <span style="display:block;font-family:Georgia,serif;font-size:14pt;font-weight:700;color:${balance >= 0 ? "#0d9488" : "#dc2626"};">₹${fmt(balance)}</span>
+          </td>
+          <td style="border:1.5px solid #d0c9be;padding:8px 10px;text-align:center;">
+            <span style="display:block;font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#9a9187;margin-bottom:4px;">Savings Rate</span>
+            <span style="display:block;font-family:Georgia,serif;font-size:14pt;font-weight:700;color:${savingsColor};">${clampedRate}%</span>
+          </td>
+        </tr></tbody>
+      </table>`;
+
+    const summaryBoxHTML = `
+      <div style="margin-top:20px;border:1.5px solid #ccc;padding:10px 14px;page-break-inside:avoid;">
+        <div style="font-family:Georgia,serif;font-size:10pt;font-weight:700;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #e0e0e0;">Monthly Summary</div>
+        <table style="width:100%;font-size:8.5pt;border-collapse:collapse;">
+          <tbody>
+            <tr><td style="padding:3px 0;color:#555;">Total Income</td><td style="text-align:right;font-weight:700;color:#16a34a;">₹${fmt(totalIncome)}</td></tr>
+            <tr><td style="padding:3px 0;color:#555;">Total Expense</td><td style="text-align:right;font-weight:700;color:#dc2626;">₹${fmt(totalExpense)}</td></tr>
+            <tr style="border-top:1.5px solid #1c1a17;">
+              <td style="padding:6px 0 3px;font-weight:700;">Balance</td>
+              <td style="text-align:right;font-weight:700;color:${balance >= 0 ? "#0d9488" : "#dc2626"};padding-top:6px;">₹${fmt(balance)}</td>
+            </tr>
+            <tr><td style="padding:3px 0;color:#555;">Savings Rate</td><td style="text-align:right;font-weight:700;color:${savingsColor};">${clampedRate}%</td></tr>
+          </tbody>
+        </table>
+        <div style="background:#e8e4df;height:7px;width:100%;margin-top:10px;border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${clampedRate}%;background:${savingsColor};border-radius:4px;"></div>
+        </div>
+      </div>`;
+
+    const footerHTML = `
+      <div style="margin-top:14px;padding-top:6px;border-top:1px solid #ddd;font-size:7pt;color:#aaa;overflow:hidden;">
+        <span style="float:left;">Monthly Report · ${currentMonthLabel}</span>
+        <span style="float:right;">Generated on ${printDate}</span>
+        <div style="clear:both;"></div>
+      </div>`;
+
+    const fullHTML = `<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8"/>
+<title>Monthly Report – ${currentMonthLabel}</title>
+<style>
+  @page { size: A4 portrait; margin: 14mm 12mm 14mm 12mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 9pt; color: #1c1a17; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  table { border-collapse: collapse; }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+  tr { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+  ${headerHTML("")}
+  ${summaryHTML}
+  ${incomes.length > 0 ? tableHTML("Income Transactions", incomes, r => r.service, "#16a34a", "#16a34a", "Total Income", totalIncome, incRepMap, "income") : ""}
+  ${expenses.length > 0 ? '<div style="page-break-before:always;break-before:page;"></div>' : ""}
+  ${expenses.length > 0 ? headerHTML("Expenses") : ""}
+  ${expenses.length > 0 ? tableHTML("Expense Transactions", expenses, r => r.paid_to, "#dc2626", "#dc2626", "Total Expense", totalExpense, expRepMap, "expense") : ""}
+  ${expenses.length > 0 ? summaryBoxHTML : ""}
+  ${footerHTML}
+</body></html>`;
+
+    const win = window.open("", "_blank", "width=900,height=700");
+    if (win) {
+      win.document.write(fullHTML);
+      win.document.close();
+      setTimeout(() => { win.focus(); win.print(); }, 600);
+    }
   };
+  const handleIncomeCsv = () => exportIncomeCSV(incomes, currentMonthLabel);
+  const handleExpenseCsv = () => exportExpenseCSV(expenses, currentMonthLabel);
+  const handleBothCsv = () => exportBothCSV(incomes, expenses, currentMonthLabel);
+
+  /* ── PRINT DATA ── */
+  const printDate = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+  const incRepMap = useMemo(() => countByKey(incomes, r => r.service), [incomes]);
+  const expRepMap = useMemo(() => countByKey(expenses, r => r.paid_to), [expenses]);
 
   return (
     <>
       <style>{CSS}</style>
+
+      {/* PRINT-ONLY VIEW */}
+      <div id="pdf-print-view">
+
+        {/* ── Header ── */}
+        <div className="pdf-report-header">
+          <div className="pdf-report-title">Monthly Financial <span>Report</span></div>
+          <div className="pdf-report-meta">
+            <div className="pdf-report-month">{currentMonthLabel}</div>
+            <div>Generated: {printDate}</div>
+          </div>
+          <div className="pdf-clearfix" />
+        </div>
+
+        {/* ── Summary — proper HTML table, no flex ── */}
+        <table className="pdf-summary-table">
+          <tbody>
+            <tr>
+              <td><span className="pdf-summary-label">Total Income</span><span className="pdf-summary-value green">&#8377;{fmt(totalIncome)}</span></td>
+              <td><span className="pdf-summary-label">Total Expense</span><span className="pdf-summary-value red">&#8377;{fmt(totalExpense)}</span></td>
+              <td><span className="pdf-summary-label">Balance</span><span className={`pdf-summary-value ${balance >= 0 ? "teal" : "red"}`}>&#8377;{fmt(balance)}</span></td>
+              <td><span className="pdf-summary-label">Savings Rate</span><span className={`pdf-summary-value ${savingsRate >= 30 ? "teal" : "red"}`}>{clampedRate}%</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        {/* ── Income Table ── */}
+        {incomes.length > 0 && (
+          <>
+            <div className="pdf-section-title">
+              <span className="pdf-section-badge income">{incomes.length} Records</span>
+              Income Transactions
+            </div>
+            <table className="pdf-table">
+              <thead>
+                <tr>
+                  <th className="center" style={{ width: "28px" }}>#</th>
+                  <th style={{ width: "82px" }}>Date</th>
+                  <th>Service / Source</th>
+                  <th className="right" style={{ width: "90px" }}>Amount (&#8377;)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {incomes.map((row, idx) => {
+                  const key = (row.service || "").toLowerCase().trim();
+                  const isRepeat = (incRepMap[key] || 1) >= 2;
+                  return (
+                    <tr key={row.id} className={isRepeat ? "pdf-repeat" : ""}>
+                      <td className="center" style={{ color: "#999", fontSize: "7.5pt" }}>{idx + 1}</td>
+                      <td className="mono">{row.date}</td>
+                      <td>
+                        {row.service}
+                        {isRepeat && <span className="pdf-repeat-tag">repeat</span>}
+                      </td>
+                      <td className="right" style={{ fontWeight: 700, color: "#16a34a" }}>
+                        {Number(row.amount).toLocaleString("en-IN")}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="pdf-total-row">
+                  <td colSpan={3} className="pdf-total-label">Total Income</td>
+                  <td className="pdf-total-income">&#8377;{fmt(totalIncome)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </>
+        )}
+
+        {/* ── Page break before Expense ── */}
+        {expenses.length > 0 && <div className="pdf-page-break" />}
+
+        {/* ── Expense Table ── */}
+        {expenses.length > 0 && (
+          <>
+            {/* Repeat header on page 2 */}
+            <div className="pdf-report-header">
+              <div className="pdf-report-title">Monthly Financial <span>Report</span></div>
+              <div className="pdf-report-meta">
+                <div className="pdf-report-month">{currentMonthLabel} &mdash; Expenses</div>
+                <div>Generated: {printDate}</div>
+              </div>
+              <div className="pdf-clearfix" />
+            </div>
+
+            <div className="pdf-section-title">
+              <span className="pdf-section-badge expense">{expenses.length} Records</span>
+              Expense Transactions
+            </div>
+            <table className="pdf-table">
+              <thead>
+                <tr>
+                  <th className="center" style={{ width: "28px" }}>#</th>
+                  <th style={{ width: "82px" }}>Date</th>
+                  <th>Paid To</th>
+                  <th className="right" style={{ width: "90px" }}>Amount (&#8377;)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {expenses.map((row, idx) => {
+                  const key = (row.paid_to || "").toLowerCase().trim();
+                  const isRepeat = (expRepMap[key] || 1) >= 2;
+                  return (
+                    <tr key={row.id} className={isRepeat ? "pdf-repeat" : ""}>
+                      <td className="center" style={{ color: "#999", fontSize: "7.5pt" }}>{idx + 1}</td>
+                      <td className="mono">{row.date}</td>
+                      <td>
+                        {row.paid_to}
+                        {isRepeat && <span className="pdf-repeat-tag">repeat</span>}
+                      </td>
+                      <td className="right" style={{ fontWeight: 700, color: "#dc2626" }}>
+                        {Number(row.amount).toLocaleString("en-IN")}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="pdf-total-row">
+                  <td colSpan={3} className="pdf-total-label">Total Expense</td>
+                  <td className="pdf-total-expense">&#8377;{fmt(totalExpense)}</td>
+                </tr>
+              </tfoot>
+            </table>
+
+            {/* ── Final Summary Box ── */}
+            <div className="pdf-summary-box">
+              <div className="pdf-summary-box-title">Monthly Summary</div>
+              <table>
+                <tbody>
+                  <tr>
+                    <td style={{ color: "#555" }}>Total Income</td>
+                    <td style={{ color: "#16a34a" }}>&#8377;{fmt(totalIncome)}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ color: "#555" }}>Total Expense</td>
+                    <td style={{ color: "#dc2626" }}>&#8377;{fmt(totalExpense)}</td>
+                  </tr>
+                  <tr style={{ borderTop: "1.5px solid #1c1a17" }}>
+                    <td style={{ fontWeight: 700, paddingTop: 6 }}>Balance</td>
+                    <td style={{ color: balance >= 0 ? "#0d9488" : "#dc2626", fontWeight: 700, paddingTop: 6 }}>
+                      &#8377;{fmt(balance)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ color: "#555" }}>Savings Rate</td>
+                    <td style={{ color: savingsRate >= 30 ? "#0d9488" : "#dc2626" }}>{clampedRate}%</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div className="pdf-savings-outer">
+                <div className="pdf-savings-inner" style={{
+                  width: `${clampedRate}%`,
+                  background: savingsRate >= 50 ? "#0d9488" : savingsRate >= 20 ? "#b45309" : "#dc2626"
+                }} />
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── Footer ── */}
+        <div className="pdf-footer">
+          <span className="pdf-footer-left">Monthly Report &middot; {currentMonthLabel}</span>
+          <span className="pdf-footer-right">Generated on {printDate}</span>
+          <div className="pdf-clearfix" />
+        </div>
+
+      </div>
+      {/* END PRINT VIEW */}
+
       <Navbar />
       <div className="mr-root">
 
@@ -539,9 +1388,14 @@ export default function MonthlyReport() {
             </div>
             <div className="mr-header-right">
               {hasData && !loading && (
-                <button className="export-btn no-print" onClick={handleExport}>
-                  ⬇&nbsp; Export PDF
-                </button>
+                <ExportDropdown
+                  onPdf={handleExportPdf}
+                  onIncomeCsv={handleIncomeCsv}
+                  onExpenseCsv={handleExpenseCsv}
+                  onBothCsv={handleBothCsv}
+                  hasIncome={incomes.length > 0}
+                  hasExpense={expenses.length > 0}
+                />
               )}
               <div className="mr-select-wrap">
                 <label className="mr-select-label">Select Month</label>
@@ -595,7 +1449,6 @@ export default function MonthlyReport() {
                   </div>
                 </>
               )}
-
 
               {/* ── TOP GAINERS ── */}
               {topGainers.length > 0 && (
@@ -679,8 +1532,6 @@ export default function MonthlyReport() {
                   </div>
                 </>
               )}
-
-              {/* ── HOME DIST ── */}
             </>
           )}
 
@@ -689,8 +1540,6 @@ export default function MonthlyReport() {
             <>
               <p className="section-title">Expense Breakdown</p>
               <div className="chart-grid">
-
-                {/* PIE */}
                 <div className="chart-card" style={{ marginBottom: 0 }}>
                   <p className="section-title" style={{ fontSize: 14, marginBottom: 12 }}>By Payee</p>
                   <ResponsiveContainer width="100%" height={220}>
@@ -712,8 +1561,6 @@ export default function MonthlyReport() {
                     ))}
                   </div>
                 </div>
-
-                {/* BAR */}
                 <div className="chart-card" style={{ marginBottom: 0 }}>
                   <p className="section-title" style={{ fontSize: 14, marginBottom: 12 }}>Amount Comparison</p>
                   <ResponsiveContainer width="100%" height={barData.length * 44 + 40}>
@@ -731,7 +1578,6 @@ export default function MonthlyReport() {
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-
               </div>
             </>
           )}
@@ -739,70 +1585,132 @@ export default function MonthlyReport() {
           {/* ── INCOME TABLE ── */}
           {incomes.length > 0 && !loading && (
             <div className="table-card">
-              <p className="section-title" style={{ color: "var(--green)" }}>Income Transactions</p>
-              {repeatIncomeNames > 0 && (
-                <div className="repeat-legend">
-                  <div className="repeat-legend-dot" />
-                  ⚡ {repeatIncomeNames} service name{repeatIncomeNames > 1 ? "s" : ""} appear multiple times this month — highlighted below
+              {/* Header row with title + CSV button */}
+              <div className="table-card-header">
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
+                  <span style={{
+                    fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700,
+                    color: "var(--green)", whiteSpace: "nowrap", cursor: "pointer"
+                  }} onClick={() => setIncomeCollapsed(v => !v)}>
+                    💚 Income Transactions
+                  </span>
+                  <span style={{ flex: 1, height: "1.5px", background: "var(--border)", borderRadius: 2, minWidth: 20, display: "block" }} />
                 </div>
-              )}
-              <table className="mr-table">
-                <thead><tr><th>Date</th><th>Service</th><th className="right">Amount</th></tr></thead>
-                <tbody>
-                  {incomes.map(row => {
-                    const key = (row.service || "").toLowerCase().trim();
-                    const count = incomeRepeatMap[key] || 1;
-                    const total = incomeSumMap[key] || 0;
-                    const isRepeat = count >= 2;
-                    return (
-                      <tr key={row.id} className={isRepeat ? "repeat-row" : ""}>
-                        <td><span className="date-chip">{row.date}</span></td>
-                        <td style={{ fontWeight: 500 }}>
-                          {row.service}
-                          {isRepeat && <RepeatBadge count={count} total={total} />}
-                        </td>
-                        <td className="right" style={{ fontWeight: 600, color: "var(--green)" }}>₹{row.amount}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              <div className="table-footer" style={{ color: "var(--green)" }}>Total Income: ₹{totalIncome}</div>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <button
+                    className="table-csv-btn income no-print"
+                    onClick={handleIncomeCsv}
+                    title={`Download income CSV for ${currentMonthLabel}`}
+                  >
+                    ⬇ CSV
+                  </button>
+                  <button
+                    className="collapse-btn no-print"
+                    onClick={() => setIncomeCollapsed(v => !v)}
+                    title={incomeCollapsed ? "Expand table" : "Collapse table"}
+                  >
+                    <span className={`collapse-arrow ${incomeCollapsed ? "" : "open"}`}>▲</span>
+                    {incomeCollapsed ? "Show" : "Hide"}
+                  </button>
+                </div>
+              </div>
+
+              <div className={`table-collapsible${incomeCollapsed ? " collapsed" : ""}`}>
+                {repeatIncomeNames > 0 && (
+                  <div className="repeat-legend">
+                    <div className="repeat-legend-dot" />
+                    ⚡ {repeatIncomeNames} service name{repeatIncomeNames > 1 ? "s" : ""} appear multiple times this month — highlighted below
+                  </div>
+                )}
+                <table className="mr-table">
+                  <thead><tr><th>Date</th><th>Service</th><th className="right">Amount</th></tr></thead>
+                  <tbody>
+                    {incomes.map(row => {
+                      const key = (row.service || "").toLowerCase().trim();
+                      const count = incomeRepeatMap[key] || 1;
+                      const total = incomeSumMap[key] || 0;
+                      const isRepeat = count >= 2;
+                      return (
+                        <tr key={row.id} className={isRepeat ? "repeat-row" : ""}>
+                          <td><span className="date-chip">{row.date}</span></td>
+                          <td style={{ fontWeight: 500 }}>
+                            {row.service}
+                            {isRepeat && <RepeatBadge count={count} total={total} />}
+                          </td>
+                          <td className="right" style={{ fontWeight: 600, color: "var(--green)" }}>₹{row.amount}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                <div className="table-footer" style={{ color: "var(--green)" }}>Total Income: ₹{totalIncome}</div>
+              </div>
             </div>
           )}
 
           {/* ── EXPENSE TABLE ── */}
           {expenses.length > 0 && !loading && (
             <div className="table-card">
-              <p className="section-title" style={{ color: "var(--red)" }}>Expense Transactions</p>
-              {repeatExpenseNames > 0 && (
-                <div className="repeat-legend">
-                  <div className="repeat-legend-dot" />
-                  ⚡ {repeatExpenseNames} payee name{repeatExpenseNames > 1 ? "s" : ""} appear multiple times this month — highlighted below
+              {/* Header row with title + CSV button */}
+              <div className="table-card-header">
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
+                  <span style={{
+                    fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700,
+                    color: "var(--red)", whiteSpace: "nowrap", cursor: "pointer"
+                  }} onClick={() => setExpenseCollapsed(v => !v)}>
+                    ❤️ Expense Transactions
+                  </span>
+                  <span style={{ flex: 1, height: "1.5px", background: "var(--border)", borderRadius: 2, minWidth: 20, display: "block" }} />
                 </div>
-              )}
-              <table className="mr-table">
-                <thead><tr><th>Date</th><th>Paid To</th><th className="right">Amount</th></tr></thead>
-                <tbody>
-                  {expenses.map(row => {
-                    const key = (row.paid_to || "").toLowerCase().trim();
-                    const count = expenseRepeatMap[key] || 1;
-                    const total = expenseSumMap[key] || 0;
-                    const isRepeat = count >= 2;
-                    return (
-                      <tr key={row.id} className={isRepeat ? "repeat-row" : ""}>
-                        <td><span className="date-chip">{row.date}</span></td>
-                        <td style={{ fontWeight: 500 }}>
-                          {row.paid_to}
-                          {isRepeat && <RepeatBadge count={count} total={total} />}
-                        </td>
-                        <td className="right" style={{ fontWeight: 600, color: "var(--red)" }}>₹{row.amount}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              <div className="table-footer" style={{ color: "var(--red)" }}>Total Expense: ₹{totalExpense}</div>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <button
+                    className="table-csv-btn expense no-print"
+                    onClick={handleExpenseCsv}
+                    title={`Download expense CSV for ${currentMonthLabel}`}
+                  >
+                    ⬇ CSV
+                  </button>
+                  <button
+                    className="collapse-btn no-print"
+                    onClick={() => setExpenseCollapsed(v => !v)}
+                    title={expenseCollapsed ? "Expand table" : "Collapse table"}
+                  >
+                    <span className={`collapse-arrow ${expenseCollapsed ? "" : "open"}`}>▲</span>
+                    {expenseCollapsed ? "Show" : "Hide"}
+                  </button>
+                </div>
+              </div>
+
+              <div className={`table-collapsible${expenseCollapsed ? " collapsed" : ""}`}>
+                {repeatExpenseNames > 0 && (
+                  <div className="repeat-legend">
+                    <div className="repeat-legend-dot" />
+                    ⚡ {repeatExpenseNames} payee name{repeatExpenseNames > 1 ? "s" : ""} appear multiple times this month — highlighted below
+                  </div>
+                )}
+                <table className="mr-table">
+                  <thead><tr><th>Date</th><th>Paid To</th><th className="right">Amount</th></tr></thead>
+                  <tbody>
+                    {expenses.map(row => {
+                      const key = (row.paid_to || "").toLowerCase().trim();
+                      const count = expenseRepeatMap[key] || 1;
+                      const total = expenseSumMap[key] || 0;
+                      const isRepeat = count >= 2;
+                      return (
+                        <tr key={row.id} className={isRepeat ? "repeat-row" : ""}>
+                          <td><span className="date-chip">{row.date}</span></td>
+                          <td style={{ fontWeight: 500 }}>
+                            {row.paid_to}
+                            {isRepeat && <RepeatBadge count={count} total={total} />}
+                          </td>
+                          <td className="right" style={{ fontWeight: 600, color: "var(--red)" }}>₹{row.amount}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                <div className="table-footer" style={{ color: "var(--red)" }}>Total Expense: ₹{totalExpense}</div>
+              </div>
             </div>
           )}
 
