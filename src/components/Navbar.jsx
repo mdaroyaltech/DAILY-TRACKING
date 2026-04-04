@@ -214,6 +214,7 @@ export default function Navbar() {
             <NavLink to="/monthly" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Monthly</NavLink>
             <NavLink to="/bulk" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Bulk Tracker</NavLink>
             <NavLink to="/reports" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Reports</NavLink>
+            <NavLink to="/import-expenses" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Import Expenses</NavLink>
 
             <div className="nav-divider" />
             <button className="theme-toggle" onClick={() => setDark(d => !d)} title="Toggle dark mode">
@@ -249,6 +250,7 @@ export default function Navbar() {
                 </>
               ),
             },
+            { to: "/import-expenses", label: "Import Expenses", icon: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></> },
           ].map(item => (
             <NavLink key={item.to} to={item.to} onClick={closeMenu} className={({ isActive }) => `mob-link${isActive ? " active" : ""}`}>
               <div className="mob-link-icon">
