@@ -222,28 +222,59 @@ const CSS = `
 /* ── CHART ── */
 .chart-card { background:var(--surface); border:1.5px solid var(--border); border-radius:12px; padding:24px; margin-bottom:32px; box-shadow:var(--shadow-sm); }
 
+/* ── COLLAPSE HEADER ── */
+.collapse-header {
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:12px; padding:14px 18px;
+  cursor:pointer; user-select:none;
+  transition:background .18s, border-radius .2s;
+  box-shadow:var(--shadow-sm);
+}
+.collapse-header.open { border-radius:12px 12px 0 0; border-bottom:none; }
+.collapse-header:hover { background:var(--surface2); }
+.ch-left { display:flex; align-items:center; gap:10px; }
+.ch-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+.ch-icon.income  { background:var(--green-bg); }
+.ch-icon.expense { background:var(--red-bg); }
+.ch-title { font-family:'Playfair Display',serif; font-size:16px; font-weight:700; color:var(--text); }
+.ch-count { font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-dim); margin-top:2px; }
+.ch-right { display:flex; align-items:center; gap:14px; }
+.ch-total { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; }
+.ch-total.green { color:var(--green); }
+.ch-total.red   { color:var(--red); }
+.ch-chevron { width:20px; height:20px; transition:transform .25s; color:var(--text-dim); flex-shrink:0; }
+.ch-chevron.open { transform:rotate(180deg); }
+
+/* ── COLLAPSE BODY ── */
+.collapse-body {
+  background:var(--surface); border:1.5px solid var(--border); border-top:none;
+  border-radius:0 0 12px 12px; overflow:hidden;
+  max-height:0; transition:max-height .35s ease;
+  box-shadow:var(--shadow-sm);
+}
+.collapse-body.open { max-height:3000px; }
+
 /* ── TABLES ── */
-.table-card { background:var(--surface); border:1.5px solid var(--border); border-radius:12px; padding:22px; margin-bottom:20px; box-shadow:var(--shadow-sm); overflow-x:auto; }
-.table-scroll-hint { display:none; font-size:10px; color:var(--text-dim); margin-bottom:8px; text-align:center; letter-spacing:.05em; }
-@media(max-width:580px){ .table-scroll-hint{display:block;} }
-.db-table { width:100%; border-collapse:collapse; font-size:13px; min-width:480px; }
-.db-table th { font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--text-dim); padding:9px 12px; text-align:left; background:var(--bg2); border-bottom:1.5px solid var(--border); white-space:nowrap; }
+.table-scroll-hint { display:none; font-size:10px; color:var(--text-dim); padding:8px 14px 0; text-align:center; letter-spacing:.05em; }
+@media(max-width:580px){ .table-scroll-hint { display:block; } }
+.table-inner { overflow-x:auto; padding:0 2px; }
+
+.db-table { width:100%; border-collapse:collapse; font-size:13px; min-width:420px; }
+.db-table th { font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--text-dim); padding:9px 14px; text-align:left; background:var(--bg2); border-bottom:1.5px solid var(--border); white-space:nowrap; }
 .db-table th:first-child { border-radius:7px 0 0 7px; }
 .db-table th:last-child  { border-radius:0 7px 7px 0; }
 .db-table th.right  { text-align:right; }
 .db-table th.center { text-align:center; }
-.db-table td { padding:12px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
+.db-table td { padding:11px 14px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
 .db-table td.right  { text-align:right; }
 .db-table td.center { text-align:center; }
 .db-table tr:last-child td { border-bottom:none; }
 .db-table tr:hover td { background:var(--surface2); }
-.row-pending td { background:#fffbeb !important; }
-.row-pending:hover td { background:#fef9d0 !important; }
 
 .badge { display:inline-flex; align-items:center; padding:3px 9px; border-radius:12px; font-size:10px; font-weight:600; letter-spacing:.05em; }
 .badge-income  { background:var(--green-bg); color:var(--green); }
 .badge-expense { background:var(--red-bg);   color:var(--red); }
-.badge-home    { background:var(--teal-light); color:var(--teal); }
 .badge-manual  { background:var(--purple-bg); color:var(--purple); }
 
 .edit-input { background:var(--bg2); border:1.5px solid var(--teal); border-radius:6px; padding:5px 8px; width:90px; text-align:right; color:var(--text); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; box-shadow:0 0 0 3px rgba(13,148,136,0.1); }
@@ -255,6 +286,10 @@ const CSS = `
 .del-btn:hover { color:var(--red); background:var(--red-bg); }
 
 .loading-text, .empty-text { text-align:center; color:var(--text-dim); padding:36px; font-size:13px; letter-spacing:.04em; }
+
+/* ── TABLE TOTALS ── */
+.table-totals-row td { background:var(--bg2) !important; border-top:2px solid var(--border2) !important; font-weight:700 !important; padding:11px 14px !important; }
+.totals-label { font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim); }
 
 /* ── COMPARE ARROWS ── */
 .stat-compare { display:flex; align-items:center; gap:4px; margin-top:6px; font-size:11px; font-weight:600; }
@@ -273,11 +308,10 @@ const CSS = `
 }
 .wa-copy-btn:hover { opacity:.88; transform:translateY(-1px); }
 .wa-copy-btn.copied { background:linear-gradient(135deg,#16a34a,#0d9488); }
-.wa-btn-row { display:flex; justify-content:flex-end; margin-bottom:12px; }
+.wa-btn-row { display:flex; justify-content:flex-end; padding:12px 14px 0; }
 
-/* ── TABLE TOTALS ── */
-.table-totals-row td { background:var(--bg2) !important; border-top:2px solid var(--border2) !important; font-weight:700 !important; padding:12px !important; }
-.totals-label { font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim); }
+/* ── SECTION WRAP ── */
+.section-wrap { margin-bottom:16px; }
 
 @media(max-width:640px){
   .dr-header { padding:16px 0 12px; margin-bottom:18px; }
@@ -286,7 +320,9 @@ const CSS = `
   .stat-value.sm { font-size:18px !important; }
   .stat-icon-bg { width:30px; height:30px; font-size:14px; margin-bottom:8px; }
   .chart-card { padding:16px; }
-  .table-card { padding:14px; }
+  .collapse-header { padding:12px 14px; }
+  .ch-title { font-size:14px; }
+  .ch-total { font-size:16px; }
 }
 `;
 
@@ -302,6 +338,10 @@ export default function DailyReport() {
   const [prevIncomeTotal, setPrevIncomeTotal] = useState(0);
   const [prevExpenseTotal, setPrevExpenseTotal] = useState(0);
   const [waCopied, setWaCopied] = useState(false);
+
+  /* ── COLLAPSE STATE ── */
+  const [incomeOpen, setIncomeOpen] = useState(true);
+  const [expenseOpen, setExpenseOpen] = useState(true);
 
   /* ── SERVICE OPTIONS ── */
   const [serviceOptions, setServiceOptions] = useState([]);
@@ -395,7 +435,6 @@ export default function DailyReport() {
   const fetchData = async () => {
     if (!date) return;
     setLoading(true);
-    // Fetch current day AND previous day for comparison
     const prevDate = new Date(date); prevDate.setDate(prevDate.getDate() - 1);
     const prevDateStr = prevDate.toISOString().split("T")[0];
     const [{ data: inc }, { data: exp }, { data: prevInc }, { data: prevExp }] = await Promise.all([
@@ -478,15 +517,10 @@ export default function DailyReport() {
       `💸 *Expense:* ₹${fmt(totalExpense)}`,
       `🧮 *Balance:* ₹${fmt(balance)}`,
     ];
-    if (incomes.length) { lines.push(``, `*Income:*`); incomes.forEach(i => lines.push(`  • ${i.service} — ₹${fmt(i.amount)}`)); }
+    if (incomes.length) { lines.push(``, `*Income:*`); incomes.forEach(i => lines.push(`  • ${i.service}  — ₹${fmt(i.amount)}`)); }
     if (expenses.length) { lines.push(``, `*Expenses:*`); expenses.forEach(e => lines.push(`  • ${e.paid_to} — ₹${fmt(e.amount)}`)); }
     navigator.clipboard.writeText(lines.join("\n")).then(() => { setWaCopied(true); setTimeout(() => setWaCopied(false), 2500); });
   };
-
-  const allRows = [
-    ...incomes.map(i => ({ ...i, t: "income" })),
-    ...expenses.map(e => ({ ...e, t: "expense" })),
-  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   const pieData = [
     { name: "Expense", value: totalExpense },
@@ -527,8 +561,8 @@ export default function DailyReport() {
 
           {date && (
             <>
-              {/* ── STAT CARDS (same as Dashboard) ── */}
-              <div className="stats-grid-3">
+              {/* ── STAT CARDS ── */}
+              <div className="stats-grid-3" style={{ marginBottom: 28 }}>
                 <StatCard label="Total Income" value={fmt(totalIncome)} valCls="green" accent="accent-green" icon="💰" iconBg="#dcfce7" compare={compareArrow(totalIncome, prevIncomeTotal)} />
                 <StatCard label="Total Expense" value={fmt(totalExpense)} valCls="red" accent="accent-red" icon="💸" iconBg="#fee2e2" compare={compareArrow(totalExpense, prevExpenseTotal)} />
                 <StatCard label="Balance" value={fmt(balance)} valCls={balance >= 0 ? "teal" : "red"} accent={balance >= 0 ? "accent-teal" : "accent-red"} icon="🧮" iconBg="#e0f2f0" compare={compareArrow(balance, prevIncomeTotal - prevExpenseTotal)} />
@@ -733,84 +767,239 @@ export default function DailyReport() {
                 </div>
               )}
 
-              {/* ── TRANSACTIONS TABLE ── */}
+              {/* ════════════════════════════════════════════
+                  ── INCOME TABLE (COLLAPSIBLE) ──
+              ════════════════════════════════════════════ */}
               <p className="section-title">Transactions</p>
-              <div className="wa-btn-row">
+
+              {/* WhatsApp button row */}
+              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
                 <button className={`wa-copy-btn${waCopied ? " copied" : ""}`} onClick={copyWhatsApp}>
                   {waCopied ? "✅ Copied!" : "📋 Copy for WhatsApp"}
                 </button>
               </div>
-              <div className="table-card">
-                <span className="table-scroll-hint">← scroll to see all columns →</span>
-                {loading ? <div className="loading-text">Loading…</div>
-                  : allRows.length === 0 ? (
-                    <div className="empty-text">No transactions for {date}</div>
-                  ) : (
-                    <table className="db-table">
-                      <thead>
-                        <tr>
-                          <th>Type</th><th>Description</th>
-                          <th className="center">Qty</th><th className="right">Amount</th>
-                          <th className="center">Del</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {allRows.map(row => (
-                          <tr key={`${row.t}-${row.id}`} className="">
-                            <td>
-                              <span className={`badge badge-${row.t === "income" ? "income" : "expense"}`}>
-                                {row.t === "income" ? "Income" : "Expense"}
-                              </span>
-                              {row.t === "income" && !row.qty && (
-                                <span className="badge badge-manual" style={{ marginLeft: 4 }}>Manual</span>
-                              )}
-                            </td>
-                            <td style={{ fontWeight: 500 }}>
-                              {row.service || row.paid_to}
-                              {row.t === "income" && row.rate_per_qty && (
-                                <span style={{ fontSize: 10, color: "var(--text-dim)", marginLeft: 6 }}>₹{row.rate_per_qty}/qty</span>
-                              )}
-                            </td>
-                            <td className="center" style={{ color: "var(--text-med)", fontWeight: 600 }}>
-                              {row.t === "income" && row.qty ? row.qty : "—"}
-                            </td>
-                            <td className="right">
-                              {editing === `${row.t}-${row.id}` ? (
-                                <input className="edit-input" type="number" defaultValue={row.amount} autoFocus
-                                  onBlur={e => updateAmount(row.t === "income" ? "income" : "expense", row.id, e.target.value)} />
-                              ) : (
-                                <span className="edit-trigger" onClick={() => setEditing(`${row.t}-${row.id}`)}>
-                                  <span style={{ fontWeight: 600 }}>₹{fmt(row.amount)}</span>
-                                  <svg className="edit-icon" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                    <path d="M15.232 5.232l3.536 3.536M4 20l4-1 10-10-3-3L5 16l-1 4z" />
-                                  </svg>
-                                </span>
-                              )}
-                            </td>
-                            <td className="center">
-                              <button className="del-btn" onClick={() => deleteRow(row.t === "income" ? "income" : "expense", row.id)}>
-                                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                  <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-                                </svg>
-                              </button>
-                            </td>
+
+              {/* Income section */}
+              <div className="section-wrap">
+                {/* Header */}
+                <div
+                  className={`collapse-header${incomeOpen ? " open" : ""}`}
+                  onClick={() => setIncomeOpen(p => !p)}
+                >
+                  <div className="ch-left">
+                    <div className="ch-icon income">💰</div>
+                    <div>
+                      <div className="ch-title">Income</div>
+                      <div className="ch-count">{incomes.length} {incomes.length === 1 ? "entry" : "entries"}</div>
+                    </div>
+                  </div>
+                  <div className="ch-right">
+                    <div className="ch-total green">₹{fmt(totalIncome)}</div>
+                    <svg className={`ch-chevron${incomeOpen ? " open" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Body */}
+                <div className={`collapse-body${incomeOpen ? " open" : ""}`}>
+                  <span className="table-scroll-hint">← scroll to see all columns →</span>
+                  <div className="table-inner">
+                    {loading ? (
+                      <div className="loading-text">Loading…</div>
+                    ) : incomes.length === 0 ? (
+                      <div className="empty-text">No income entries for {date}</div>
+                    ) : (
+                      <table className="db-table">
+                        <thead>
+                          <tr>
+                            <th>Service / Description</th>
+                            <th className="center">Qty</th>
+                            <th className="right">Rate</th>
+                            <th className="right">Amount</th>
+                            <th className="center">Del</th>
                           </tr>
-                        ))}
-                      </tbody>
-                      <tfoot>
-                        <tr className="table-totals-row">
-                          <td colSpan={3}><span className="totals-label">Day Total</span></td>
-                          <td className="right">
-                            <div style={{ color: "var(--green)", fontFamily: "Playfair Display,serif" }}>+₹{fmt(totalIncome)}</div>
-                            <div style={{ color: "var(--red)", fontFamily: "Playfair Display,serif" }}>−₹{fmt(totalExpense)}</div>
-                            <div style={{ color: balance >= 0 ? "var(--teal)" : "var(--red)", fontFamily: "Playfair Display,serif", fontSize: 15 }}>= ₹{fmt(balance)}</div>
-                          </td>
-                          <td />
-                        </tr>
-                      </tfoot>
-                    </table>
-                  )}
+                        </thead>
+                        <tbody>
+                          {incomes.map(row => (
+                            <tr key={row.id}>
+                              <td>
+                                <div style={{ fontWeight: 500 }}>{row.service}</div>
+                                {!row.qty && (
+                                  <span className="badge badge-manual" style={{ marginTop: 4, display: "inline-flex" }}>Manual</span>
+                                )}
+                                {row.rate_per_qty && (
+                                  <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 2 }}>₹{row.rate_per_qty}/qty</div>
+                                )}
+                              </td>
+                              <td className="center" style={{ fontWeight: 600, color: "var(--text-med)" }}>
+                                {row.qty || "—"}
+                              </td>
+                              <td className="right" style={{ color: "var(--text-med)" }}>
+                                {row.rate_per_qty ? `₹${row.rate_per_qty}` : "—"}
+                              </td>
+                              <td className="right">
+                                {editing === `income-${row.id}` ? (
+                                  <input
+                                    className="edit-input"
+                                    type="number"
+                                    defaultValue={row.amount}
+                                    autoFocus
+                                    onBlur={e => updateAmount("income", row.id, e.target.value)}
+                                  />
+                                ) : (
+                                  <span className="edit-trigger" onClick={() => setEditing(`income-${row.id}`)}>
+                                    <span style={{ fontWeight: 600 }}>₹{fmt(row.amount)}</span>
+                                    <svg className="edit-icon" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                      <path d="M15.232 5.232l3.536 3.536M4 20l4-1 10-10-3-3L5 16l-1 4z" />
+                                    </svg>
+                                  </span>
+                                )}
+                              </td>
+                              <td className="center">
+                                <button className="del-btn" onClick={() => deleteRow("income", row.id)}>
+                                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                                  </svg>
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr className="table-totals-row">
+                            <td colSpan={3}><span className="totals-label">Income Total</span></td>
+                            <td className="right">
+                              <span style={{ color: "var(--green)", fontFamily: "Playfair Display,serif", fontSize: 15 }}>
+                                +₹{fmt(totalIncome)}
+                              </span>
+                            </td>
+                            <td />
+                          </tr>
+                        </tfoot>
+                      </table>
+                    )}
+                  </div>
+                </div>
               </div>
+
+              {/* ════════════════════════════════════════════
+                  ── EXPENSE TABLE (COLLAPSIBLE) ──
+              ════════════════════════════════════════════ */}
+              <div className="section-wrap">
+                {/* Header */}
+                <div
+                  className={`collapse-header${expenseOpen ? " open" : ""}`}
+                  onClick={() => setExpenseOpen(p => !p)}
+                >
+                  <div className="ch-left">
+                    <div className="ch-icon expense">💸</div>
+                    <div>
+                      <div className="ch-title">Expenses</div>
+                      <div className="ch-count">{expenses.length} {expenses.length === 1 ? "entry" : "entries"}</div>
+                    </div>
+                  </div>
+                  <div className="ch-right">
+                    <div className="ch-total red">₹{fmt(totalExpense)}</div>
+                    <svg className={`ch-chevron${expenseOpen ? " open" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Body */}
+                <div className={`collapse-body${expenseOpen ? " open" : ""}`}>
+                  <span className="table-scroll-hint">← scroll to see all columns →</span>
+                  <div className="table-inner">
+                    {loading ? (
+                      <div className="loading-text">Loading…</div>
+                    ) : expenses.length === 0 ? (
+                      <div className="empty-text">No expense entries for {date}</div>
+                    ) : (
+                      <table className="db-table">
+                        <thead>
+                          <tr>
+                            <th>Paid To</th>
+                            <th className="right">Amount</th>
+                            <th className="center">Del</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {expenses.map(row => (
+                            <tr key={row.id}>
+                              <td style={{ fontWeight: 500 }}>{row.paid_to}</td>
+                              <td className="right">
+                                {editing === `expense-${row.id}` ? (
+                                  <input
+                                    className="edit-input"
+                                    type="number"
+                                    defaultValue={row.amount}
+                                    autoFocus
+                                    onBlur={e => updateAmount("expense", row.id, e.target.value)}
+                                  />
+                                ) : (
+                                  <span className="edit-trigger" onClick={() => setEditing(`expense-${row.id}`)}>
+                                    <span style={{ fontWeight: 600 }}>₹{fmt(row.amount)}</span>
+                                    <svg className="edit-icon" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                      <path d="M15.232 5.232l3.536 3.536M4 20l4-1 10-10-3-3L5 16l-1 4z" />
+                                    </svg>
+                                  </span>
+                                )}
+                              </td>
+                              <td className="center">
+                                <button className="del-btn" onClick={() => deleteRow("expense", row.id)}>
+                                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                                  </svg>
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr className="table-totals-row">
+                            <td><span className="totals-label">Expense Total</span></td>
+                            <td className="right">
+                              <span style={{ color: "var(--red)", fontFamily: "Playfair Display,serif", fontSize: 15 }}>
+                                −₹{fmt(totalExpense)}
+                              </span>
+                            </td>
+                            <td />
+                          </tr>
+                        </tfoot>
+                      </table>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* ── BALANCE SUMMARY ── */}
+              {hasData && (
+                <div style={{
+                  background: "var(--surface)", border: "1.5px solid var(--border)",
+                  borderRadius: 12, padding: "14px 18px", marginBottom: 20,
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  flexWrap: "wrap", gap: 10, boxShadow: "var(--shadow-sm)"
+                }}>
+                  <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--text-dim)", marginBottom: 3 }}>Income</div>
+                      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, color: "var(--green)" }}>+₹{fmt(totalIncome)}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--text-dim)", marginBottom: 3 }}>Expense</div>
+                      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, color: "var(--red)" }}>−₹{fmt(totalExpense)}</div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--text-dim)", marginBottom: 3 }}>Balance</div>
+                    <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, color: balance >= 0 ? "var(--teal)" : "var(--red)" }}>
+                      ₹{fmt(balance)}
+                    </div>
+                  </div>
+                </div>
+              )}
+
             </>
           )}
         </div>
@@ -819,7 +1008,7 @@ export default function DailyReport() {
   );
 }
 
-/* ── STAT CARD — same as Dashboard ── */
+/* ── STAT CARD ── */
 const StatCard = ({ label, value, valCls, accent, icon, iconBg, small, compare }) => (
   <div className="stat-card">
     <div className={`stat-card-accent ${accent}`} />
