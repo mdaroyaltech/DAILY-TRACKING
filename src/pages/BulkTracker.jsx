@@ -77,8 +77,38 @@ const CSS = `
 .add-expense-toggle:hover{opacity:.75;}
 .toggle-arrow{font-size:10px;transition:transform .2s;}.toggle-arrow.open{transform:rotate(180deg);}
 .add-exp-form{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:flex-end;margin-top:10px;}
-.edit-income-form{padding:12px 18px;border-top:1.5px solid var(--border);background:var(--surface2);display:grid;grid-template-columns:1fr 120px auto auto;gap:8px;align-items:flex-end;}
-@media(max-width:420px){.edit-income-form{grid-template-columns:1fr 1fr;}}
+
+/* ═══════════════════════════════════════════════════
+   EDIT INCOME FORM — FIXED
+   Name field gets 2fr (double width), amount gets 1fr,
+   Save and Cancel buttons are auto-sized.
+   On mobile (≤540px) stacks to 2 columns then 1 column.
+═══════════════════════════════════════════════════ */
+.edit-income-form {
+  padding: 14px 18px;
+  border-top: 1.5px solid var(--border);
+  background: var(--surface2);
+  display: grid;
+  /* Name gets 2× the space of Amount — looks right on all screen sizes */
+  grid-template-columns: 2fr 1fr auto auto;
+  gap: 10px;
+  align-items: flex-end;
+}
+/* Tablet / large phone: stack Name full-width, Amount + buttons on row 2 */
+@media(max-width:640px) {
+  .edit-income-form {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  /* Name spans both columns on small screens */
+  .edit-income-form .edit-name-field { grid-column: 1 / -1; }
+}
+/* Very small phone: fully single column */
+@media(max-width:380px) {
+  .edit-income-form { grid-template-columns: 1fr; }
+  .edit-income-form .edit-name-field { grid-column: auto; }
+}
+
 .exp-history-btn{display:flex;align-items:center;gap:6px;padding:8px 18px 12px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;transition:color .15s;width:100%;}
 .exp-history-btn:hover{color:var(--text);}
 .exp-history-btn .badge-count{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:1px 8px;font-size:10px;color:var(--text-dim);margin-left:2px;}
@@ -178,11 +208,9 @@ const CSS = `
   border:1.5px solid var(--border); background:var(--bg2); color:var(--text-dim);
   cursor:pointer; transition:all .15s; font-family:'DM Sans',sans-serif;
 }
-.filter-pill:hover { border-color:var(--teal); color:var(--teal); background:var(--teal-light); }
+.filter-pill:hover { border-color:var(--teal); color:var(--teal); }
 .filter-pill.active { background:var(--teal); border-color:var(--teal); color:#fff; }
-.filter-pill.all.active    { background:var(--teal); border-color:var(--teal); }
 .filter-pill.pending.active{ background:var(--amber); border-color:var(--amber); }
-.filter-pill.partial.active{ background:var(--blue); border-color:var(--blue); }
 .filter-pill.settled.active{ background:var(--green); border-color:var(--green); }
 .sort-select {
   background:var(--bg2); border:1.5px solid var(--border); border-radius:8px;
@@ -221,21 +249,19 @@ export default function BulkTracker() {
   const [incForm, setIncForm] = useState({ person_name: "", amount: "", date: today, note: "" });
   const [openExpForm, setOpenExpForm] = useState(null);
   const [expForm, setExpForm] = useState({ description: "", amount: "" });
-  const [editingIncome, setEditingIncome] = useState(null); // { id, person_name, amount }
+  const [editingIncome, setEditingIncome] = useState(null);
 
   const [selectedIds, setSelectedIds] = useState([]);
   const [sharedDesc, setSharedDesc] = useState("");
   const [sharedDate, setSharedDate] = useState(today);
-  const [manualAmounts, setManualAmounts] = useState({}); // { [bulk_income_id]: string }
+  const [manualAmounts, setManualAmounts] = useState({});
 
   const [popupPersonId, setPopupPersonId] = useState(null);
 
-  /* ── SEARCH / FILTER / SORT ── */
   const [searchQ, setSearchQ] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
-  /* ── SETTLE ── */
   const [settledMap, setSettledMap] = useState(() => {
     try { return JSON.parse(localStorage.getItem("bt_settled") || "{}"); } catch { return {}; }
   });
@@ -251,12 +277,10 @@ export default function BulkTracker() {
     localStorage.setItem("bt_settled", JSON.stringify(updated));
   };
 
-  /* AUTH */
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { if (!data.session) navigate("/"); });
   }, [navigate]);
 
-  /* FETCH */
   const fetchData = async () => {
     setLoading(true);
     const [{ data: incData }, { data: expData }, { data: sharedData }] = await Promise.all([
@@ -271,7 +295,6 @@ export default function BulkTracker() {
   };
   useEffect(() => { fetchData(); }, []);
 
-  /* HELPERS */
   const getIndivExp = (id) => bulkExpenses.filter(e => e.bulk_income_id === id).reduce((s, e) => s + e.amount, 0);
   const getSharedCut = (id) => {
     let t = 0;
@@ -289,7 +312,6 @@ export default function BulkTracker() {
     return cols[Math.abs(h) % cols.length];
   };
 
-  /* ADD INCOME */
   const addBulkIncome = async () => {
     if (!incForm.person_name.trim() || !incForm.amount) return;
     await supabase.from("bulk_income").insert([{
@@ -301,7 +323,6 @@ export default function BulkTracker() {
     fetchData();
   };
 
-  /* EDIT INCOME */
   const saveEditIncome = async () => {
     if (!editingIncome?.person_name.trim() || !editingIncome?.amount) return;
     await supabase.from("bulk_income").update({
@@ -312,7 +333,6 @@ export default function BulkTracker() {
     fetchData();
   };
 
-  /* DELETE INCOME */
   const deleteBulkIncome = async (id) => {
     if (!window.confirm("All entries for this person will be deleted. Confirm?")) return;
     await supabase.from("bulk_expense").delete().eq("bulk_income_id", id);
@@ -328,7 +348,6 @@ export default function BulkTracker() {
     fetchData();
   };
 
-  /* ADD INDIVIDUAL EXPENSE */
   const addExpense = async (bulkIncomeId) => {
     if (!expForm.description.trim() || !expForm.amount) return;
     await supabase.from("bulk_expense").insert([{
@@ -349,7 +368,6 @@ export default function BulkTracker() {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
-  /* SHARED */
   const selectedPersons = bulkIncomes.filter(inc => selectedIds.includes(inc.id));
   const combinedBalance = selectedPersons.reduce((s, inc) => s + Math.max(0, getRemaining(inc)), 0);
   const enteredTotal = selectedPersons.reduce((s, inc) => s + (Math.round(Number(manualAmounts[inc.id])) || 0), 0);
@@ -358,11 +376,9 @@ export default function BulkTracker() {
     if (!sharedDesc.trim()) { alert("Enter expense description"); return; }
     if (selectedPersons.length < 2) { alert("Select at least 2 persons"); return; }
     if (enteredTotal === 0) { alert("Enter amount for at least one person"); return; }
-
     const splits = selectedPersons
       .map(inc => ({ person: inc, amount: Math.round(Number(manualAmounts[inc.id])) || 0 }))
       .filter(s => s.amount > 0);
-
     const { data: seData, error: seErr } = await supabase
       .from("shared_expense")
       .insert([{
@@ -371,7 +387,6 @@ export default function BulkTracker() {
       }])
       .select().single();
     if (seErr) { alert(seErr.message); return; }
-
     await supabase.from("shared_expense_split").insert(
       splits.map(s => ({
         shared_expense_id: seData.id, bulk_income_id: s.person.id,
@@ -389,13 +404,11 @@ export default function BulkTracker() {
     fetchData();
   };
 
-  /* TOTALS */
   const totalBulkIn = bulkIncomes.reduce((s, i) => s + i.amount, 0);
   const totalIndivExp = bulkExpenses.reduce((s, e) => s + e.amount, 0);
   const totalSharedExp = sharedExpenses.reduce((s, e) => s + e.total_amount, 0);
   const totalRemaining = totalBulkIn - totalIndivExp - totalSharedExp;
 
-  /* ── FILTERED + SORTED PERSONS ── */
   const filteredPersons = bulkIncomes
     .filter(inc => {
       const indivSpent = getIndivExp(inc.id);
@@ -414,11 +427,9 @@ export default function BulkTracker() {
       if (sortBy === "balance-low") return Math.max(0, getRemaining(a)) - Math.max(0, getRemaining(b));
       if (sortBy === "name") return a.person_name.localeCompare(b.person_name);
       if (sortBy === "amount-high") return b.amount - a.amount;
-      // newest first (default)
       return new Date(b.created_at || b.date) - new Date(a.created_at || a.date);
     });
 
-  /* POPUP */
   const popupPerson = popupPersonId ? bulkIncomes.find(i => i.id === popupPersonId) : null;
   const popupIndivExp = popupPersonId ? bulkExpenses.filter(e => e.bulk_income_id === popupPersonId) : [];
   const popupShared = popupPersonId
@@ -512,7 +523,7 @@ export default function BulkTracker() {
             💡 Check the checkbox on a card to include in shared expense · Click ✏️ to edit · Click "Expense History" to view all entries
           </p>
 
-          {/* ── FILTER BAR ── */}
+          {/* FILTER BAR */}
           {!loading && bulkIncomes.length > 0 && (
             <div className="filter-bar">
               <input
@@ -610,23 +621,39 @@ export default function BulkTracker() {
                       </button>
                     </div>
 
-                    {/* INLINE EDIT */}
+                    {/* ═══════════════════════════════════════
+                        INLINE EDIT FORM — FIXED NAME WIDTH
+                    ═══════════════════════════════════════ */}
                     {isEditing && (
                       <div className="edit-income-form">
-                        <div className="field-wrap">
+                        {/* Name — gets 2fr on desktop, full width on mobile via .edit-name-field */}
+                        <div className="field-wrap edit-name-field">
                           <label className="field-label">Name</label>
-                          <input className="bt-input" value={editingIncome.person_name}
-                            onChange={e => setEditingIncome({ ...editingIncome, person_name: e.target.value })} />
+                          <input
+                            className="bt-input"
+                            value={editingIncome.person_name}
+                            autoFocus
+                            onChange={e => setEditingIncome({ ...editingIncome, person_name: e.target.value })}
+                            onKeyDown={e => { if (e.key === "Enter") saveEditIncome(); if (e.key === "Escape") setEditingIncome(null); }}
+                          />
                         </div>
+                        {/* Amount — gets 1fr */}
                         <div className="field-wrap">
                           <label className="field-label">Amount (₹)</label>
-                          <input className="bt-input" type="number" value={editingIncome.amount}
-                            onChange={e => setEditingIncome({ ...editingIncome, amount: e.target.value })} />
+                          <input
+                            className="bt-input"
+                            type="number"
+                            value={editingIncome.amount}
+                            onChange={e => setEditingIncome({ ...editingIncome, amount: e.target.value })}
+                            onKeyDown={e => { if (e.key === "Enter") saveEditIncome(); if (e.key === "Escape") setEditingIncome(null); }}
+                          />
                         </div>
+                        {/* Save */}
                         <div className="field-wrap">
                           <label className="field-label" style={{ opacity: 0 }}>-</label>
                           <button className="btn btn-teal btn-sm" onClick={saveEditIncome}>Save</button>
                         </div>
+                        {/* Cancel */}
                         <div className="field-wrap">
                           <label className="field-label" style={{ opacity: 0 }}>-</label>
                           <button className="btn btn-ghost btn-sm" onClick={() => setEditingIncome(null)}>Cancel</button>
@@ -733,8 +760,6 @@ export default function BulkTracker() {
             </div>
 
             <div className="shared-body">
-
-              {/* Chips */}
               <div className="selected-chips">
                 {selectedPersons.length === 0 ? (
                   <span className="no-selection-hint">No person selected — check the ✅ checkbox on cards above</span>
@@ -751,7 +776,6 @@ export default function BulkTracker() {
 
               {selectedPersons.length >= 2 && (
                 <>
-                  {/* Description + Save */}
                   <div className="shared-desc-row">
                     <div className="field-wrap">
                       <label className="field-label">Expense Description</label>
@@ -777,7 +801,6 @@ export default function BulkTracker() {
                     </div>
                   </div>
 
-                  {/* Manual amounts per person */}
                   <div className="manual-split-box">
                     <div className="manual-split-header">
                       <div>
@@ -793,7 +816,6 @@ export default function BulkTracker() {
                         </div>
                       )}
                     </div>
-
                     <div className="manual-split-rows">
                       {selectedPersons.map(inc => (
                         <div className="manual-split-row" key={inc.id}>
@@ -812,7 +834,6 @@ export default function BulkTracker() {
                         </div>
                       ))}
                     </div>
-
                     {enteredTotal > 0 && (
                       <div className="split-running">
                         <span>Total shared expense</span>
@@ -823,7 +844,6 @@ export default function BulkTracker() {
                 </>
               )}
 
-              {/* History */}
               <div className="shared-history-title">📋 Shared Expense History</div>
               {sharedExpenses.length === 0 ? (
                 <div className="no-shared-history">No shared expenses recorded yet</div>
@@ -852,7 +872,6 @@ export default function BulkTracker() {
                   </div>
                 </div>
               ))}
-
             </div>
           </div>
 
