@@ -51,10 +51,72 @@ const CSS = `
 .sum-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;}
 .sum-value{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;}
 .sum-value.green{color:var(--green);}.sum-value.red{color:var(--red);}.sum-value.teal{color:var(--teal);}
-.persons-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;margin-bottom:40px;}
+.persons-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;margin-bottom:28px;}
+
+/* ─── ACTIVE CARD ─── */
 .person-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);transition:box-shadow .2s,transform .2s;}
 .person-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);}
 .person-card.selected-card{border-color:var(--purple);box-shadow:0 0 0 3px rgba(124,58,237,.15),var(--shadow);}
+
+/* ─── SETTLED CARD ─── */
+.person-card.settled-card{
+  background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%);
+  border:1.5px solid rgba(22,163,74,.25);
+  opacity:.85;
+  box-shadow:none;
+  transform:none!important;
+}
+.person-card.settled-card:hover{box-shadow:0 2px 8px rgba(22,163,74,.12);transform:none;}
+
+/* ─── SETTLED COLLAPSED STRIP ─── */
+.settled-collapsed{
+  display:flex;align-items:center;padding:14px 18px;gap:12px;flex-wrap:wrap;
+  cursor:pointer;transition:background .15s;
+}
+.settled-collapsed:hover{background:rgba(22,163,74,.06);}
+.settled-lock-icon{font-size:16px;flex-shrink:0;}
+.settled-person-info{flex:1;min-width:0;}
+.settled-person-name{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--text-med);}
+.settled-person-meta{font-size:11px;color:var(--text-faint);margin-top:2px;}
+.settled-amounts-mini{display:flex;gap:14px;align-items:center;}
+.settled-amt{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--green);}
+.settled-expand-hint{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--green);display:flex;align-items:center;gap:4px;flex-shrink:0;padding:5px 12px;border-radius:20px;background:var(--green-bg);border:1px solid rgba(22,163,74,.2);}
+.settled-expand-arrow{font-size:9px;transition:transform .2s;}
+.settled-expand-arrow.open{transform:rotate(180deg);}
+
+/* ─── SETTLED EXPANDED (read-only) ─── */
+.settled-expanded-body{border-top:1.5px solid rgba(22,163,74,.2);background:rgba(240,253,244,.6);}
+.settled-readonly-banner{
+  display:flex;align-items:center;gap:8px;padding:10px 18px;
+  background:rgba(22,163,74,.08);border-bottom:1px solid rgba(22,163,74,.15);
+  font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--green);
+}
+.settled-unsettle-btn{
+  margin-left:auto;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase;background:var(--red-bg);color:var(--red);
+  border:1px solid rgba(220,38,38,.2);cursor:pointer;font-family:'DM Sans',sans-serif;
+  transition:all .15s;
+}
+.settled-unsettle-btn:hover{background:var(--red);color:#fff;}
+.readonly-amounts{display:grid;grid-template-columns:repeat(3,1fr);padding:12px 18px;gap:8px;border-bottom:1.5px solid rgba(22,163,74,.15);}
+.amt-block{text-align:center;}
+.amt-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:4px;}
+.amt-value{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;}
+.amt-value.green{color:var(--green);}.amt-value.red{color:var(--red);}.amt-value.teal{color:var(--teal);}.amt-value.zero{color:var(--text-faint);}
+.shared-cut-note{font-size:9px;color:var(--purple);font-family:'DM Sans',sans-serif;font-weight:600;margin-top:2px;}
+.readonly-progress{padding:10px 18px 12px;}
+.progress-label-row{display:flex;justify-content:space-between;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:5px;}
+.progress-track{height:5px;background:rgba(22,163,74,.15);border-radius:99px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:99px;transition:width .6s ease;}
+.readonly-history-btn{
+  display:flex;align-items:center;gap:6px;padding:10px 18px 12px;
+  font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--green);cursor:pointer;background:none;border:none;
+  font-family:'DM Sans',sans-serif;transition:color .15s;width:100%;
+}
+.readonly-history-btn:hover{color:var(--teal);}
+.readonly-badge-count{background:var(--green-bg);border:1px solid rgba(22,163,74,.2);border-radius:20px;padding:1px 8px;font-size:10px;color:var(--green);margin-left:2px;}
+
 .person-card-header{padding:16px 18px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:10px;}
 .person-avatar{width:38px;height:38px;border-radius:50%;color:#fff;font-family:'Playfair Display',serif;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .person-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--text);flex:1;line-height:1.2;}
@@ -63,52 +125,16 @@ const CSS = `
 .select-checkbox.checked{background:var(--purple);border-color:var(--purple);}
 .select-checkbox svg{display:none;}.select-checkbox.checked svg{display:block;}
 .person-amounts{display:grid;grid-template-columns:repeat(3,1fr);padding:12px 18px;gap:8px;border-bottom:1.5px solid var(--border);background:var(--surface2);}
-.amt-block{text-align:center;}
-.amt-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:4px;}
-.amt-value{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;}
-.amt-value.green{color:var(--green);}.amt-value.red{color:var(--red);}.amt-value.teal{color:var(--teal);}.amt-value.zero{color:var(--text-faint);}
-.shared-cut-note{font-size:9px;color:var(--purple);font-family:'DM Sans',sans-serif;font-weight:600;margin-top:2px;}
 .progress-bar-wrap{padding:10px 18px 0;}
-.progress-label-row{display:flex;justify-content:space-between;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:5px;}
-.progress-track{height:5px;background:var(--bg2);border-radius:99px;overflow:hidden;border:1px solid var(--border);}
-.progress-fill{height:100%;border-radius:99px;transition:width .6s ease;}
-.add-expense-section{padding:10px 18px 12px;}
+.progress-track-active{height:5px;background:var(--bg2);border-radius:99px;overflow:hidden;border:1px solid var(--border);}
+.add-expense-section{padding:10px 18px;border-bottom:1.5px solid var(--border);}
 .add-expense-toggle{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);cursor:pointer;padding:6px 0;user-select:none;transition:opacity .15s;}
 .add-expense-toggle:hover{opacity:.75;}
 .toggle-arrow{font-size:10px;transition:transform .2s;}.toggle-arrow.open{transform:rotate(180deg);}
 .add-exp-form{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:flex-end;margin-top:10px;}
-
-/* ═══════════════════════════════════════════════════
-   EDIT INCOME FORM — FIXED
-   Name field gets 2fr (double width), amount gets 1fr,
-   Save and Cancel buttons are auto-sized.
-   On mobile (≤540px) stacks to 2 columns then 1 column.
-═══════════════════════════════════════════════════ */
-.edit-income-form {
-  padding: 14px 18px;
-  border-top: 1.5px solid var(--border);
-  background: var(--surface2);
-  display: grid;
-  /* Name gets 2× the space of Amount — looks right on all screen sizes */
-  grid-template-columns: 2fr 1fr auto auto;
-  gap: 10px;
-  align-items: flex-end;
-}
-/* Tablet / large phone: stack Name full-width, Amount + buttons on row 2 */
-@media(max-width:640px) {
-  .edit-income-form {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  /* Name spans both columns on small screens */
-  .edit-income-form .edit-name-field { grid-column: 1 / -1; }
-}
-/* Very small phone: fully single column */
-@media(max-width:380px) {
-  .edit-income-form { grid-template-columns: 1fr; }
-  .edit-income-form .edit-name-field { grid-column: auto; }
-}
-
+.edit-income-form{padding:14px 18px;border-top:1.5px solid var(--border);background:var(--surface2);display:grid;grid-template-columns:2fr 1fr auto auto;gap:10px;align-items:flex-end;}
+@media(max-width:640px){.edit-income-form{grid-template-columns:1fr 1fr;gap:8px;} .edit-income-form .edit-name-field{grid-column:1/-1;}}
+@media(max-width:380px){.edit-income-form{grid-template-columns:1fr;} .edit-income-form .edit-name-field{grid-column:auto;}}
 .exp-history-btn{display:flex;align-items:center;gap:6px;padding:8px 18px 12px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;transition:color .15s;width:100%;}
 .exp-history-btn:hover{color:var(--text);}
 .exp-history-btn .badge-count{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:1px 8px;font-size:10px;color:var(--text-dim);margin-left:2px;}
@@ -116,6 +142,21 @@ const CSS = `
 .del-btn:hover{color:var(--red);background:var(--red-bg);}
 .edit-btn{background:none;border:none;cursor:pointer;padding:5px;border-radius:6px;color:var(--text-faint);transition:all .15s;display:inline-flex;flex-shrink:0;}
 .edit-btn:hover{color:var(--amber);background:var(--amber-bg);}
+
+/* SETTLED SECTION TOGGLE */
+.settled-section-toggle{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;
+  background:var(--green-bg);border:1.5px solid rgba(22,163,74,.25);
+  border-radius:12px;margin-bottom:16px;cursor:pointer;
+  font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--green);transition:all .15s;user-select:none;
+}
+.settled-section-toggle:hover{background:rgba(22,163,74,.15);}
+.settled-section-count{background:var(--green);color:#fff;border-radius:20px;padding:2px 10px;font-size:11px;margin-left:4px;}
+.settled-section-arrow{font-size:10px;margin-left:auto;transition:transform .2s;}
+.settled-section-arrow.open{transform:rotate(180deg);}
+
+/* POPUP */
 .popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .15s ease;}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .popup-box{background:var(--surface);border-radius:16px;width:100%;max-width:520px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.2);animation:slideUp .2s ease;}
@@ -125,6 +166,7 @@ const CSS = `
 .popup-subtitle{font-size:12px;color:var(--text-dim);margin-top:2px;}
 .popup-close{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:16px;transition:all .15s;flex-shrink:0;}
 .popup-close:hover{background:var(--red-bg);border-color:var(--red);color:var(--red);}
+.popup-readonly-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;background:var(--green-bg);border:1px solid rgba(22,163,74,.2);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--green);margin-top:4px;}
 .popup-body{overflow-y:auto;flex:1;}
 .popup-empty{text-align:center;padding:40px 24px;color:var(--text-faint);font-size:13px;font-style:italic;}
 .popup-section-label{padding:8px 24px 4px;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);background:var(--bg2);border-bottom:1px solid var(--border);}
@@ -140,6 +182,8 @@ const CSS = `
 .popup-shared-row{display:flex;align-items:center;padding:12px 24px;gap:12px;border-bottom:1px solid var(--border);background:#faf5ff;}
 .popup-shared-icon{width:32px;height:32px;border-radius:8px;background:var(--purple-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;}
 .popup-shared-amt{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--purple);white-space:nowrap;}
+
+/* SHARED SECTION */
 .shared-section{background:var(--surface);border:2px solid var(--purple);border-radius:16px;overflow:hidden;margin-bottom:40px;box-shadow:0 4px 20px rgba(124,58,237,.1);}
 .shared-section-header{background:linear-gradient(135deg,#7c3aed 0%,#6d28d9 100%);padding:22px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
 .shared-header-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#fff;}
@@ -188,51 +232,24 @@ const CSS = `
 .loading-text{text-align:center;color:var(--text-dim);padding:48px;font-size:14px;}
 .no-shared-history{text-align:center;padding:28px;font-size:13px;color:var(--text-faint);font-style:italic;}
 
-/* ── SEARCH / FILTER / SORT BAR ── */
-.filter-bar {
-  background:var(--surface); border:1.5px solid var(--border); border-radius:12px;
-  padding:14px 18px; margin-bottom:20px;
-  display:flex; flex-wrap:wrap; align-items:center; gap:10px;
-  box-shadow:var(--shadow-sm);
-}
-.filter-search {
-  flex:1; min-width:180px; background:var(--bg2); border:1.5px solid var(--border);
-  border-radius:8px; padding:9px 13px; font-size:14px; font-family:'DM Sans',sans-serif;
-  color:var(--text); outline:none; transition:border-color .2s,box-shadow .2s;
-}
-.filter-search::placeholder { color:var(--text-faint); }
-.filter-search:focus { border-color:var(--teal); box-shadow:0 0 0 3px rgba(13,148,136,.1); background:var(--surface); }
-.filter-pills { display:flex; gap:6px; flex-wrap:wrap; }
-.filter-pill {
-  padding:6px 14px; border-radius:20px; font-size:11px; font-weight:600;
-  border:1.5px solid var(--border); background:var(--bg2); color:var(--text-dim);
-  cursor:pointer; transition:all .15s; font-family:'DM Sans',sans-serif;
-}
-.filter-pill:hover { border-color:var(--teal); color:var(--teal); }
-.filter-pill.active { background:var(--teal); border-color:var(--teal); color:#fff; }
-.filter-pill.pending.active{ background:var(--amber); border-color:var(--amber); }
-.filter-pill.settled.active{ background:var(--green); border-color:var(--green); }
-.sort-select {
-  background:var(--bg2); border:1.5px solid var(--border); border-radius:8px;
-  padding:8px 12px; font-size:12px; font-family:'DM Sans',sans-serif;
-  color:var(--text-med); outline:none; cursor:pointer;
-  transition:border-color .2s; appearance:none;
-}
-.sort-select:focus { border-color:var(--teal); }
-.filter-count { font-size:12px; color:var(--text-dim); margin-left:auto; white-space:nowrap; }
+/* FILTER BAR */
+.filter-bar{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;box-shadow:var(--shadow-sm);}
+.filter-search{flex:1;min-width:180px;background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;padding:9px 13px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;}
+.filter-search::placeholder{color:var(--text-faint);}
+.filter-search:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.1);background:var(--surface);}
+.filter-pills{display:flex;gap:6px;flex-wrap:wrap;}
+.filter-pill{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;border:1.5px solid var(--border);background:var(--bg2);color:var(--text-dim);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.filter-pill:hover{border-color:var(--teal);color:var(--teal);}
+.filter-pill.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+.filter-pill.pending.active{background:var(--amber);border-color:var(--amber);}
+.filter-pill.settled.active{background:var(--green);border-color:var(--green);}
+.sort-select{background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--text-med);outline:none;cursor:pointer;transition:border-color .2s;appearance:none;}
+.sort-select:focus{border-color:var(--teal);}
+.filter-count{font-size:12px;color:var(--text-dim);margin-left:auto;white-space:nowrap;}
 
-/* ── SETTLE BUTTON ── */
-.settle-btn {
-  display:flex; align-items:center; gap:6px;
-  padding:8px 18px; border-radius:8px; font-size:11px; font-weight:600;
-  letter-spacing:.06em; text-transform:uppercase;
-  background:var(--green-bg); color:var(--green); border:1.5px solid rgba(22,163,74,0.3);
-  cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; white-space:nowrap;
-}
-.settle-btn:hover { background:var(--green); color:#fff; border-color:var(--green); transform:translateY(-1px); }
-.settle-btn.settled-state { background:var(--surface2); color:var(--text-faint); border-color:var(--border); cursor:default; }
-.settle-btn.settled-state:hover { transform:none; }
-.settled-at { font-size:10px; color:var(--text-faint); margin-top:2px; font-style:italic; }
+/* SETTLE BUTTON */
+.settle-btn{display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--green-bg);color:var(--green);border:1.5px solid rgba(22,163,74,0.3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap;}
+.settle-btn:hover{background:var(--green);color:#fff;border-color:var(--green);transform:translateY(-1px);}
 `;
 
 const fmt = (n) => Math.round(n).toLocaleString("en-IN");
@@ -257,24 +274,45 @@ export default function BulkTracker() {
   const [manualAmounts, setManualAmounts] = useState({});
 
   const [popupPersonId, setPopupPersonId] = useState(null);
+  const [popupIsReadonly, setPopupIsReadonly] = useState(false);
 
   const [searchQ, setSearchQ] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
+  // Settled state — persisted to localStorage
   const [settledMap, setSettledMap] = useState(() => {
     try { return JSON.parse(localStorage.getItem("bt_settled") || "{}"); } catch { return {}; }
   });
+
+  // Which settled cards are expanded
+  const [settledExpanded, setSettledExpanded] = useState({});
+  // Show/hide the whole settled section
+  const [showSettledSection, setShowSettledSection] = useState(false);
+
   const markSettled = (id) => {
-    if (!window.confirm("Mark this person as fully settled?")) return;
-    const updated = { ...settledMap, [id]: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) };
+    if (!window.confirm("Mark this person as fully settled? Their card will become read-only.")) return;
+    const updated = {
+      ...settledMap,
+      [id]: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+    };
     setSettledMap(updated);
     localStorage.setItem("bt_settled", JSON.stringify(updated));
+    // Deselect if selected
+    setSelectedIds(prev => prev.filter(i => i !== id));
   };
+
   const unsettle = (id) => {
-    const updated = { ...settledMap }; delete updated[id];
+    if (!window.confirm("Remove settled status? This person will become active again.")) return;
+    const updated = { ...settledMap };
+    delete updated[id];
     setSettledMap(updated);
     localStorage.setItem("bt_settled", JSON.stringify(updated));
+    setSettledExpanded(prev => { const n = { ...prev }; delete n[id]; return n; });
+  };
+
+  const toggleSettledExpand = (id) => {
+    setSettledExpanded(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   useEffect(() => {
@@ -364,8 +402,14 @@ export default function BulkTracker() {
   };
 
   const toggleSelect = (id) => {
+    if (settledMap[id]) return; // settled persons can't be selected
     setManualAmounts({});
     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const openPopup = (personId, readonly = false) => {
+    setPopupPersonId(personId);
+    setPopupIsReadonly(readonly);
   };
 
   const selectedPersons = bulkIncomes.filter(inc => selectedIds.includes(inc.id));
@@ -409,27 +453,34 @@ export default function BulkTracker() {
   const totalSharedExp = sharedExpenses.reduce((s, e) => s + e.total_amount, 0);
   const totalRemaining = totalBulkIn - totalIndivExp - totalSharedExp;
 
-  const filteredPersons = bulkIncomes
-    .filter(inc => {
-      const indivSpent = getIndivExp(inc.id);
-      const sharedCut = getSharedCut(inc.id);
-      const totalSpent = indivSpent + sharedCut;
-      const status = getStatus(inc.amount, totalSpent);
-      const manualSettled = settledMap[inc.id] ? "settled" : null;
-      const effectiveStatus = manualSettled || status;
-      const matchesSearch = inc.person_name.toLowerCase().includes(searchQ.toLowerCase()) ||
-        (inc.note || "").toLowerCase().includes(searchQ.toLowerCase());
-      const matchesFilter = filterStatus === "all" || effectiveStatus === filterStatus;
-      return matchesSearch && matchesFilter;
-    })
-    .sort((a, b) => {
-      if (sortBy === "balance-high") return Math.max(0, getRemaining(b)) - Math.max(0, getRemaining(a));
-      if (sortBy === "balance-low") return Math.max(0, getRemaining(a)) - Math.max(0, getRemaining(b));
-      if (sortBy === "name") return a.person_name.localeCompare(b.person_name);
-      if (sortBy === "amount-high") return b.amount - a.amount;
-      return new Date(b.created_at || b.date) - new Date(a.created_at || a.date);
-    });
+  // Separate active vs settled persons
+  const activePersons = bulkIncomes.filter(inc => !settledMap[inc.id]);
+  const settledPersons = bulkIncomes.filter(inc => !!settledMap[inc.id]);
 
+  const applyFiltersAndSort = (list) =>
+    list
+      .filter(inc => {
+        const indivSpent = getIndivExp(inc.id);
+        const sharedCut = getSharedCut(inc.id);
+        const totalSpent = indivSpent + sharedCut;
+        const autoStatus = getStatus(inc.amount, totalSpent);
+        const matchesSearch = inc.person_name.toLowerCase().includes(searchQ.toLowerCase()) ||
+          (inc.note || "").toLowerCase().includes(searchQ.toLowerCase());
+        const matchesFilter = filterStatus === "all" || filterStatus === "settled" || autoStatus === filterStatus;
+        return matchesSearch && matchesFilter;
+      })
+      .sort((a, b) => {
+        if (sortBy === "balance-high") return Math.max(0, getRemaining(b)) - Math.max(0, getRemaining(a));
+        if (sortBy === "balance-low") return Math.max(0, getRemaining(a)) - Math.max(0, getRemaining(b));
+        if (sortBy === "name") return a.person_name.localeCompare(b.person_name);
+        if (sortBy === "amount-high") return b.amount - a.amount;
+        return new Date(b.created_at || b.date) - new Date(a.created_at || a.date);
+      });
+
+  const filteredActive = applyFiltersAndSort(activePersons);
+  const filteredSettled = applyFiltersAndSort(settledPersons);
+
+  // Popup data
   const popupPerson = popupPersonId ? bulkIncomes.find(i => i.id === popupPersonId) : null;
   const popupIndivExp = popupPersonId ? bulkExpenses.filter(e => e.bulk_income_id === popupPersonId) : [];
   const popupShared = popupPersonId
@@ -440,6 +491,247 @@ export default function BulkTracker() {
     if (!se) return 0;
     const sp = (se.shared_expense_split || []).find(s => s.bulk_income_id === popupPersonId);
     return sp ? sp.split_amount : 0;
+  };
+
+  // Render a single ACTIVE person card
+  const renderActiveCard = (inc) => {
+    const indivSpent = getIndivExp(inc.id);
+    const sharedCut = getSharedCut(inc.id);
+    const totalSpent = indivSpent + sharedCut;
+    const remaining = inc.amount - totalSpent;
+    const pct = Math.min(100, inc.amount > 0 ? Math.round((totalSpent / inc.amount) * 100) : 0);
+    const autoStatus = getStatus(inc.amount, totalSpent);
+    const isOpen = openExpForm === inc.id;
+    const isSelected = selectedIds.includes(inc.id);
+    const isEditing = editingIncome?.id === inc.id;
+    const fillColor = pct >= 100 ? "var(--red)" : pct >= 60 ? "var(--amber)" : "var(--green)";
+    const expCount = bulkExpenses.filter(e => e.bulk_income_id === inc.id).length
+      + sharedExpenses.filter(se => (se.shared_expense_split || []).some(s => s.bulk_income_id === inc.id)).length;
+
+    return (
+      <div className={`person-card${isSelected ? " selected-card" : ""}`} key={inc.id}>
+        {/* HEADER */}
+        <div className="person-card-header">
+          <div className={`select-checkbox${isSelected ? " checked" : ""}`}
+            onClick={() => toggleSelect(inc.id)} title="Select for shared expense">
+            <svg width="12" height="12" fill="none" stroke="#fff" strokeWidth="3" viewBox="0 0 24 24">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <div className="person-avatar" style={{ background: avatarColor(inc.person_name) }}>
+            {inc.person_name.charAt(0).toUpperCase()}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="person-name">{inc.person_name}</div>
+            <div className="person-date">{inc.date}{inc.note ? ` · ${inc.note}` : ""}</div>
+          </div>
+          <span className={`badge badge-${autoStatus}`}>
+            {autoStatus === "settled" ? "Settled" : autoStatus === "partial" ? "Partial" : "Pending"}
+          </span>
+          <button className="edit-btn" title="Edit income"
+            onClick={() => setEditingIncome(isEditing ? null : { id: inc.id, person_name: inc.person_name, amount: String(inc.amount) })}>
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+          </button>
+          <button className="del-btn" onClick={() => deleteBulkIncome(inc.id)}>
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+            </svg>
+          </button>
+        </div>
+
+        {/* INLINE EDIT FORM */}
+        {isEditing && (
+          <div className="edit-income-form">
+            <div className="field-wrap edit-name-field">
+              <label className="field-label">Name</label>
+              <input className="bt-input" value={editingIncome.person_name} autoFocus
+                onChange={e => setEditingIncome({ ...editingIncome, person_name: e.target.value })}
+                onKeyDown={e => { if (e.key === "Enter") saveEditIncome(); if (e.key === "Escape") setEditingIncome(null); }} />
+            </div>
+            <div className="field-wrap">
+              <label className="field-label">Amount (₹)</label>
+              <input className="bt-input" type="number" value={editingIncome.amount}
+                onChange={e => setEditingIncome({ ...editingIncome, amount: e.target.value })}
+                onKeyDown={e => { if (e.key === "Enter") saveEditIncome(); if (e.key === "Escape") setEditingIncome(null); }} />
+            </div>
+            <div className="field-wrap">
+              <label className="field-label" style={{ opacity: 0 }}>-</label>
+              <button className="btn btn-teal btn-sm" onClick={saveEditIncome}>Save</button>
+            </div>
+            <div className="field-wrap">
+              <label className="field-label" style={{ opacity: 0 }}>-</label>
+              <button className="btn btn-ghost btn-sm" onClick={() => setEditingIncome(null)}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {/* AMOUNTS */}
+        <div className="person-amounts">
+          <div className="amt-block">
+            <div className="amt-label">Received</div>
+            <div className="amt-value green">₹{fmt(inc.amount)}</div>
+          </div>
+          <div className="amt-block">
+            <div className="amt-label">Spent</div>
+            <div className={`amt-value ${totalSpent > 0 ? "red" : "zero"}`}>
+              ₹{fmt(totalSpent)}
+              {sharedCut > 0 && <div className="shared-cut-note">↳ ₹{fmt(sharedCut)} shared</div>}
+            </div>
+          </div>
+          <div className="amt-block">
+            <div className="amt-label">Remaining</div>
+            <div className={`amt-value ${remaining > 0 ? "teal" : remaining < 0 ? "red" : "zero"}`}>
+              ₹{fmt(remaining)}
+            </div>
+          </div>
+        </div>
+
+        {/* PROGRESS */}
+        <div className="progress-bar-wrap">
+          <div className="progress-label-row"><span>Used</span><span>{pct}%</span></div>
+          <div className="progress-track-active">
+            <div className="progress-fill" style={{ width: `${pct}%`, background: fillColor }} />
+          </div>
+        </div>
+
+        {/* MARK SETTLED BUTTON */}
+        <div style={{ padding: "10px 18px 0" }}>
+          <button className="settle-btn" onClick={() => markSettled(inc.id)}>
+            ✓ Mark as Settled
+          </button>
+        </div>
+
+        {/* ADD INDIVIDUAL EXPENSE */}
+        <div className="add-expense-section" style={{ marginTop: 10 }}>
+          <div className="add-expense-toggle"
+            onClick={() => { setOpenExpForm(isOpen ? null : inc.id); setExpForm({ description: "", amount: "" }); }}>
+            <span>➕ Individual Expense</span>
+            <span className={`toggle-arrow${isOpen ? " open" : ""}`}>▼</span>
+          </div>
+          {isOpen && (
+            <div className="add-exp-form">
+              <div className="field-wrap">
+                <label className="field-label">Description</label>
+                <input className="bt-input" placeholder="e.g. Transport" autoFocus
+                  value={expForm.description}
+                  onChange={e => setExpForm({ ...expForm, description: e.target.value })} />
+              </div>
+              <div className="field-wrap">
+                <label className="field-label">Amount (₹)</label>
+                <input className="bt-input" type="number" placeholder="0" style={{ width: 110 }}
+                  value={expForm.amount}
+                  onChange={e => setExpForm({ ...expForm, amount: e.target.value })} />
+              </div>
+              <div className="field-wrap">
+                <label className="field-label" style={{ opacity: 0 }}>-</label>
+                <button className="btn btn-red btn-sm" onClick={() => addExpense(inc.id)}>Save</button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* HISTORY BUTTON */}
+        <button className="exp-history-btn" onClick={() => openPopup(inc.id, false)}>
+          📋 Expense History
+          <span className="badge-count">{expCount}</span>
+          <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--teal)" }}>View →</span>
+        </button>
+      </div>
+    );
+  };
+
+  // Render a single SETTLED person card (collapsed strip + expandable read-only view)
+  const renderSettledCard = (inc) => {
+    const indivSpent = getIndivExp(inc.id);
+    const sharedCut = getSharedCut(inc.id);
+    const totalSpent = indivSpent + sharedCut;
+    const remaining = inc.amount - totalSpent;
+    const pct = Math.min(100, inc.amount > 0 ? Math.round((totalSpent / inc.amount) * 100) : 0);
+    const isExpanded = !!settledExpanded[inc.id];
+    const expCount = bulkExpenses.filter(e => e.bulk_income_id === inc.id).length
+      + sharedExpenses.filter(se => (se.shared_expense_split || []).some(s => s.bulk_income_id === inc.id)).length;
+
+    return (
+      <div className="person-card settled-card" key={inc.id}>
+        {/* COLLAPSED STRIP */}
+        <div className="settled-collapsed" onClick={() => toggleSettledExpand(inc.id)}>
+          <div className="settled-lock-icon">🔒</div>
+          <div className="person-avatar" style={{ background: avatarColor(inc.person_name), width: 32, height: 32, fontSize: 13 }}>
+            {inc.person_name.charAt(0).toUpperCase()}
+          </div>
+          <div className="settled-person-info">
+            <div className="settled-person-name">{inc.person_name}</div>
+            <div className="settled-person-meta">
+              Settled {settledMap[inc.id]} · ₹{fmt(inc.amount)} received
+            </div>
+          </div>
+          <div className="settled-amounts-mini">
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 10, color: "var(--text-faint)", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em" }}>Remaining</div>
+              <div className={`settled-amt ${remaining < 0 ? "red" : ""}`} style={{ color: remaining < 0 ? "var(--red)" : "var(--green)" }}>
+                ₹{fmt(remaining)}
+              </div>
+            </div>
+          </div>
+          <div className="settled-expand-hint">
+            {isExpanded ? "Collapse" : "View"}
+            <span className={`settled-expand-arrow${isExpanded ? " open" : ""}`}>▼</span>
+          </div>
+        </div>
+
+        {/* EXPANDED READ-ONLY BODY */}
+        {isExpanded && (
+          <div className="settled-expanded-body">
+            {/* READ-ONLY BANNER */}
+            <div className="settled-readonly-banner">
+              🔒 Read-only — settled on {settledMap[inc.id]}
+              <button className="settled-unsettle-btn" onClick={(e) => { e.stopPropagation(); unsettle(inc.id); }}>
+                ↩ Unsettle
+              </button>
+            </div>
+
+            {/* AMOUNTS — READ ONLY */}
+            <div className="readonly-amounts">
+              <div className="amt-block">
+                <div className="amt-label">Received</div>
+                <div className="amt-value green">₹{fmt(inc.amount)}</div>
+              </div>
+              <div className="amt-block">
+                <div className="amt-label">Spent</div>
+                <div className={`amt-value ${totalSpent > 0 ? "red" : "zero"}`}>
+                  ₹{fmt(totalSpent)}
+                  {sharedCut > 0 && <div className="shared-cut-note">↳ ₹{fmt(sharedCut)} shared</div>}
+                </div>
+              </div>
+              <div className="amt-block">
+                <div className="amt-label">Remaining</div>
+                <div className={`amt-value ${remaining > 0 ? "teal" : remaining < 0 ? "red" : "zero"}`}>
+                  ₹{fmt(remaining)}
+                </div>
+              </div>
+            </div>
+
+            {/* PROGRESS — READ ONLY */}
+            <div className="readonly-progress">
+              <div className="progress-label-row"><span>Used</span><span>{pct}%</span></div>
+              <div className="progress-track">
+                <div className="progress-fill" style={{ width: `${pct}%`, background: "var(--green)" }} />
+              </div>
+            </div>
+
+            {/* VIEW HISTORY — READ ONLY */}
+            <button className="readonly-history-btn" onClick={() => openPopup(inc.id, true)}>
+              📋 View Expense History
+              <span className="readonly-badge-count">{expCount}</span>
+              <span style={{ marginLeft: "auto", fontSize: 11 }}>View →</span>
+            </button>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -507,9 +799,9 @@ export default function BulkTracker() {
             </div>
           </div>
 
-          {/* PERSON CARDS */}
+          {/* ─── ACTIVE PERSONS ─── */}
           <p className="section-title">
-            Person-wise Breakdown
+            Active Persons
             {selectedIds.length > 0 && (
               <span style={{
                 fontSize: 12, fontFamily: "DM Sans", fontWeight: 600, color: "var(--purple)",
@@ -520,20 +812,16 @@ export default function BulkTracker() {
             )}
           </p>
           <p style={{ fontSize: 12, color: "var(--text-dim)", marginBottom: 18, marginTop: -12 }}>
-            💡 Check the checkbox on a card to include in shared expense · Click ✏️ to edit · Click "Expense History" to view all entries
+            💡 Check the checkbox to include in shared expense · ✏️ to edit · "Mark as Settled" to lock the card
           </p>
 
           {/* FILTER BAR */}
           {!loading && bulkIncomes.length > 0 && (
             <div className="filter-bar">
-              <input
-                className="filter-search"
-                placeholder="🔍 Search by name or note…"
-                value={searchQ}
-                onChange={e => setSearchQ(e.target.value)}
-              />
+              <input className="filter-search" placeholder="🔍 Search by name or note…"
+                value={searchQ} onChange={e => setSearchQ(e.target.value)} />
               <div className="filter-pills">
-                {["all", "pending", "partial", "settled"].map(s => (
+                {["all", "pending", "partial"].map(s => (
                   <button key={s}
                     className={`filter-pill ${s}${filterStatus === s ? " active" : ""}`}
                     onClick={() => setFilterStatus(s)}>
@@ -548,209 +836,53 @@ export default function BulkTracker() {
                 <option value="amount-high">↓ Amount high→low</option>
                 <option value="name">A→Z Name</option>
               </select>
-              <span className="filter-count">{filteredPersons.length} of {bulkIncomes.length}</span>
+              <span className="filter-count">{filteredActive.length} active</span>
             </div>
           )}
 
           {loading ? (
             <div className="loading-text">Loading…</div>
-          ) : bulkIncomes.length === 0 ? (
+          ) : activePersons.length === 0 && settledPersons.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">💼</div>
               <div className="empty-title">No bulk income added yet</div>
               <div className="empty-sub">Enter a person name and amount in the form above to get started</div>
             </div>
-          ) : filteredPersons.length === 0 ? (
+          ) : filteredActive.length === 0 && activePersons.length > 0 ? (
             <div className="empty-state">
               <div className="empty-icon">🔍</div>
-              <div className="empty-title">No results found</div>
-              <div className="empty-sub">Try a different search term or filter</div>
+              <div className="empty-title">No active results</div>
+              <div className="empty-sub">Try a different search or filter</div>
             </div>
           ) : (
             <div className="persons-grid">
-              {filteredPersons.map(inc => {
-                const indivSpent = getIndivExp(inc.id);
-                const sharedCut = getSharedCut(inc.id);
-                const totalSpent = indivSpent + sharedCut;
-                const remaining = inc.amount - totalSpent;
-                const pct = Math.min(100, inc.amount > 0 ? Math.round((totalSpent / inc.amount) * 100) : 0);
-                const autoStatus = getStatus(inc.amount, totalSpent);
-                const isManuallySettled = !!settledMap[inc.id];
-                const status = isManuallySettled ? "settled" : autoStatus;
-                const isOpen = openExpForm === inc.id;
-                const isSelected = selectedIds.includes(inc.id);
-                const isEditing = editingIncome?.id === inc.id;
-                const fillColor = pct >= 100 ? "var(--red)" : pct >= 60 ? "var(--amber)" : "var(--green)";
-                const expCount = bulkExpenses.filter(e => e.bulk_income_id === inc.id).length
-                  + sharedExpenses.filter(se => (se.shared_expense_split || []).some(s => s.bulk_income_id === inc.id)).length;
-
-                return (
-                  <div className={`person-card${isSelected ? " selected-card" : ""}`} key={inc.id}>
-
-                    {/* HEADER */}
-                    <div className="person-card-header">
-                      <div className={`select-checkbox${isSelected ? " checked" : ""}`}
-                        onClick={() => toggleSelect(inc.id)} title="Select for shared expense">
-                        <svg width="12" height="12" fill="none" stroke="#fff" strokeWidth="3" viewBox="0 0 24 24">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      </div>
-                      <div className="person-avatar" style={{ background: avatarColor(inc.person_name) }}>
-                        {inc.person_name.charAt(0).toUpperCase()}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className="person-name">{inc.person_name}</div>
-                        <div className="person-date">{inc.date}{inc.note ? ` · ${inc.note}` : ""}
-                          {isManuallySettled && <span className="settled-at"> · ✅ Settled {settledMap[inc.id]}</span>}
-                        </div>
-                      </div>
-                      <span className={`badge badge-${status}`}>
-                        {status === "settled" ? "Settled" : status === "partial" ? "Partial" : "Pending"}
-                      </span>
-                      <button className="edit-btn" title="Edit income"
-                        onClick={() => setEditingIncome(isEditing ? null : { id: inc.id, person_name: inc.person_name, amount: String(inc.amount) })}>
-                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
-                      </button>
-                      <button className="del-btn" onClick={() => deleteBulkIncome(inc.id)}>
-                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-                        </svg>
-                      </button>
-                    </div>
-
-                    {/* ═══════════════════════════════════════
-                        INLINE EDIT FORM — FIXED NAME WIDTH
-                    ═══════════════════════════════════════ */}
-                    {isEditing && (
-                      <div className="edit-income-form">
-                        {/* Name — gets 2fr on desktop, full width on mobile via .edit-name-field */}
-                        <div className="field-wrap edit-name-field">
-                          <label className="field-label">Name</label>
-                          <input
-                            className="bt-input"
-                            value={editingIncome.person_name}
-                            autoFocus
-                            onChange={e => setEditingIncome({ ...editingIncome, person_name: e.target.value })}
-                            onKeyDown={e => { if (e.key === "Enter") saveEditIncome(); if (e.key === "Escape") setEditingIncome(null); }}
-                          />
-                        </div>
-                        {/* Amount — gets 1fr */}
-                        <div className="field-wrap">
-                          <label className="field-label">Amount (₹)</label>
-                          <input
-                            className="bt-input"
-                            type="number"
-                            value={editingIncome.amount}
-                            onChange={e => setEditingIncome({ ...editingIncome, amount: e.target.value })}
-                            onKeyDown={e => { if (e.key === "Enter") saveEditIncome(); if (e.key === "Escape") setEditingIncome(null); }}
-                          />
-                        </div>
-                        {/* Save */}
-                        <div className="field-wrap">
-                          <label className="field-label" style={{ opacity: 0 }}>-</label>
-                          <button className="btn btn-teal btn-sm" onClick={saveEditIncome}>Save</button>
-                        </div>
-                        {/* Cancel */}
-                        <div className="field-wrap">
-                          <label className="field-label" style={{ opacity: 0 }}>-</label>
-                          <button className="btn btn-ghost btn-sm" onClick={() => setEditingIncome(null)}>Cancel</button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* AMOUNTS */}
-                    <div className="person-amounts">
-                      <div className="amt-block">
-                        <div className="amt-label">Received</div>
-                        <div className="amt-value green">₹{fmt(inc.amount)}</div>
-                      </div>
-                      <div className="amt-block">
-                        <div className="amt-label">Spent</div>
-                        <div className={`amt-value ${totalSpent > 0 ? "red" : "zero"}`}>
-                          ₹{fmt(totalSpent)}
-                          {sharedCut > 0 && <div className="shared-cut-note">↳ ₹{fmt(sharedCut)} shared</div>}
-                        </div>
-                      </div>
-                      <div className="amt-block">
-                        <div className="amt-label">Remaining</div>
-                        <div className={`amt-value ${remaining > 0 ? "teal" : remaining < 0 ? "red" : "zero"}`}>
-                          ₹{fmt(remaining)}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* PROGRESS */}
-                    <div className="progress-bar-wrap">
-                      <div className="progress-label-row"><span>Used</span><span>{pct}%</span></div>
-                      <div className="progress-track">
-                        <div className="progress-fill" style={{ width: `${pct}%`, background: fillColor }} />
-                      </div>
-                    </div>
-
-                    {/* SETTLE BUTTON */}
-                    <div style={{ padding: "8px 18px 0" }}>
-                      {isManuallySettled ? (
-                        <button className="settle-btn settled-state" onClick={() => unsettle(inc.id)}>
-                          ✅ Settled — tap to undo
-                        </button>
-                      ) : (
-                        <button className="settle-btn" onClick={() => markSettled(inc.id)}>
-                          ✓ Mark as Settled
-                        </button>
-                      )}
-                    </div>
-
-                    {/* ADD INDIVIDUAL EXPENSE */}
-                    <div className="add-expense-section">
-                      <div className="add-expense-toggle"
-                        onClick={() => { setOpenExpForm(isOpen ? null : inc.id); setExpForm({ description: "", amount: "" }); }}>
-                        <span>➕ Individual Expense</span>
-                        <span className={`toggle-arrow${isOpen ? " open" : ""}`}>▼</span>
-                      </div>
-                      {isOpen && (
-                        <div className="add-exp-form">
-                          <div className="field-wrap">
-                            <label className="field-label">Description</label>
-                            <input className="bt-input" placeholder="e.g. Transport" autoFocus
-                              value={expForm.description}
-                              onChange={e => setExpForm({ ...expForm, description: e.target.value })} />
-                          </div>
-                          <div className="field-wrap">
-                            <label className="field-label">Amount (₹)</label>
-                            <input className="bt-input" type="number" placeholder="0" style={{ width: 110 }}
-                              value={expForm.amount}
-                              onChange={e => setExpForm({ ...expForm, amount: e.target.value })} />
-                          </div>
-                          <div className="field-wrap">
-                            <label className="field-label" style={{ opacity: 0 }}>-</label>
-                            <button className="btn btn-red btn-sm" onClick={() => addExpense(inc.id)}>Save</button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* HISTORY BUTTON */}
-                    <button className="exp-history-btn" onClick={() => setPopupPersonId(inc.id)}>
-                      📋 Expense History
-                      <span className="badge-count">{expCount}</span>
-                      <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--teal)" }}>View →</span>
-                    </button>
-
-                  </div>
-                );
-              })}
+              {filteredActive.map(inc => renderActiveCard(inc))}
             </div>
           )}
 
-          {/* SHARED EXPENSE */}
+          {/* ─── SETTLED PERSONS SECTION ─── */}
+          {settledPersons.length > 0 && (
+            <>
+              <div className="settled-section-toggle" onClick={() => setShowSettledSection(v => !v)}>
+                🔒 Settled Persons
+                <span className="settled-section-count">{settledPersons.length}</span>
+                <span className="settled-section-arrow" style={{ transform: showSettledSection ? "rotate(180deg)" : "none" }}>▼</span>
+              </div>
+
+              {showSettledSection && (
+                <div className="persons-grid">
+                  {filteredSettled.map(inc => renderSettledCard(inc))}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ─── SHARED EXPENSE ─── */}
           <div className="shared-section">
             <div className="shared-section-header">
               <div>
                 <div className="shared-header-title">🔗 Shared Expense</div>
-                <div className="shared-header-sub">Enter each person's share manually — you decide how much each one pays</div>
+                <div className="shared-header-sub">Enter each person's share manually — only active (unsettled) persons can be selected</div>
               </div>
               <div className="shared-select-hint">
                 {selectedIds.length === 0
@@ -762,7 +894,7 @@ export default function BulkTracker() {
             <div className="shared-body">
               <div className="selected-chips">
                 {selectedPersons.length === 0 ? (
-                  <span className="no-selection-hint">No person selected — check the ✅ checkbox on cards above</span>
+                  <span className="no-selection-hint">No person selected — check the ✅ checkbox on active cards above</span>
                 ) : selectedPersons.map(inc => (
                   <div className="person-chip" key={inc.id}>
                     <div className="chip-avatar" style={{ background: avatarColor(inc.person_name) }}>
@@ -780,8 +912,7 @@ export default function BulkTracker() {
                     <div className="field-wrap">
                       <label className="field-label">Expense Description</label>
                       <input className="bt-input" placeholder="e.g. Petrol, Food, Hotel…"
-                        value={sharedDesc}
-                        onChange={e => setSharedDesc(e.target.value)} />
+                        value={sharedDesc} onChange={e => setSharedDesc(e.target.value)} />
                     </div>
                     <div className="field-wrap">
                       <label className="field-label">Date</label>
@@ -824,13 +955,9 @@ export default function BulkTracker() {
                           </div>
                           <div className="split-row-name">{inc.person_name}</div>
                           <div className="split-row-bal">Balance: ₹{fmt(Math.max(0, getRemaining(inc)))}</div>
-                          <input
-                            className="split-row-input"
-                            type="number"
-                            placeholder="₹ amount"
+                          <input className="split-row-input" type="number" placeholder="₹ amount"
                             value={manualAmounts[inc.id] || ""}
-                            onChange={e => setManualAmounts(prev => ({ ...prev, [inc.id]: e.target.value }))}
-                          />
+                            onChange={e => setManualAmounts(prev => ({ ...prev, [inc.id]: e.target.value }))} />
                         </div>
                       ))}
                     </div>
@@ -878,7 +1005,7 @@ export default function BulkTracker() {
         </div>
       </div>
 
-      {/* EXPENSE HISTORY POPUP */}
+      {/* ─── EXPENSE HISTORY POPUP ─── */}
       {popupPersonId && popupPerson && (
         <div className="popup-overlay" onClick={() => setPopupPersonId(null)}>
           <div className="popup-box" onClick={e => e.stopPropagation()}>
@@ -899,6 +1026,9 @@ export default function BulkTracker() {
                 <div className="popup-subtitle">
                   Received ₹{fmt(popupPerson.amount)} · {popupIndivExp.length + popupShared.length} expense entries
                 </div>
+                {popupIsReadonly && (
+                  <div className="popup-readonly-badge">🔒 Read-only — settled on {settledMap[popupPersonId]}</div>
+                )}
               </div>
               <button className="popup-close" onClick={() => setPopupPersonId(null)}>✕</button>
             </div>
@@ -918,11 +1048,14 @@ export default function BulkTracker() {
                             <div className="popup-exp-date">{exp.date}</div>
                           </div>
                           <div className="popup-exp-amt">−₹{fmt(exp.amount)}</div>
-                          <button className="popup-del-btn" onClick={() => deleteExpense(exp.id)}>
-                            <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-                            </svg>
-                          </button>
+                          {/* Delete only for non-readonly */}
+                          {!popupIsReadonly && (
+                            <button className="popup-del-btn" onClick={() => deleteExpense(exp.id)}>
+                              <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                              </svg>
+                            </button>
+                          )}
                         </div>
                       ))}
                     </>
