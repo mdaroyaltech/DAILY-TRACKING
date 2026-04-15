@@ -69,12 +69,34 @@ const CSS = `
 
 .dr-date-wrap { display:flex; flex-direction:column; gap:4px; align-items:flex-end; }
 .dr-date-label { font-size:10px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--text-dim); }
+
+/* ── DATE NAV ── */
+.dr-date-nav {
+  display:flex; align-items:center; gap:6px;
+}
+.dr-date-arrow {
+  width:34px; height:34px; border-radius:8px;
+  background:var(--bg2); border:1.5px solid var(--border2);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:18px; font-weight:700; transition:all .18s;
+  color:var(--text-med); flex-shrink:0; line-height:1;
+}
+.dr-date-arrow:hover { background:var(--teal-light); border-color:var(--teal); color:var(--teal); }
 .dr-date-input {
   background:var(--bg2); border:1.5px solid var(--border2); border-radius:8px;
   padding:9px 14px; font-size:14px; font-family:'DM Sans',sans-serif; font-weight:500;
   color:var(--text); outline:none; transition:border-color .2s, box-shadow .2s; min-width:160px;
 }
 .dr-date-input:focus { border-color:var(--teal); box-shadow:0 0 0 3px rgba(13,148,136,0.1); background:var(--surface); }
+.dr-today-btn {
+  padding:7px 13px; border-radius:8px; font-size:10px; font-weight:600;
+  letter-spacing:.08em; text-transform:uppercase; cursor:pointer;
+  background:var(--teal); color:#fff; border:none;
+  font-family:'DM Sans',sans-serif; transition:all .18s; white-space:nowrap;
+  height:34px; display:flex; align-items:center;
+}
+.dr-today-btn:hover:not(:disabled) { opacity:.85; }
+.dr-today-btn:disabled { background:var(--bg2); color:var(--text-dim); border:1.5px solid var(--border2); cursor:default; }
 
 /* ── LAYOUT ── */
 .dr-wrap { max-width:1100px; margin:auto; padding:0 24px; }
@@ -323,6 +345,8 @@ const CSS = `
   .collapse-header { padding:12px 14px; }
   .ch-title { font-size:14px; }
   .ch-total { font-size:16px; }
+  .dr-date-input { min-width:130px; }
+  .dr-today-btn { padding:7px 9px; font-size:9px; }
 }
 `;
 
@@ -342,6 +366,13 @@ export default function DailyReport() {
   /* ── COLLAPSE STATE ── */
   const [incomeOpen, setIncomeOpen] = useState(true);
   const [expenseOpen, setExpenseOpen] = useState(true);
+
+  /* ── DATE NAVIGATION ── */
+  const changeDate = (offset) => {
+    const d = new Date(date);
+    d.setDate(d.getDate() + offset);
+    setDate(d.toISOString().split("T")[0]);
+  };
 
   /* ── SERVICE OPTIONS ── */
   const [serviceOptions, setServiceOptions] = useState([]);
@@ -542,9 +573,28 @@ export default function DailyReport() {
               <div className="dr-eyebrow">Daily Report</div>
               <h1 className="dr-title">View & manage <em>transactions</em></h1>
             </div>
+
+            {/* ── DATE CONTROLS ── */}
             <div className="dr-date-wrap">
               <label className="dr-date-label">Select Date</label>
-              <input type="date" className="dr-date-input" value={date} onChange={e => setDate(e.target.value)} />
+              <div className="dr-date-nav">
+                <button className="dr-date-arrow" onClick={() => changeDate(-1)} title="Previous day">‹</button>
+                <input
+                  type="date"
+                  className="dr-date-input"
+                  value={date}
+                  onChange={e => setDate(e.target.value)}
+                />
+                <button className="dr-date-arrow" onClick={() => changeDate(1)} title="Next day">›</button>
+                <button
+                  className="dr-today-btn"
+                  onClick={() => setDate(today)}
+                  disabled={date === today}
+                  title="Go to today"
+                >
+                  Today
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -781,7 +831,6 @@ export default function DailyReport() {
 
               {/* Income section */}
               <div className="section-wrap">
-                {/* Header */}
                 <div
                   className={`collapse-header${incomeOpen ? " open" : ""}`}
                   onClick={() => setIncomeOpen(p => !p)}
@@ -801,7 +850,6 @@ export default function DailyReport() {
                   </div>
                 </div>
 
-                {/* Body */}
                 <div className={`collapse-body${incomeOpen ? " open" : ""}`}>
                   <span className="table-scroll-hint">← scroll to see all columns →</span>
                   <div className="table-inner">
@@ -887,7 +935,6 @@ export default function DailyReport() {
                   ── EXPENSE TABLE (COLLAPSIBLE) ──
               ════════════════════════════════════════════ */}
               <div className="section-wrap">
-                {/* Header */}
                 <div
                   className={`collapse-header${expenseOpen ? " open" : ""}`}
                   onClick={() => setExpenseOpen(p => !p)}
@@ -907,7 +954,6 @@ export default function DailyReport() {
                   </div>
                 </div>
 
-                {/* Body */}
                 <div className={`collapse-body${expenseOpen ? " open" : ""}`}>
                   <span className="table-scroll-hint">← scroll to see all columns →</span>
                   <div className="table-inner">
