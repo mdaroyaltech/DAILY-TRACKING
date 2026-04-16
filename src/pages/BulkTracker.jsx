@@ -43,7 +43,7 @@ const CSS = `
 .btn-green{background:var(--green);color:#fff;} .btn-red{background:var(--red);color:#fff;}
 .btn-teal{background:var(--teal);color:#fff;} .btn-purple{background:var(--purple);color:#fff;}
 .btn-ghost{background:var(--bg2);color:var(--text-med);border:1.5px solid var(--border);}
-.btn-sm{padding:6px 14px;font-size:11px;}
+.btn-sm{padding:9px 20px;font-size:12px;}
 .summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:36px;}
 @media(max-width:700px){.summary-row{grid-template-columns:1fr;}}
 .sum-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;}
@@ -132,9 +132,21 @@ const CSS = `
 .add-expense-toggle:hover{opacity:.75;}
 .toggle-arrow{font-size:10px;transition:transform .2s;}.toggle-arrow.open{transform:rotate(180deg);}
 .add-exp-form{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:flex-end;margin-top:10px;}
-.edit-income-form{padding:14px 18px;border-top:1.5px solid var(--border);background:var(--surface2);display:grid;grid-template-columns:2fr 1fr auto auto;gap:10px;align-items:flex-end;}
-@media(max-width:640px){.edit-income-form{grid-template-columns:1fr 1fr;gap:8px;} .edit-income-form .edit-name-field{grid-column:1/-1;}}
-@media(max-width:380px){.edit-income-form{grid-template-columns:1fr;} .edit-income-form .edit-name-field{grid-column:auto;}}
+
+/* ─── EDIT INCOME FORM — FIXED ─── */
+.edit-income-form{
+  padding:16px 18px;
+  border-top:1.5px solid var(--border);
+  background:var(--surface2);
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  align-items:flex-end;
+}
+.edit-income-form .edit-name-field{grid-column:1/-1;}
+.edit-income-form .edit-btns-row{grid-column:1/-1;display:flex;gap:8px;}
+@media(max-width:380px){.edit-income-form{grid-template-columns:1fr;}}
+
 .exp-history-btn{display:flex;align-items:center;gap:6px;padding:8px 18px 12px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;transition:color .15s;width:100%;}
 .exp-history-btn:hover{color:var(--text);}
 .exp-history-btn .badge-count{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:1px 8px;font-size:10px;color:var(--text-dim);margin-left:2px;}
@@ -298,7 +310,6 @@ export default function BulkTracker() {
     };
     setSettledMap(updated);
     localStorage.setItem("bt_settled", JSON.stringify(updated));
-    // Deselect if selected
     setSelectedIds(prev => prev.filter(i => i !== id));
   };
 
@@ -402,7 +413,7 @@ export default function BulkTracker() {
   };
 
   const toggleSelect = (id) => {
-    if (settledMap[id]) return; // settled persons can't be selected
+    if (settledMap[id]) return;
     setManualAmounts({});
     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
@@ -453,7 +464,6 @@ export default function BulkTracker() {
   const totalSharedExp = sharedExpenses.reduce((s, e) => s + e.total_amount, 0);
   const totalRemaining = totalBulkIn - totalIndivExp - totalSharedExp;
 
-  // Separate active vs settled persons
   const activePersons = bulkIncomes.filter(inc => !settledMap[inc.id]);
   const settledPersons = bulkIncomes.filter(inc => !!settledMap[inc.id]);
 
@@ -480,7 +490,6 @@ export default function BulkTracker() {
   const filteredActive = applyFiltersAndSort(activePersons);
   const filteredSettled = applyFiltersAndSort(settledPersons);
 
-  // Popup data
   const popupPerson = popupPersonId ? bulkIncomes.find(i => i.id === popupPersonId) : null;
   const popupIndivExp = popupPersonId ? bulkExpenses.filter(e => e.bulk_income_id === popupPersonId) : [];
   const popupShared = popupPersonId
@@ -493,7 +502,7 @@ export default function BulkTracker() {
     return sp ? sp.split_amount : 0;
   };
 
-  // Render a single ACTIVE person card
+  // ─── ACTIVE CARD ───
   const renderActiveCard = (inc) => {
     const indivSpent = getIndivExp(inc.id);
     const sharedCut = getSharedCut(inc.id);
@@ -542,27 +551,31 @@ export default function BulkTracker() {
           </button>
         </div>
 
-        {/* INLINE EDIT FORM */}
+        {/* ─── INLINE EDIT FORM — FIXED ─── */}
         {isEditing && (
           <div className="edit-income-form">
             <div className="field-wrap edit-name-field">
               <label className="field-label">Name</label>
-              <input className="bt-input" value={editingIncome.person_name} autoFocus
+              <input
+                className="bt-input"
+                value={editingIncome.person_name}
+                autoFocus
                 onChange={e => setEditingIncome({ ...editingIncome, person_name: e.target.value })}
-                onKeyDown={e => { if (e.key === "Enter") saveEditIncome(); if (e.key === "Escape") setEditingIncome(null); }} />
+                onKeyDown={e => { if (e.key === "Enter") saveEditIncome(); if (e.key === "Escape") setEditingIncome(null); }}
+              />
             </div>
             <div className="field-wrap">
               <label className="field-label">Amount (₹)</label>
-              <input className="bt-input" type="number" value={editingIncome.amount}
+              <input
+                className="bt-input"
+                type="number"
+                value={editingIncome.amount}
                 onChange={e => setEditingIncome({ ...editingIncome, amount: e.target.value })}
-                onKeyDown={e => { if (e.key === "Enter") saveEditIncome(); if (e.key === "Escape") setEditingIncome(null); }} />
+                onKeyDown={e => { if (e.key === "Enter") saveEditIncome(); if (e.key === "Escape") setEditingIncome(null); }}
+              />
             </div>
-            <div className="field-wrap">
-              <label className="field-label" style={{ opacity: 0 }}>-</label>
+            <div className="edit-btns-row">
               <button className="btn btn-teal btn-sm" onClick={saveEditIncome}>Save</button>
-            </div>
-            <div className="field-wrap">
-              <label className="field-label" style={{ opacity: 0 }}>-</label>
               <button className="btn btn-ghost btn-sm" onClick={() => setEditingIncome(null)}>Cancel</button>
             </div>
           </div>
@@ -597,7 +610,7 @@ export default function BulkTracker() {
           </div>
         </div>
 
-        {/* MARK SETTLED BUTTON */}
+        {/* MARK SETTLED */}
         <div style={{ padding: "10px 18px 0" }}>
           <button className="settle-btn" onClick={() => markSettled(inc.id)}>
             ✓ Mark as Settled
@@ -643,7 +656,7 @@ export default function BulkTracker() {
     );
   };
 
-  // Render a single SETTLED person card (collapsed strip + expandable read-only view)
+  // ─── SETTLED CARD ───
   const renderSettledCard = (inc) => {
     const indivSpent = getIndivExp(inc.id);
     const sharedCut = getSharedCut(inc.id);
@@ -656,7 +669,6 @@ export default function BulkTracker() {
 
     return (
       <div className="person-card settled-card" key={inc.id}>
-        {/* COLLAPSED STRIP */}
         <div className="settled-collapsed" onClick={() => toggleSettledExpand(inc.id)}>
           <div className="settled-lock-icon">🔒</div>
           <div className="person-avatar" style={{ background: avatarColor(inc.person_name), width: 32, height: 32, fontSize: 13 }}>
@@ -671,7 +683,7 @@ export default function BulkTracker() {
           <div className="settled-amounts-mini">
             <div style={{ textAlign: "right" }}>
               <div style={{ fontSize: 10, color: "var(--text-faint)", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em" }}>Remaining</div>
-              <div className={`settled-amt ${remaining < 0 ? "red" : ""}`} style={{ color: remaining < 0 ? "var(--red)" : "var(--green)" }}>
+              <div className="settled-amt" style={{ color: remaining < 0 ? "var(--red)" : "var(--green)" }}>
                 ₹{fmt(remaining)}
               </div>
             </div>
@@ -682,18 +694,14 @@ export default function BulkTracker() {
           </div>
         </div>
 
-        {/* EXPANDED READ-ONLY BODY */}
         {isExpanded && (
           <div className="settled-expanded-body">
-            {/* READ-ONLY BANNER */}
             <div className="settled-readonly-banner">
               🔒 Read-only — settled on {settledMap[inc.id]}
               <button className="settled-unsettle-btn" onClick={(e) => { e.stopPropagation(); unsettle(inc.id); }}>
                 ↩ Unsettle
               </button>
             </div>
-
-            {/* AMOUNTS — READ ONLY */}
             <div className="readonly-amounts">
               <div className="amt-block">
                 <div className="amt-label">Received</div>
@@ -713,16 +721,12 @@ export default function BulkTracker() {
                 </div>
               </div>
             </div>
-
-            {/* PROGRESS — READ ONLY */}
             <div className="readonly-progress">
               <div className="progress-label-row"><span>Used</span><span>{pct}%</span></div>
               <div className="progress-track">
                 <div className="progress-fill" style={{ width: `${pct}%`, background: "var(--green)" }} />
               </div>
             </div>
-
-            {/* VIEW HISTORY — READ ONLY */}
             <button className="readonly-history-btn" onClick={() => openPopup(inc.id, true)}>
               📋 View Expense History
               <span className="readonly-badge-count">{expCount}</span>
@@ -799,7 +803,7 @@ export default function BulkTracker() {
             </div>
           </div>
 
-          {/* ─── ACTIVE PERSONS ─── */}
+          {/* ACTIVE PERSONS */}
           <p className="section-title">
             Active Persons
             {selectedIds.length > 0 && (
@@ -860,7 +864,7 @@ export default function BulkTracker() {
             </div>
           )}
 
-          {/* ─── SETTLED PERSONS SECTION ─── */}
+          {/* SETTLED PERSONS SECTION */}
           {settledPersons.length > 0 && (
             <>
               <div className="settled-section-toggle" onClick={() => setShowSettledSection(v => !v)}>
@@ -868,7 +872,6 @@ export default function BulkTracker() {
                 <span className="settled-section-count">{settledPersons.length}</span>
                 <span className="settled-section-arrow" style={{ transform: showSettledSection ? "rotate(180deg)" : "none" }}>▼</span>
               </div>
-
               {showSettledSection && (
                 <div className="persons-grid">
                   {filteredSettled.map(inc => renderSettledCard(inc))}
@@ -877,7 +880,7 @@ export default function BulkTracker() {
             </>
           )}
 
-          {/* ─── SHARED EXPENSE ─── */}
+          {/* SHARED EXPENSE */}
           <div className="shared-section">
             <div className="shared-section-header">
               <div>
@@ -1005,7 +1008,7 @@ export default function BulkTracker() {
         </div>
       </div>
 
-      {/* ─── EXPENSE HISTORY POPUP ─── */}
+      {/* EXPENSE HISTORY POPUP */}
       {popupPersonId && popupPerson && (
         <div className="popup-overlay" onClick={() => setPopupPersonId(null)}>
           <div className="popup-box" onClick={e => e.stopPropagation()}>
@@ -1048,7 +1051,6 @@ export default function BulkTracker() {
                             <div className="popup-exp-date">{exp.date}</div>
                           </div>
                           <div className="popup-exp-amt">−₹{fmt(exp.amount)}</div>
-                          {/* Delete only for non-readonly */}
                           {!popupIsReadonly && (
                             <button className="popup-del-btn" onClick={() => deleteExpense(exp.id)}>
                               <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
