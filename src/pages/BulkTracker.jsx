@@ -53,12 +53,10 @@ const CSS = `
 .sum-value.green{color:var(--green);}.sum-value.red{color:var(--red);}.sum-value.teal{color:var(--teal);}
 .persons-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;margin-bottom:28px;}
 
-/* ─── ACTIVE CARD ─── */
 .person-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);transition:box-shadow .2s,transform .2s;}
 .person-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);}
 .person-card.selected-card{border-color:var(--purple);box-shadow:0 0 0 3px rgba(124,58,237,.15),var(--shadow);}
 
-/* ─── SETTLED CARD ─── */
 .person-card.settled-card{
   background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%);
   border:1.5px solid rgba(22,163,74,.25);
@@ -68,7 +66,6 @@ const CSS = `
 }
 .person-card.settled-card:hover{box-shadow:0 2px 8px rgba(22,163,74,.12);transform:none;}
 
-/* ─── SETTLED COLLAPSED STRIP ─── */
 .settled-collapsed{
   display:flex;align-items:center;padding:14px 18px;gap:12px;flex-wrap:wrap;
   cursor:pointer;transition:background .15s;
@@ -84,7 +81,6 @@ const CSS = `
 .settled-expand-arrow{font-size:9px;transition:transform .2s;}
 .settled-expand-arrow.open{transform:rotate(180deg);}
 
-/* ─── SETTLED EXPANDED (read-only) ─── */
 .settled-expanded-body{border-top:1.5px solid rgba(22,163,74,.2);background:rgba(240,253,244,.6);}
 .settled-readonly-banner{
   display:flex;align-items:center;gap:8px;padding:10px 18px;
@@ -127,13 +123,16 @@ const CSS = `
 .person-amounts{display:grid;grid-template-columns:repeat(3,1fr);padding:12px 18px;gap:8px;border-bottom:1.5px solid var(--border);background:var(--surface2);}
 .progress-bar-wrap{padding:10px 18px 0;}
 .progress-track-active{height:5px;background:var(--bg2);border-radius:99px;overflow:hidden;border:1px solid var(--border);}
+
+/* ─── INDIVIDUAL EXPENSE — STACKED LAYOUT ─── */
 .add-expense-section{padding:10px 18px;border-bottom:1.5px solid var(--border);}
 .add-expense-toggle{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);cursor:pointer;padding:6px 0;user-select:none;transition:opacity .15s;}
 .add-expense-toggle:hover{opacity:.75;}
 .toggle-arrow{font-size:10px;transition:transform .2s;}.toggle-arrow.open{transform:rotate(180deg);}
-.add-exp-form{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:flex-end;margin-top:10px;}
+.add-exp-form{display:flex;flex-direction:column;gap:10px;margin-top:12px;padding:14px 16px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;}
+.add-exp-save-row{display:flex;justify-content:flex-end;gap:8px;margin-top:4px;}
 
-/* ─── EDIT INCOME FORM — FIXED ─── */
+/* ─── EDIT INCOME FORM ─── */
 .edit-income-form{
   padding:16px 18px;
   border-top:1.5px solid var(--border);
@@ -155,7 +154,6 @@ const CSS = `
 .edit-btn{background:none;border:none;cursor:pointer;padding:5px;border-radius:6px;color:var(--text-faint);transition:all .15s;display:inline-flex;flex-shrink:0;}
 .edit-btn:hover{color:var(--amber);background:var(--amber-bg);}
 
-/* SETTLED SECTION TOGGLE */
 .settled-section-toggle{
   display:flex;align-items:center;gap:10px;padding:12px 16px;
   background:var(--green-bg);border:1.5px solid rgba(22,163,74,.25);
@@ -167,6 +165,70 @@ const CSS = `
 .settled-section-count{background:var(--green);color:#fff;border-radius:20px;padding:2px 10px;font-size:11px;margin-left:4px;}
 .settled-section-arrow{font-size:10px;margin-left:auto;transition:transform .2s;}
 .settled-section-arrow.open{transform:rotate(180deg);}
+
+/* ─── CUSTOM CONFIRM DIALOG ─── */
+.cdialog-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  animation:cdFadeIn .18s ease;
+}
+@keyframes cdFadeIn{from{opacity:0}to{opacity:1}}
+.cdialog-box{
+  background:var(--surface);border-radius:20px;width:100%;max-width:400px;
+  box-shadow:0 32px 80px rgba(0,0,0,.22),0 8px 24px rgba(0,0,0,.1);
+  animation:cdSlideUp .22s cubic-bezier(.34,1.56,.64,1);
+  overflow:hidden;
+}
+@keyframes cdSlideUp{
+  from{transform:translateY(32px) scale(.94);opacity:0}
+  to{transform:translateY(0) scale(1);opacity:1}
+}
+.cdialog-icon-wrap{
+  display:flex;align-items:center;justify-content:center;
+  padding:32px 32px 20px;
+}
+.cdialog-icon-circle{
+  width:64px;height:64px;border-radius:50%;background:var(--green-bg);
+  border:2px solid rgba(22,163,74,.25);
+  display:flex;align-items:center;justify-content:center;font-size:28px;
+  animation:cdIconPop .3s .1s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes cdIconPop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.cdialog-content{padding:0 28px 8px;text-align:center;}
+.cdialog-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--text);margin-bottom:10px;}
+.cdialog-msg{font-size:14px;color:var(--text-med);line-height:1.6;}
+.cdialog-person-name{
+  display:inline-block;margin:12px 0 4px;
+  background:var(--green-bg);color:var(--green);
+  border:1px solid rgba(22,163,74,.25);border-radius:8px;
+  padding:6px 16px;font-weight:600;font-size:15px;font-family:'Playfair Display',serif;
+}
+.cdialog-warning{
+  margin:12px 28px 0;padding:10px 14px;
+  background:var(--amber-bg);border:1px solid rgba(180,83,9,.2);
+  border-radius:8px;font-size:12px;color:var(--amber);font-weight:500;
+  display:flex;align-items:flex-start;gap:8px;
+}
+.cdialog-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:20px 28px 28px;}
+.cdialog-cancel{
+  padding:13px 20px;border-radius:10px;border:1.5px solid var(--border);
+  background:var(--bg2);color:var(--text-med);font-family:'DM Sans',sans-serif;
+  font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;
+}
+.cdialog-cancel:hover{background:var(--border);border-color:var(--border2);}
+.cdialog-confirm{
+  padding:13px 20px;border-radius:10px;border:none;
+  background:var(--green);color:#fff;font-family:'DM Sans',sans-serif;
+  font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+}
+.cdialog-confirm:hover{opacity:.88;transform:translateY(-1px);box-shadow:0 4px 14px rgba(22,163,74,.35);}
+.cdialog-confirm:active{transform:translateY(0);}
+.cdialog-confirm-red{background:var(--red);}
+.cdialog-confirm-red:hover{box-shadow:0 4px 14px rgba(220,38,38,.35);}
+
+/* ─── UNSETTLE DIALOG (red variant) ─── */
+.cdialog-icon-circle.red-variant{background:var(--red-bg);border-color:rgba(220,38,38,.25);}
 
 /* POPUP */
 .popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .15s ease;}
@@ -244,7 +306,6 @@ const CSS = `
 .loading-text{text-align:center;color:var(--text-dim);padding:48px;font-size:14px;}
 .no-shared-history{text-align:center;padding:28px;font-size:13px;color:var(--text-faint);font-style:italic;}
 
-/* FILTER BAR */
 .filter-bar{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;box-shadow:var(--shadow-sm);}
 .filter-search{flex:1;min-width:180px;background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;padding:9px 13px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;}
 .filter-search::placeholder{color:var(--text-faint);}
@@ -259,12 +320,48 @@ const CSS = `
 .sort-select:focus{border-color:var(--teal);}
 .filter-count{font-size:12px;color:var(--text-dim);margin-left:auto;white-space:nowrap;}
 
-/* SETTLE BUTTON */
 .settle-btn{display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--green-bg);color:var(--green);border:1.5px solid rgba(22,163,74,0.3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap;}
 .settle-btn:hover{background:var(--green);color:#fff;border-color:var(--green);transform:translateY(-1px);}
 `;
 
 const fmt = (n) => Math.round(n).toLocaleString("en-IN");
+
+// ─── CUSTOM CONFIRM DIALOG ───
+function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, personName, warning, confirmLabel = "Confirm", variant = "green" }) {
+  if (!isOpen) return null;
+  return (
+    <div className="cdialog-overlay" onClick={onClose}>
+      <div className="cdialog-box" onClick={e => e.stopPropagation()}>
+        <div className="cdialog-icon-wrap">
+          <div className={`cdialog-icon-circle${variant === "red" ? " red-variant" : ""}`}>
+            {variant === "red" ? "↩" : "✓"}
+          </div>
+        </div>
+        <div className="cdialog-content">
+          <div className="cdialog-title">{title}</div>
+          <div className="cdialog-msg">{message}</div>
+          {personName && <div className="cdialog-person-name">{personName}</div>}
+        </div>
+        {warning && (
+          <div className="cdialog-warning">
+            <span>⚠️</span>
+            <span>{warning}</span>
+          </div>
+        )}
+        <div className="cdialog-actions">
+          <button className="cdialog-cancel" onClick={onClose}>Cancel</button>
+          <button
+            className={`cdialog-confirm${variant === "red" ? " cdialog-confirm-red" : ""}`}
+            onClick={() => { onConfirm(); onClose(); }}
+          >
+            <span>{variant === "red" ? "↩" : "✓"}</span>
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function BulkTracker() {
   const navigate = useNavigate();
@@ -292,34 +389,56 @@ export default function BulkTracker() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
-  // Settled state — persisted to localStorage
+  // ─── CUSTOM DIALOG STATE ───
+  const [dialog, setDialog] = useState({
+    isOpen: false, title: "", message: "", personName: "", warning: "",
+    confirmLabel: "Confirm", variant: "green", onConfirm: () => { }
+  });
+  const closeDialog = () => setDialog(d => ({ ...d, isOpen: false }));
+  const openDialog = (opts) => setDialog({ isOpen: true, ...opts });
+
   const [settledMap, setSettledMap] = useState(() => {
     try { return JSON.parse(localStorage.getItem("bt_settled") || "{}"); } catch { return {}; }
   });
-
-  // Which settled cards are expanded
   const [settledExpanded, setSettledExpanded] = useState({});
-  // Show/hide the whole settled section
   const [showSettledSection, setShowSettledSection] = useState(false);
 
-  const markSettled = (id) => {
-    if (!window.confirm("Mark this person as fully settled? Their card will become read-only.")) return;
-    const updated = {
-      ...settledMap,
-      [id]: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
-    };
-    setSettledMap(updated);
-    localStorage.setItem("bt_settled", JSON.stringify(updated));
-    setSelectedIds(prev => prev.filter(i => i !== id));
+  const markSettled = (id, name) => {
+    openDialog({
+      title: "Mark as Settled?",
+      message: "This will lock the card and make it read-only.",
+      personName: name,
+      warning: "You can always undo this by clicking 'Unsettle' later.",
+      confirmLabel: "Yes, Settle",
+      variant: "green",
+      onConfirm: () => {
+        const updated = {
+          ...settledMap,
+          [id]: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+        };
+        setSettledMap(updated);
+        localStorage.setItem("bt_settled", JSON.stringify(updated));
+        setSelectedIds(prev => prev.filter(i => i !== id));
+      }
+    });
   };
 
-  const unsettle = (id) => {
-    if (!window.confirm("Remove settled status? This person will become active again.")) return;
-    const updated = { ...settledMap };
-    delete updated[id];
-    setSettledMap(updated);
-    localStorage.setItem("bt_settled", JSON.stringify(updated));
-    setSettledExpanded(prev => { const n = { ...prev }; delete n[id]; return n; });
+  const unsettle = (id, name) => {
+    openDialog({
+      title: "Remove Settled Status?",
+      message: "This person will become active again and can be edited.",
+      personName: name,
+      warning: "",
+      confirmLabel: "Yes, Unsettle",
+      variant: "red",
+      onConfirm: () => {
+        const updated = { ...settledMap };
+        delete updated[id];
+        setSettledMap(updated);
+        localStorage.setItem("bt_settled", JSON.stringify(updated));
+        setSettledExpanded(prev => { const n = { ...prev }; delete n[id]; return n; });
+      }
+    });
   };
 
   const toggleSettledExpand = (id) => {
@@ -383,18 +502,27 @@ export default function BulkTracker() {
   };
 
   const deleteBulkIncome = async (id) => {
-    if (!window.confirm("All entries for this person will be deleted. Confirm?")) return;
-    await supabase.from("bulk_expense").delete().eq("bulk_income_id", id);
-    const { data: splits } = await supabase.from("shared_expense_split").select("shared_expense_id").eq("bulk_income_id", id);
-    if (splits?.length) {
-      const seIds = [...new Set(splits.map(s => s.shared_expense_id))];
-      await supabase.from("shared_expense_split").delete().in("shared_expense_id", seIds);
-      await supabase.from("shared_expense").delete().in("id", seIds);
-    }
-    await supabase.from("bulk_income").delete().eq("id", id);
-    setSelectedIds(prev => prev.filter(i => i !== id));
-    if (popupPersonId === id) setPopupPersonId(null);
-    fetchData();
+    openDialog({
+      title: "Delete Person?",
+      message: "All expenses for this person will be permanently deleted.",
+      personName: bulkIncomes.find(i => i.id === id)?.person_name || "",
+      warning: "This action cannot be undone.",
+      confirmLabel: "Delete",
+      variant: "red",
+      onConfirm: async () => {
+        await supabase.from("bulk_expense").delete().eq("bulk_income_id", id);
+        const { data: splits } = await supabase.from("shared_expense_split").select("shared_expense_id").eq("bulk_income_id", id);
+        if (splits?.length) {
+          const seIds = [...new Set(splits.map(s => s.shared_expense_id))];
+          await supabase.from("shared_expense_split").delete().in("shared_expense_id", seIds);
+          await supabase.from("shared_expense").delete().in("id", seIds);
+        }
+        await supabase.from("bulk_income").delete().eq("id", id);
+        setSelectedIds(prev => prev.filter(i => i !== id));
+        if (popupPersonId === id) setPopupPersonId(null);
+        fetchData();
+      }
+    });
   };
 
   const addExpense = async (bulkIncomeId) => {
@@ -453,10 +581,19 @@ export default function BulkTracker() {
   };
 
   const deleteSharedExpense = async (id) => {
-    if (!window.confirm("Delete this shared expense?")) return;
-    await supabase.from("shared_expense_split").delete().eq("shared_expense_id", id);
-    await supabase.from("shared_expense").delete().eq("id", id);
-    fetchData();
+    openDialog({
+      title: "Delete Shared Expense?",
+      message: "This shared expense and all its splits will be removed.",
+      personName: "",
+      warning: "This action cannot be undone.",
+      confirmLabel: "Delete",
+      variant: "red",
+      onConfirm: async () => {
+        await supabase.from("shared_expense_split").delete().eq("shared_expense_id", id);
+        await supabase.from("shared_expense").delete().eq("id", id);
+        fetchData();
+      }
+    });
   };
 
   const totalBulkIn = bulkIncomes.reduce((s, i) => s + i.amount, 0);
@@ -551,7 +688,7 @@ export default function BulkTracker() {
           </button>
         </div>
 
-        {/* ─── INLINE EDIT FORM — FIXED ─── */}
+        {/* INLINE EDIT FORM */}
         {isEditing && (
           <div className="edit-income-form">
             <div className="field-wrap edit-name-field">
@@ -612,12 +749,12 @@ export default function BulkTracker() {
 
         {/* MARK SETTLED */}
         <div style={{ padding: "10px 18px 0" }}>
-          <button className="settle-btn" onClick={() => markSettled(inc.id)}>
+          <button className="settle-btn" onClick={() => markSettled(inc.id, inc.person_name)}>
             ✓ Mark as Settled
           </button>
         </div>
 
-        {/* ADD INDIVIDUAL EXPENSE */}
+        {/* ─── ADD INDIVIDUAL EXPENSE — STACKED ─── */}
         <div className="add-expense-section" style={{ marginTop: 10 }}>
           <div className="add-expense-toggle"
             onClick={() => { setOpenExpForm(isOpen ? null : inc.id); setExpForm({ description: "", amount: "" }); }}>
@@ -628,18 +765,28 @@ export default function BulkTracker() {
             <div className="add-exp-form">
               <div className="field-wrap">
                 <label className="field-label">Description</label>
-                <input className="bt-input" placeholder="e.g. Transport" autoFocus
+                <input
+                  className="bt-input"
+                  placeholder="e.g. Transport, Food, Hotel…"
+                  autoFocus
                   value={expForm.description}
-                  onChange={e => setExpForm({ ...expForm, description: e.target.value })} />
+                  onChange={e => setExpForm({ ...expForm, description: e.target.value })}
+                  onKeyDown={e => { if (e.key === "Enter") addExpense(inc.id); }}
+                />
               </div>
               <div className="field-wrap">
                 <label className="field-label">Amount (₹)</label>
-                <input className="bt-input" type="number" placeholder="0" style={{ width: 110 }}
+                <input
+                  className="bt-input"
+                  type="number"
+                  placeholder="0"
                   value={expForm.amount}
-                  onChange={e => setExpForm({ ...expForm, amount: e.target.value })} />
+                  onChange={e => setExpForm({ ...expForm, amount: e.target.value })}
+                  onKeyDown={e => { if (e.key === "Enter") addExpense(inc.id); }}
+                />
               </div>
-              <div className="field-wrap">
-                <label className="field-label" style={{ opacity: 0 }}>-</label>
+              <div className="add-exp-save-row">
+                <button className="btn btn-ghost btn-sm" onClick={() => setOpenExpForm(null)}>Cancel</button>
                 <button className="btn btn-red btn-sm" onClick={() => addExpense(inc.id)}>Save</button>
               </div>
             </div>
@@ -698,7 +845,7 @@ export default function BulkTracker() {
           <div className="settled-expanded-body">
             <div className="settled-readonly-banner">
               🔒 Read-only — settled on {settledMap[inc.id]}
-              <button className="settled-unsettle-btn" onClick={(e) => { e.stopPropagation(); unsettle(inc.id); }}>
+              <button className="settled-unsettle-btn" onClick={(e) => { e.stopPropagation(); unsettle(inc.id, inc.person_name); }}>
                 ↩ Unsettle
               </button>
             </div>
@@ -1007,6 +1154,19 @@ export default function BulkTracker() {
 
         </div>
       </div>
+
+      {/* ─── CUSTOM CONFIRM DIALOG ─── */}
+      <ConfirmDialog
+        isOpen={dialog.isOpen}
+        onClose={closeDialog}
+        onConfirm={dialog.onConfirm}
+        title={dialog.title}
+        message={dialog.message}
+        personName={dialog.personName}
+        warning={dialog.warning}
+        confirmLabel={dialog.confirmLabel}
+        variant={dialog.variant}
+      />
 
       {/* EXPENSE HISTORY POPUP */}
       {popupPersonId && popupPerson && (
