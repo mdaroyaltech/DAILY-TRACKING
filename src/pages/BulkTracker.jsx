@@ -1,7 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "../lib/supabase";
 import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
+
+// ─── SUPABASE MIGRATION NOTE ────────────────────────────────────────────────
+// Run this SQL in your Supabase dashboard (SQL Editor) before using this file:
+//
+//   ALTER TABLE bulk_income
+//     ADD COLUMN IF NOT EXISTS is_settled BOOLEAN NOT NULL DEFAULT false,
+//     ADD COLUMN IF NOT EXISTS settled_at TEXT;
+//
+// ────────────────────────────────────────────────────────────────────────────
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -51,68 +60,12 @@ const CSS = `
 .sum-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;}
 .sum-value{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;}
 .sum-value.green{color:var(--green);}.sum-value.red{color:var(--red);}.sum-value.teal{color:var(--teal);}
-.persons-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;margin-bottom:28px;}
+.persons-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;margin-bottom:0;}
 
+/* ACTIVE CARD */
 .person-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);transition:box-shadow .2s,transform .2s;}
 .person-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);}
 .person-card.selected-card{border-color:var(--purple);box-shadow:0 0 0 3px rgba(124,58,237,.15),var(--shadow);}
-
-.person-card.settled-card{
-  background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%);
-  border:1.5px solid rgba(22,163,74,.25);
-  opacity:.85;
-  box-shadow:none;
-  transform:none!important;
-}
-.person-card.settled-card:hover{box-shadow:0 2px 8px rgba(22,163,74,.12);transform:none;}
-
-.settled-collapsed{
-  display:flex;align-items:center;padding:14px 18px;gap:12px;flex-wrap:wrap;
-  cursor:pointer;transition:background .15s;
-}
-.settled-collapsed:hover{background:rgba(22,163,74,.06);}
-.settled-lock-icon{font-size:16px;flex-shrink:0;}
-.settled-person-info{flex:1;min-width:0;}
-.settled-person-name{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--text-med);}
-.settled-person-meta{font-size:11px;color:var(--text-faint);margin-top:2px;}
-.settled-amounts-mini{display:flex;gap:14px;align-items:center;}
-.settled-amt{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--green);}
-.settled-expand-hint{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--green);display:flex;align-items:center;gap:4px;flex-shrink:0;padding:5px 12px;border-radius:20px;background:var(--green-bg);border:1px solid rgba(22,163,74,.2);}
-.settled-expand-arrow{font-size:9px;transition:transform .2s;}
-.settled-expand-arrow.open{transform:rotate(180deg);}
-
-.settled-expanded-body{border-top:1.5px solid rgba(22,163,74,.2);background:rgba(240,253,244,.6);}
-.settled-readonly-banner{
-  display:flex;align-items:center;gap:8px;padding:10px 18px;
-  background:rgba(22,163,74,.08);border-bottom:1px solid rgba(22,163,74,.15);
-  font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--green);
-}
-.settled-unsettle-btn{
-  margin-left:auto;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:600;
-  letter-spacing:.06em;text-transform:uppercase;background:var(--red-bg);color:var(--red);
-  border:1px solid rgba(220,38,38,.2);cursor:pointer;font-family:'DM Sans',sans-serif;
-  transition:all .15s;
-}
-.settled-unsettle-btn:hover{background:var(--red);color:#fff;}
-.readonly-amounts{display:grid;grid-template-columns:repeat(3,1fr);padding:12px 18px;gap:8px;border-bottom:1.5px solid rgba(22,163,74,.15);}
-.amt-block{text-align:center;}
-.amt-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:4px;}
-.amt-value{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;}
-.amt-value.green{color:var(--green);}.amt-value.red{color:var(--red);}.amt-value.teal{color:var(--teal);}.amt-value.zero{color:var(--text-faint);}
-.shared-cut-note{font-size:9px;color:var(--purple);font-family:'DM Sans',sans-serif;font-weight:600;margin-top:2px;}
-.readonly-progress{padding:10px 18px 12px;}
-.progress-label-row{display:flex;justify-content:space-between;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:5px;}
-.progress-track{height:5px;background:rgba(22,163,74,.15);border-radius:99px;overflow:hidden;}
-.progress-fill{height:100%;border-radius:99px;transition:width .6s ease;}
-.readonly-history-btn{
-  display:flex;align-items:center;gap:6px;padding:10px 18px 12px;
-  font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--green);cursor:pointer;background:none;border:none;
-  font-family:'DM Sans',sans-serif;transition:color .15s;width:100%;
-}
-.readonly-history-btn:hover{color:var(--teal);}
-.readonly-badge-count{background:var(--green-bg);border:1px solid rgba(22,163,74,.2);border-radius:20px;padding:1px 8px;font-size:10px;color:var(--green);margin-left:2px;}
-
 .person-card-header{padding:16px 18px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:10px;}
 .person-avatar{width:38px;height:38px;border-radius:50%;color:#fff;font-family:'Playfair Display',serif;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .person-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--text);flex:1;line-height:1.2;}
@@ -123,29 +76,16 @@ const CSS = `
 .person-amounts{display:grid;grid-template-columns:repeat(3,1fr);padding:12px 18px;gap:8px;border-bottom:1.5px solid var(--border);background:var(--surface2);}
 .progress-bar-wrap{padding:10px 18px 0;}
 .progress-track-active{height:5px;background:var(--bg2);border-radius:99px;overflow:hidden;border:1px solid var(--border);}
-
-/* ─── INDIVIDUAL EXPENSE — STACKED LAYOUT ─── */
 .add-expense-section{padding:10px 18px;border-bottom:1.5px solid var(--border);}
 .add-expense-toggle{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);cursor:pointer;padding:6px 0;user-select:none;transition:opacity .15s;}
 .add-expense-toggle:hover{opacity:.75;}
 .toggle-arrow{font-size:10px;transition:transform .2s;}.toggle-arrow.open{transform:rotate(180deg);}
 .add-exp-form{display:flex;flex-direction:column;gap:10px;margin-top:12px;padding:14px 16px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;}
 .add-exp-save-row{display:flex;justify-content:flex-end;gap:8px;margin-top:4px;}
-
-/* ─── EDIT INCOME FORM ─── */
-.edit-income-form{
-  padding:16px 18px;
-  border-top:1.5px solid var(--border);
-  background:var(--surface2);
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-  align-items:flex-end;
-}
+.edit-income-form{padding:16px 18px;border-top:1.5px solid var(--border);background:var(--surface2);display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:flex-end;}
 .edit-income-form .edit-name-field{grid-column:1/-1;}
 .edit-income-form .edit-btns-row{grid-column:1/-1;display:flex;gap:8px;}
 @media(max-width:380px){.edit-income-form{grid-template-columns:1fr;}}
-
 .exp-history-btn{display:flex;align-items:center;gap:6px;padding:8px 18px 12px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;transition:color .15s;width:100%;}
 .exp-history-btn:hover{color:var(--text);}
 .exp-history-btn .badge-count{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:1px 8px;font-size:10px;color:var(--text-dim);margin-left:2px;}
@@ -153,81 +93,133 @@ const CSS = `
 .del-btn:hover{color:var(--red);background:var(--red-bg);}
 .edit-btn{background:none;border:none;cursor:pointer;padding:5px;border-radius:6px;color:var(--text-faint);transition:all .15s;display:inline-flex;flex-shrink:0;}
 .edit-btn:hover{color:var(--amber);background:var(--amber-bg);}
+.settle-btn{display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--green-bg);color:var(--green);border:1.5px solid rgba(22,163,74,0.3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap;}
+.settle-btn:hover{background:var(--green);color:#fff;border-color:var(--green);transform:translateY(-1px);}
+.amt-block{text-align:center;}
+.amt-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:4px;}
+.amt-value{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;}
+.amt-value.green{color:var(--green);}.amt-value.red{color:var(--red);}.amt-value.teal{color:var(--teal);}.amt-value.zero{color:var(--text-faint);}
+.shared-cut-note{font-size:9px;color:var(--purple);font-family:'DM Sans',sans-serif;font-weight:600;margin-top:2px;}
+.progress-label-row{display:flex;justify-content:space-between;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:5px;}
+.progress-fill{height:100%;border-radius:99px;transition:width .6s ease;}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.05em;}
+.badge-settled{background:var(--green-bg);color:var(--green);}
+.badge-partial{background:var(--amber-bg);color:var(--amber);}
+.badge-pending{background:var(--red-bg);color:var(--red);}
 
-.settled-section-toggle{
-  display:flex;align-items:center;gap:10px;padding:12px 16px;
-  background:var(--green-bg);border:1.5px solid rgba(22,163,74,.25);
-  border-radius:12px;margin-bottom:16px;cursor:pointer;
-  font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--green);transition:all .15s;user-select:none;
-}
-.settled-section-toggle:hover{background:rgba(22,163,74,.15);}
-.settled-section-count{background:var(--green);color:#fff;border-radius:20px;padding:2px 10px;font-size:11px;margin-left:4px;}
-.settled-section-arrow{font-size:10px;margin-left:auto;transition:transform .2s;}
-.settled-section-arrow.open{transform:rotate(180deg);}
+/* ════════════════════════════════════════════════════
+   SETTLED SECTION — collapsed accordion, hidden by default
+   ════════════════════════════════════════════════════ */
+.settled-section-wrap{margin:24px 0 28px;}
 
-/* ─── CUSTOM CONFIRM DIALOG ─── */
-.cdialog-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;
-  display:flex;align-items:center;justify-content:center;padding:24px;
-  animation:cdFadeIn .18s ease;
+.settled-accordion-header{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 22px;
+  background:var(--surface);
+  border:1.5px solid rgba(22,163,74,.3);
+  border-radius:14px;
+  cursor:pointer;user-select:none;
+  transition:background .18s,border-color .18s,border-radius .18s;
+  box-shadow:var(--shadow-sm);
 }
+.settled-accordion-header:hover{
+  background:var(--green-bg);
+  border-color:rgba(22,163,74,.5);
+}
+.settled-accordion-header.is-open{
+  border-radius:14px 14px 0 0;
+  border-bottom-color:transparent;
+  background:var(--green-bg);
+}
+.sah-lock{font-size:20px;flex-shrink:0;}
+.sah-info{flex:1;min-width:0;}
+.sah-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--text-med);}
+.sah-sub{font-size:11px;color:var(--text-faint);margin-top:2px;letter-spacing:0;font-weight:400;}
+.sah-badge{
+  background:var(--green);color:#fff;
+  border-radius:20px;padding:4px 14px;
+  font-size:12px;font-weight:700;flex-shrink:0;
+}
+.sah-arrow{
+  font-size:12px;color:var(--green);flex-shrink:0;
+  transition:transform .25s cubic-bezier(.4,0,.2,1);
+}
+.sah-arrow.open{transform:rotate(180deg);}
+
+.settled-accordion-body{
+  border:1.5px solid rgba(22,163,74,.3);
+  border-top:none;
+  border-radius:0 0 14px 14px;
+  background:rgba(240,253,244,.55);
+  padding:20px;
+  animation:accordionDown .22s ease;
+}
+@keyframes accordionDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+/* SETTLED CARD */
+.settled-card{
+  background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%);
+  border:1.5px solid rgba(22,163,74,.22) !important;
+  opacity:.88;
+  box-shadow:none !important;
+  transform:none !important;
+}
+.settled-card:hover{opacity:1 !important;box-shadow:0 2px 10px rgba(22,163,74,.14) !important;}
+
+.settled-collapsed{
+  display:flex;align-items:center;padding:14px 18px;gap:12px;flex-wrap:wrap;
+  cursor:pointer;transition:background .15s;
+}
+.settled-collapsed:hover{background:rgba(22,163,74,.05);}
+.settled-lock-icon{font-size:15px;flex-shrink:0;}
+.settled-person-info{flex:1;min-width:0;}
+.settled-person-name{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--text-med);}
+.settled-person-meta{font-size:11px;color:var(--text-faint);margin-top:2px;}
+.settled-expand-hint{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--green);display:flex;align-items:center;gap:4px;flex-shrink:0;padding:5px 12px;border-radius:20px;background:var(--green-bg);border:1px solid rgba(22,163,74,.2);}
+.settled-expand-arrow{font-size:9px;transition:transform .2s;}
+.settled-expand-arrow.open{transform:rotate(180deg);}
+.settled-remaining-mini{text-align:right;}
+.settled-remaining-label{font-size:10px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+.settled-remaining-val{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;}
+
+.settled-expanded-body{border-top:1.5px solid rgba(22,163,74,.18);background:rgba(240,253,244,.5);}
+.settled-readonly-banner{display:flex;align-items:center;gap:8px;padding:10px 18px;background:rgba(22,163,74,.07);border-bottom:1px solid rgba(22,163,74,.13);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--green);}
+.settled-unsettle-btn{margin-left:auto;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--red-bg);color:var(--red);border:1px solid rgba(220,38,38,.2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.settled-unsettle-btn:hover{background:var(--red);color:#fff;}
+.readonly-amounts{display:grid;grid-template-columns:repeat(3,1fr);padding:12px 18px;gap:8px;border-bottom:1.5px solid rgba(22,163,74,.13);}
+.readonly-progress{padding:10px 18px 12px;}
+.progress-track{height:5px;background:rgba(22,163,74,.13);border-radius:99px;overflow:hidden;}
+.readonly-history-btn{display:flex;align-items:center;gap:6px;padding:10px 18px 12px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--green);cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;transition:color .15s;width:100%;}
+.readonly-history-btn:hover{color:var(--teal);}
+.readonly-badge-count{background:var(--green-bg);border:1px solid rgba(22,163,74,.2);border-radius:20px;padding:1px 8px;font-size:10px;color:var(--green);margin-left:2px;}
+
+/* AUTO-SETTLE TOAST */
+.auto-settle-toast{position:fixed;bottom:24px;right:24px;z-index:3000;background:var(--green);color:#fff;padding:14px 20px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(22,163,74,.4);display:flex;align-items:center;gap:10px;animation:toastIn .3s cubic-bezier(.34,1.56,.64,1);max-width:320px;}
+@keyframes toastIn{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.auto-settle-toast.out{animation:toastOut .25s ease forwards;}
+@keyframes toastOut{to{transform:translateY(20px);opacity:0}}
+
+/* CUSTOM CONFIRM DIALOG */
+.cdialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;animation:cdFadeIn .18s ease;}
 @keyframes cdFadeIn{from{opacity:0}to{opacity:1}}
-.cdialog-box{
-  background:var(--surface);border-radius:20px;width:100%;max-width:400px;
-  box-shadow:0 32px 80px rgba(0,0,0,.22),0 8px 24px rgba(0,0,0,.1);
-  animation:cdSlideUp .22s cubic-bezier(.34,1.56,.64,1);
-  overflow:hidden;
-}
-@keyframes cdSlideUp{
-  from{transform:translateY(32px) scale(.94);opacity:0}
-  to{transform:translateY(0) scale(1);opacity:1}
-}
-.cdialog-icon-wrap{
-  display:flex;align-items:center;justify-content:center;
-  padding:32px 32px 20px;
-}
-.cdialog-icon-circle{
-  width:64px;height:64px;border-radius:50%;background:var(--green-bg);
-  border:2px solid rgba(22,163,74,.25);
-  display:flex;align-items:center;justify-content:center;font-size:28px;
-  animation:cdIconPop .3s .1s cubic-bezier(.34,1.56,.64,1) both;
-}
+.cdialog-box{background:var(--surface);border-radius:20px;width:100%;max-width:400px;box-shadow:0 32px 80px rgba(0,0,0,.22),0 8px 24px rgba(0,0,0,.1);animation:cdSlideUp .22s cubic-bezier(.34,1.56,.64,1);overflow:hidden;}
+@keyframes cdSlideUp{from{transform:translateY(32px) scale(.94);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+.cdialog-icon-wrap{display:flex;align-items:center;justify-content:center;padding:32px 32px 20px;}
+.cdialog-icon-circle{width:64px;height:64px;border-radius:50%;background:var(--green-bg);border:2px solid rgba(22,163,74,.25);display:flex;align-items:center;justify-content:center;font-size:28px;animation:cdIconPop .3s .1s cubic-bezier(.34,1.56,.64,1) both;}
 @keyframes cdIconPop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
 .cdialog-content{padding:0 28px 8px;text-align:center;}
 .cdialog-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--text);margin-bottom:10px;}
 .cdialog-msg{font-size:14px;color:var(--text-med);line-height:1.6;}
-.cdialog-person-name{
-  display:inline-block;margin:12px 0 4px;
-  background:var(--green-bg);color:var(--green);
-  border:1px solid rgba(22,163,74,.25);border-radius:8px;
-  padding:6px 16px;font-weight:600;font-size:15px;font-family:'Playfair Display',serif;
-}
-.cdialog-warning{
-  margin:12px 28px 0;padding:10px 14px;
-  background:var(--amber-bg);border:1px solid rgba(180,83,9,.2);
-  border-radius:8px;font-size:12px;color:var(--amber);font-weight:500;
-  display:flex;align-items:flex-start;gap:8px;
-}
+.cdialog-person-name{display:inline-block;margin:12px 0 4px;background:var(--green-bg);color:var(--green);border:1px solid rgba(22,163,74,.25);border-radius:8px;padding:6px 16px;font-weight:600;font-size:15px;font-family:'Playfair Display',serif;}
+.cdialog-warning{margin:12px 28px 0;padding:10px 14px;background:var(--amber-bg);border:1px solid rgba(180,83,9,.2);border-radius:8px;font-size:12px;color:var(--amber);font-weight:500;display:flex;align-items:flex-start;gap:8px;}
 .cdialog-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:20px 28px 28px;}
-.cdialog-cancel{
-  padding:13px 20px;border-radius:10px;border:1.5px solid var(--border);
-  background:var(--bg2);color:var(--text-med);font-family:'DM Sans',sans-serif;
-  font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;
-}
+.cdialog-cancel{padding:13px 20px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text-med);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;}
 .cdialog-cancel:hover{background:var(--border);border-color:var(--border2);}
-.cdialog-confirm{
-  padding:13px 20px;border-radius:10px;border:none;
-  background:var(--green);color:#fff;font-family:'DM Sans',sans-serif;
-  font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;
-  display:flex;align-items:center;justify-content:center;gap:7px;
-}
+.cdialog-confirm{padding:13px 20px;border-radius:10px;border:none;background:var(--green);color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px;}
 .cdialog-confirm:hover{opacity:.88;transform:translateY(-1px);box-shadow:0 4px 14px rgba(22,163,74,.35);}
 .cdialog-confirm:active{transform:translateY(0);}
 .cdialog-confirm-red{background:var(--red);}
 .cdialog-confirm-red:hover{box-shadow:0 4px 14px rgba(220,38,38,.35);}
-
-/* ─── UNSETTLE DIALOG (red variant) ─── */
 .cdialog-icon-circle.red-variant{background:var(--red-bg);border-color:rgba(220,38,38,.25);}
 
 /* POPUP */
@@ -295,17 +287,12 @@ const CSS = `
 .shared-split-pill{display:flex;align-items:center;gap:6px;padding:5px 12px 5px 8px;border-radius:99px;background:var(--purple-bg);border:1px solid rgba(124,58,237,.2);font-size:12px;font-weight:500;color:var(--text-med);}
 .split-pill-avatar{width:18px;height:18px;border-radius:50%;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;}
 .split-pill-amount{font-weight:700;color:var(--red);}
-.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.05em;}
-.badge-settled{background:var(--green-bg);color:var(--green);}
-.badge-partial{background:var(--amber-bg);color:var(--amber);}
-.badge-pending{background:var(--red-bg);color:var(--red);}
 .empty-state{text-align:center;padding:60px 24px;background:var(--surface);border:1.5px dashed var(--border2);border-radius:16px;margin-bottom:36px;}
 .empty-icon{font-size:40px;margin-bottom:14px;}
 .empty-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--text-med);margin-bottom:8px;}
 .empty-sub{font-size:13px;color:var(--text-dim);}
 .loading-text{text-align:center;color:var(--text-dim);padding:48px;font-size:14px;}
 .no-shared-history{text-align:center;padding:28px;font-size:13px;color:var(--text-faint);font-style:italic;}
-
 .filter-bar{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;box-shadow:var(--shadow-sm);}
 .filter-search{flex:1;min-width:180px;background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;padding:9px 13px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;}
 .filter-search::placeholder{color:var(--text-faint);}
@@ -315,18 +302,15 @@ const CSS = `
 .filter-pill:hover{border-color:var(--teal);color:var(--teal);}
 .filter-pill.active{background:var(--teal);border-color:var(--teal);color:#fff;}
 .filter-pill.pending.active{background:var(--amber);border-color:var(--amber);}
-.filter-pill.settled.active{background:var(--green);border-color:var(--green);}
 .sort-select{background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--text-med);outline:none;cursor:pointer;transition:border-color .2s;appearance:none;}
 .sort-select:focus{border-color:var(--teal);}
 .filter-count{font-size:12px;color:var(--text-dim);margin-left:auto;white-space:nowrap;}
-
-.settle-btn{display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--green-bg);color:var(--green);border:1.5px solid rgba(22,163,74,0.3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap;}
-.settle-btn:hover{background:var(--green);color:#fff;border-color:var(--green);transform:translateY(-1px);}
 `;
 
 const fmt = (n) => Math.round(n).toLocaleString("en-IN");
+const nowSettledAt = () =>
+  new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
-// ─── CUSTOM CONFIRM DIALOG ───
 function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, personName, warning, confirmLabel = "Confirm", variant = "green" }) {
   if (!isOpen) return null;
   return (
@@ -342,23 +326,29 @@ function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, personName,
           <div className="cdialog-msg">{message}</div>
           {personName && <div className="cdialog-person-name">{personName}</div>}
         </div>
-        {warning && (
-          <div className="cdialog-warning">
-            <span>⚠️</span>
-            <span>{warning}</span>
-          </div>
-        )}
+        {warning && <div className="cdialog-warning"><span>⚠️</span><span>{warning}</span></div>}
         <div className="cdialog-actions">
           <button className="cdialog-cancel" onClick={onClose}>Cancel</button>
-          <button
-            className={`cdialog-confirm${variant === "red" ? " cdialog-confirm-red" : ""}`}
-            onClick={() => { onConfirm(); onClose(); }}
-          >
-            <span>{variant === "red" ? "↩" : "✓"}</span>
-            {confirmLabel}
+          <button className={`cdialog-confirm${variant === "red" ? " cdialog-confirm-red" : ""}`}
+            onClick={() => { onConfirm(); onClose(); }}>
+            <span>{variant === "red" ? "↩" : "✓"}</span>{confirmLabel}
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function AutoSettleToast({ name, onDone }) {
+  const [leaving, setLeaving] = useState(false);
+  useEffect(() => {
+    const t1 = setTimeout(() => setLeaving(true), 3200);
+    const t2 = setTimeout(onDone, 3500);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [onDone]);
+  return (
+    <div className={`auto-settle-toast${leaving ? " out" : ""}`}>
+      🔒 <span><strong>{name}</strong> auto-settled — moved to Settled section</span>
     </div>
   );
 }
@@ -389,61 +379,19 @@ export default function BulkTracker() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
-  // ─── CUSTOM DIALOG STATE ───
-  const [dialog, setDialog] = useState({
-    isOpen: false, title: "", message: "", personName: "", warning: "",
-    confirmLabel: "Confirm", variant: "green", onConfirm: () => { }
-  });
+  const [dialog, setDialog] = useState({ isOpen: false, title: "", message: "", personName: "", warning: "", confirmLabel: "Confirm", variant: "green", onConfirm: () => { } });
   const closeDialog = () => setDialog(d => ({ ...d, isOpen: false }));
   const openDialog = (opts) => setDialog({ isOpen: true, ...opts });
 
-  const [settledMap, setSettledMap] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("bt_settled") || "{}"); } catch { return {}; }
-  });
-  const [settledExpanded, setSettledExpanded] = useState({});
+  const [toasts, setToasts] = useState([]);
+  const toastId = useRef(0);
+
+  // Settled section: ALWAYS starts collapsed (false), user must click to open
   const [showSettledSection, setShowSettledSection] = useState(false);
+  // Which settled cards are expanded inside the section
+  const [settledExpanded, setSettledExpanded] = useState({});
 
-  const markSettled = (id, name) => {
-    openDialog({
-      title: "Mark as Settled?",
-      message: "This will lock the card and make it read-only.",
-      personName: name,
-      warning: "You can always undo this by clicking 'Unsettle' later.",
-      confirmLabel: "Yes, Settle",
-      variant: "green",
-      onConfirm: () => {
-        const updated = {
-          ...settledMap,
-          [id]: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
-        };
-        setSettledMap(updated);
-        localStorage.setItem("bt_settled", JSON.stringify(updated));
-        setSelectedIds(prev => prev.filter(i => i !== id));
-      }
-    });
-  };
-
-  const unsettle = (id, name) => {
-    openDialog({
-      title: "Remove Settled Status?",
-      message: "This person will become active again and can be edited.",
-      personName: name,
-      warning: "",
-      confirmLabel: "Yes, Unsettle",
-      variant: "red",
-      onConfirm: () => {
-        const updated = { ...settledMap };
-        delete updated[id];
-        setSettledMap(updated);
-        localStorage.setItem("bt_settled", JSON.stringify(updated));
-        setSettledExpanded(prev => { const n = { ...prev }; delete n[id]; return n; });
-      }
-    });
-  };
-
-  const toggleSettledExpand = (id) => {
-    setSettledExpanded(prev => ({ ...prev, [id]: !prev[id] }));
-  };
+  const autoSettledRef = useRef(new Set());
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { if (!data.session) navigate("/"); });
@@ -480,12 +428,70 @@ export default function BulkTracker() {
     return cols[Math.abs(h) % cols.length];
   };
 
+  // Auto-settle: silently moves card to settled section when balance hits 0
+  useEffect(() => {
+    if (loading || bulkIncomes.length === 0) return;
+    bulkIncomes.filter(inc => !inc.is_settled).forEach(inc => {
+      const remaining = getRemaining(inc);
+      if (remaining <= 0 && inc.amount > 0 && !autoSettledRef.current.has(inc.id)) {
+        autoSettledRef.current.add(inc.id);
+        supabase.from("bulk_income")
+          .update({ is_settled: true, settled_at: nowSettledAt() })
+          .eq("id", inc.id)
+          .then(() => {
+            const tid = ++toastId.current;
+            setToasts(prev => [...prev, { id: tid, name: inc.person_name }]);
+            setSelectedIds(prev => prev.filter(i => i !== inc.id));
+            fetchData();
+          });
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bulkIncomes, bulkExpenses, sharedExpenses, loading]);
+
+  const markSettled = (id, name) => {
+    openDialog({
+      title: "Mark as Settled?",
+      message: "This will lock the card and move it to the Settled section.",
+      personName: name,
+      warning: "You can always undo this by clicking 'Unsettle' later.",
+      confirmLabel: "Yes, Settle",
+      variant: "green",
+      onConfirm: async () => {
+        await supabase.from("bulk_income").update({ is_settled: true, settled_at: nowSettledAt() }).eq("id", id);
+        setSelectedIds(prev => prev.filter(i => i !== id));
+        autoSettledRef.current.add(id);
+        fetchData();
+      }
+    });
+  };
+
+  const unsettle = (id, name) => {
+    openDialog({
+      title: "Remove Settled Status?",
+      message: "This person will become active again and can be edited.",
+      personName: name,
+      warning: "",
+      confirmLabel: "Yes, Unsettle",
+      variant: "red",
+      onConfirm: async () => {
+        await supabase.from("bulk_income").update({ is_settled: false, settled_at: null }).eq("id", id);
+        autoSettledRef.current.delete(id);
+        setSettledExpanded(prev => { const n = { ...prev }; delete n[id]; return n; });
+        fetchData();
+      }
+    });
+  };
+
+  const toggleSettledExpand = (id) => setSettledExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+
   const addBulkIncome = async () => {
     if (!incForm.person_name.trim() || !incForm.amount) return;
     await supabase.from("bulk_income").insert([{
       person_name: incForm.person_name.trim(),
       amount: Math.round(Number(incForm.amount)),
       date: incForm.date, note: incForm.note.trim() || null,
+      is_settled: false, settled_at: null,
     }]);
     setIncForm({ person_name: "", amount: "", date: today, note: "" });
     fetchData();
@@ -497,6 +503,7 @@ export default function BulkTracker() {
       person_name: editingIncome.person_name.trim(),
       amount: Math.round(Number(editingIncome.amount)),
     }).eq("id", editingIncome.id);
+    autoSettledRef.current.delete(editingIncome.id);
     setEditingIncome(null);
     fetchData();
   };
@@ -507,8 +514,7 @@ export default function BulkTracker() {
       message: "All expenses for this person will be permanently deleted.",
       personName: bulkIncomes.find(i => i.id === id)?.person_name || "",
       warning: "This action cannot be undone.",
-      confirmLabel: "Delete",
-      variant: "red",
+      confirmLabel: "Delete", variant: "red",
       onConfirm: async () => {
         await supabase.from("bulk_expense").delete().eq("bulk_income_id", id);
         const { data: splits } = await supabase.from("shared_expense_split").select("shared_expense_id").eq("bulk_income_id", id);
@@ -519,6 +525,7 @@ export default function BulkTracker() {
         }
         await supabase.from("bulk_income").delete().eq("id", id);
         setSelectedIds(prev => prev.filter(i => i !== id));
+        autoSettledRef.current.delete(id);
         if (popupPersonId === id) setPopupPersonId(null);
         fetchData();
       }
@@ -530,26 +537,28 @@ export default function BulkTracker() {
     await supabase.from("bulk_expense").insert([{
       bulk_income_id: bulkIncomeId,
       description: expForm.description.trim(),
-      amount: Math.round(Number(expForm.amount)),
-      date: today,
+      amount: Math.round(Number(expForm.amount)), date: today,
     }]);
-    setExpForm({ description: "", amount: "" }); setOpenExpForm(null); fetchData();
+    setExpForm({ description: "", amount: "" });
+    setOpenExpForm(null);
+    autoSettledRef.current.delete(bulkIncomeId);
+    fetchData();
   };
 
-  const deleteExpense = async (id) => {
-    await supabase.from("bulk_expense").delete().eq("id", id); fetchData();
+  const deleteExpense = async (id, bulkIncomeId) => {
+    await supabase.from("bulk_expense").delete().eq("id", id);
+    autoSettledRef.current.delete(bulkIncomeId);
+    fetchData();
   };
 
   const toggleSelect = (id) => {
-    if (settledMap[id]) return;
+    const inc = bulkIncomes.find(i => i.id === id);
+    if (inc?.is_settled) return;
     setManualAmounts({});
     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
-  const openPopup = (personId, readonly = false) => {
-    setPopupPersonId(personId);
-    setPopupIsReadonly(readonly);
-  };
+  const openPopup = (personId, readonly = false) => { setPopupPersonId(personId); setPopupIsReadonly(readonly); };
 
   const selectedPersons = bulkIncomes.filter(inc => selectedIds.includes(inc.id));
   const combinedBalance = selectedPersons.reduce((s, inc) => s + Math.max(0, getRemaining(inc)), 0);
@@ -559,36 +568,26 @@ export default function BulkTracker() {
     if (!sharedDesc.trim()) { alert("Enter expense description"); return; }
     if (selectedPersons.length < 2) { alert("Select at least 2 persons"); return; }
     if (enteredTotal === 0) { alert("Enter amount for at least one person"); return; }
-    const splits = selectedPersons
-      .map(inc => ({ person: inc, amount: Math.round(Number(manualAmounts[inc.id])) || 0 }))
-      .filter(s => s.amount > 0);
-    const { data: seData, error: seErr } = await supabase
-      .from("shared_expense")
-      .insert([{
-        description: sharedDesc.trim(), total_amount: enteredTotal, date: sharedDate,
-        persons: selectedPersons.map(p => p.person_name).join(", ")
-      }])
+    const splits = selectedPersons.map(inc => ({ person: inc, amount: Math.round(Number(manualAmounts[inc.id])) || 0 })).filter(s => s.amount > 0);
+    const { data: seData, error: seErr } = await supabase.from("shared_expense")
+      .insert([{ description: sharedDesc.trim(), total_amount: enteredTotal, date: sharedDate, persons: selectedPersons.map(p => p.person_name).join(", ") }])
       .select().single();
     if (seErr) { alert(seErr.message); return; }
     await supabase.from("shared_expense_split").insert(
-      splits.map(s => ({
-        shared_expense_id: seData.id, bulk_income_id: s.person.id,
-        person_name: s.person.person_name, split_amount: s.amount,
-      }))
+      splits.map(s => ({ shared_expense_id: seData.id, bulk_income_id: s.person.id, person_name: s.person.person_name, split_amount: s.amount }))
     );
+    splits.forEach(s => autoSettledRef.current.delete(s.person.id));
     setSharedDesc(""); setSharedDate(today); setManualAmounts({});
     fetchData();
   };
 
   const deleteSharedExpense = async (id) => {
     openDialog({
-      title: "Delete Shared Expense?",
-      message: "This shared expense and all its splits will be removed.",
-      personName: "",
-      warning: "This action cannot be undone.",
-      confirmLabel: "Delete",
-      variant: "red",
+      title: "Delete Shared Expense?", message: "This shared expense and all its splits will be removed.",
+      personName: "", warning: "This action cannot be undone.", confirmLabel: "Delete", variant: "red",
       onConfirm: async () => {
+        const se = sharedExpenses.find(x => x.id === id);
+        if (se?.shared_expense_split) se.shared_expense_split.forEach(s => autoSettledRef.current.delete(s.bulk_income_id));
         await supabase.from("shared_expense_split").delete().eq("shared_expense_id", id);
         await supabase.from("shared_expense").delete().eq("id", id);
         fetchData();
@@ -601,37 +600,30 @@ export default function BulkTracker() {
   const totalSharedExp = sharedExpenses.reduce((s, e) => s + e.total_amount, 0);
   const totalRemaining = totalBulkIn - totalIndivExp - totalSharedExp;
 
-  const activePersons = bulkIncomes.filter(inc => !settledMap[inc.id]);
-  const settledPersons = bulkIncomes.filter(inc => !!settledMap[inc.id]);
+  const activePersons = bulkIncomes.filter(inc => !inc.is_settled);
+  const settledPersons = bulkIncomes.filter(inc => !!inc.is_settled);
 
   const applyFiltersAndSort = (list) =>
-    list
-      .filter(inc => {
-        const indivSpent = getIndivExp(inc.id);
-        const sharedCut = getSharedCut(inc.id);
-        const totalSpent = indivSpent + sharedCut;
-        const autoStatus = getStatus(inc.amount, totalSpent);
-        const matchesSearch = inc.person_name.toLowerCase().includes(searchQ.toLowerCase()) ||
-          (inc.note || "").toLowerCase().includes(searchQ.toLowerCase());
-        const matchesFilter = filterStatus === "all" || filterStatus === "settled" || autoStatus === filterStatus;
-        return matchesSearch && matchesFilter;
-      })
-      .sort((a, b) => {
-        if (sortBy === "balance-high") return Math.max(0, getRemaining(b)) - Math.max(0, getRemaining(a));
-        if (sortBy === "balance-low") return Math.max(0, getRemaining(a)) - Math.max(0, getRemaining(b));
-        if (sortBy === "name") return a.person_name.localeCompare(b.person_name);
-        if (sortBy === "amount-high") return b.amount - a.amount;
-        return new Date(b.created_at || b.date) - new Date(a.created_at || a.date);
-      });
+    list.filter(inc => {
+      const totalSpent = getIndivExp(inc.id) + getSharedCut(inc.id);
+      const autoStatus = getStatus(inc.amount, totalSpent);
+      const matchesSearch = inc.person_name.toLowerCase().includes(searchQ.toLowerCase()) || (inc.note || "").toLowerCase().includes(searchQ.toLowerCase());
+      const matchesFilter = filterStatus === "all" || autoStatus === filterStatus;
+      return matchesSearch && matchesFilter;
+    }).sort((a, b) => {
+      if (sortBy === "balance-high") return Math.max(0, getRemaining(b)) - Math.max(0, getRemaining(a));
+      if (sortBy === "balance-low") return Math.max(0, getRemaining(a)) - Math.max(0, getRemaining(b));
+      if (sortBy === "name") return a.person_name.localeCompare(b.person_name);
+      if (sortBy === "amount-high") return b.amount - a.amount;
+      return new Date(b.created_at || b.date) - new Date(a.created_at || a.date);
+    });
 
   const filteredActive = applyFiltersAndSort(activePersons);
   const filteredSettled = applyFiltersAndSort(settledPersons);
 
   const popupPerson = popupPersonId ? bulkIncomes.find(i => i.id === popupPersonId) : null;
   const popupIndivExp = popupPersonId ? bulkExpenses.filter(e => e.bulk_income_id === popupPersonId) : [];
-  const popupShared = popupPersonId
-    ? sharedExpenses.filter(se => (se.shared_expense_split || []).some(s => s.bulk_income_id === popupPersonId))
-    : [];
+  const popupShared = popupPersonId ? sharedExpenses.filter(se => (se.shared_expense_split || []).some(s => s.bulk_income_id === popupPersonId)) : [];
   const popupSharedCut = (seId) => {
     const se = sharedExpenses.find(x => x.id === seId);
     if (!se) return 0;
@@ -656,13 +648,9 @@ export default function BulkTracker() {
 
     return (
       <div className={`person-card${isSelected ? " selected-card" : ""}`} key={inc.id}>
-        {/* HEADER */}
         <div className="person-card-header">
-          <div className={`select-checkbox${isSelected ? " checked" : ""}`}
-            onClick={() => toggleSelect(inc.id)} title="Select for shared expense">
-            <svg width="12" height="12" fill="none" stroke="#fff" strokeWidth="3" viewBox="0 0 24 24">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
+          <div className={`select-checkbox${isSelected ? " checked" : ""}`} onClick={() => toggleSelect(inc.id)} title="Select for shared expense">
+            <svg width="12" height="12" fill="none" stroke="#fff" strokeWidth="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
           </div>
           <div className="person-avatar" style={{ background: avatarColor(inc.person_name) }}>
             {inc.person_name.charAt(0).toUpperCase()}
@@ -688,28 +676,19 @@ export default function BulkTracker() {
           </button>
         </div>
 
-        {/* INLINE EDIT FORM */}
         {isEditing && (
           <div className="edit-income-form">
             <div className="field-wrap edit-name-field">
               <label className="field-label">Name</label>
-              <input
-                className="bt-input"
-                value={editingIncome.person_name}
-                autoFocus
+              <input className="bt-input" value={editingIncome.person_name} autoFocus
                 onChange={e => setEditingIncome({ ...editingIncome, person_name: e.target.value })}
-                onKeyDown={e => { if (e.key === "Enter") saveEditIncome(); if (e.key === "Escape") setEditingIncome(null); }}
-              />
+                onKeyDown={e => { if (e.key === "Enter") saveEditIncome(); if (e.key === "Escape") setEditingIncome(null); }} />
             </div>
             <div className="field-wrap">
               <label className="field-label">Amount (₹)</label>
-              <input
-                className="bt-input"
-                type="number"
-                value={editingIncome.amount}
+              <input className="bt-input" type="number" value={editingIncome.amount}
                 onChange={e => setEditingIncome({ ...editingIncome, amount: e.target.value })}
-                onKeyDown={e => { if (e.key === "Enter") saveEditIncome(); if (e.key === "Escape") setEditingIncome(null); }}
-              />
+                onKeyDown={e => { if (e.key === "Enter") saveEditIncome(); if (e.key === "Escape") setEditingIncome(null); }} />
             </div>
             <div className="edit-btns-row">
               <button className="btn btn-teal btn-sm" onClick={saveEditIncome}>Save</button>
@@ -718,7 +697,6 @@ export default function BulkTracker() {
           </div>
         )}
 
-        {/* AMOUNTS */}
         <div className="person-amounts">
           <div className="amt-block">
             <div className="amt-label">Received</div>
@@ -733,13 +711,10 @@ export default function BulkTracker() {
           </div>
           <div className="amt-block">
             <div className="amt-label">Remaining</div>
-            <div className={`amt-value ${remaining > 0 ? "teal" : remaining < 0 ? "red" : "zero"}`}>
-              ₹{fmt(remaining)}
-            </div>
+            <div className={`amt-value ${remaining > 0 ? "teal" : remaining < 0 ? "red" : "zero"}`}>₹{fmt(remaining)}</div>
           </div>
         </div>
 
-        {/* PROGRESS */}
         <div className="progress-bar-wrap">
           <div className="progress-label-row"><span>Used</span><span>{pct}%</span></div>
           <div className="progress-track-active">
@@ -747,14 +722,10 @@ export default function BulkTracker() {
           </div>
         </div>
 
-        {/* MARK SETTLED */}
         <div style={{ padding: "10px 18px 0" }}>
-          <button className="settle-btn" onClick={() => markSettled(inc.id, inc.person_name)}>
-            ✓ Mark as Settled
-          </button>
+          <button className="settle-btn" onClick={() => markSettled(inc.id, inc.person_name)}>✓ Mark as Settled</button>
         </div>
 
-        {/* ─── ADD INDIVIDUAL EXPENSE — STACKED ─── */}
         <div className="add-expense-section" style={{ marginTop: 10 }}>
           <div className="add-expense-toggle"
             onClick={() => { setOpenExpForm(isOpen ? null : inc.id); setExpForm({ description: "", amount: "" }); }}>
@@ -765,25 +736,15 @@ export default function BulkTracker() {
             <div className="add-exp-form">
               <div className="field-wrap">
                 <label className="field-label">Description</label>
-                <input
-                  className="bt-input"
-                  placeholder="e.g. Transport, Food, Hotel…"
-                  autoFocus
-                  value={expForm.description}
-                  onChange={e => setExpForm({ ...expForm, description: e.target.value })}
-                  onKeyDown={e => { if (e.key === "Enter") addExpense(inc.id); }}
-                />
+                <input className="bt-input" placeholder="e.g. Transport, Food, Hotel…" autoFocus
+                  value={expForm.description} onChange={e => setExpForm({ ...expForm, description: e.target.value })}
+                  onKeyDown={e => { if (e.key === "Enter") addExpense(inc.id); }} />
               </div>
               <div className="field-wrap">
                 <label className="field-label">Amount (₹)</label>
-                <input
-                  className="bt-input"
-                  type="number"
-                  placeholder="0"
-                  value={expForm.amount}
-                  onChange={e => setExpForm({ ...expForm, amount: e.target.value })}
-                  onKeyDown={e => { if (e.key === "Enter") addExpense(inc.id); }}
-                />
+                <input className="bt-input" type="number" placeholder="0"
+                  value={expForm.amount} onChange={e => setExpForm({ ...expForm, amount: e.target.value })}
+                  onKeyDown={e => { if (e.key === "Enter") addExpense(inc.id); }} />
               </div>
               <div className="add-exp-save-row">
                 <button className="btn btn-ghost btn-sm" onClick={() => setOpenExpForm(null)}>Cancel</button>
@@ -793,7 +754,6 @@ export default function BulkTracker() {
           )}
         </div>
 
-        {/* HISTORY BUTTON */}
         <button className="exp-history-btn" onClick={() => openPopup(inc.id, false)}>
           📋 Expense History
           <span className="badge-count">{expCount}</span>
@@ -803,7 +763,7 @@ export default function BulkTracker() {
     );
   };
 
-  // ─── SETTLED CARD ───
+  // ─── SETTLED CARD (read-only, expandable) ───
   const renderSettledCard = (inc) => {
     const indivSpent = getIndivExp(inc.id);
     const sharedCut = getSharedCut(inc.id);
@@ -816,6 +776,7 @@ export default function BulkTracker() {
 
     return (
       <div className="person-card settled-card" key={inc.id}>
+        {/* collapsed header row */}
         <div className="settled-collapsed" onClick={() => toggleSettledExpand(inc.id)}>
           <div className="settled-lock-icon">🔒</div>
           <div className="person-avatar" style={{ background: avatarColor(inc.person_name), width: 32, height: 32, fontSize: 13 }}>
@@ -823,16 +784,12 @@ export default function BulkTracker() {
           </div>
           <div className="settled-person-info">
             <div className="settled-person-name">{inc.person_name}</div>
-            <div className="settled-person-meta">
-              Settled {settledMap[inc.id]} · ₹{fmt(inc.amount)} received
-            </div>
+            <div className="settled-person-meta">Settled {inc.settled_at} · ₹{fmt(inc.amount)} received</div>
           </div>
-          <div className="settled-amounts-mini">
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 10, color: "var(--text-faint)", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em" }}>Remaining</div>
-              <div className="settled-amt" style={{ color: remaining < 0 ? "var(--red)" : "var(--green)" }}>
-                ₹{fmt(remaining)}
-              </div>
+          <div className="settled-remaining-mini">
+            <div className="settled-remaining-label">Remaining</div>
+            <div className="settled-remaining-val" style={{ color: remaining < 0 ? "var(--red)" : remaining === 0 ? "var(--text-faint)" : "var(--green)" }}>
+              ₹{fmt(remaining)}
             </div>
           </div>
           <div className="settled-expand-hint">
@@ -841,11 +798,12 @@ export default function BulkTracker() {
           </div>
         </div>
 
+        {/* expanded read-only body */}
         {isExpanded && (
           <div className="settled-expanded-body">
             <div className="settled-readonly-banner">
-              🔒 Read-only — settled on {settledMap[inc.id]}
-              <button className="settled-unsettle-btn" onClick={(e) => { e.stopPropagation(); unsettle(inc.id, inc.person_name); }}>
+              🔒 Read-only — settled on {inc.settled_at}
+              <button className="settled-unsettle-btn" onClick={e => { e.stopPropagation(); unsettle(inc.id, inc.person_name); }}>
                 ↩ Unsettle
               </button>
             </div>
@@ -863,9 +821,7 @@ export default function BulkTracker() {
               </div>
               <div className="amt-block">
                 <div className="amt-label">Remaining</div>
-                <div className={`amt-value ${remaining > 0 ? "teal" : remaining < 0 ? "red" : "zero"}`}>
-                  ₹{fmt(remaining)}
-                </div>
+                <div className={`amt-value ${remaining > 0 ? "teal" : remaining < 0 ? "red" : "zero"}`}>₹{fmt(remaining)}</div>
               </div>
             </div>
             <div className="readonly-progress">
@@ -902,22 +858,19 @@ export default function BulkTracker() {
 
         <div className="bt-wrap">
 
-          {/* ADD INCOME */}
           <p className="section-title">Add Bulk Income</p>
           <div className="add-form-card">
             <div className="add-form-grid">
               <div className="field-wrap">
                 <label className="field-label">Person Name</label>
                 <input className="bt-input" placeholder="e.g. Rajan, Suresh…"
-                  value={incForm.person_name}
-                  onChange={e => setIncForm({ ...incForm, person_name: e.target.value })}
+                  value={incForm.person_name} onChange={e => setIncForm({ ...incForm, person_name: e.target.value })}
                   onKeyDown={e => e.key === "Enter" && addBulkIncome()} />
               </div>
               <div className="field-wrap">
                 <label className="field-label">Amount (₹)</label>
                 <input className="bt-input" type="number" placeholder="0"
-                  value={incForm.amount}
-                  onChange={e => setIncForm({ ...incForm, amount: e.target.value })}
+                  value={incForm.amount} onChange={e => setIncForm({ ...incForm, amount: e.target.value })}
                   onKeyDown={e => e.key === "Enter" && addBulkIncome()} />
               </div>
               <div className="field-wrap">
@@ -931,7 +884,6 @@ export default function BulkTracker() {
             </div>
           </div>
 
-          {/* SUMMARY */}
           <div className="summary-row">
             <div className="sum-card">
               <div className="sum-accent" style={{ background: "var(--green)" }} />
@@ -950,31 +902,25 @@ export default function BulkTracker() {
             </div>
           </div>
 
-          {/* ACTIVE PERSONS */}
           <p className="section-title">
             Active Persons
             {selectedIds.length > 0 && (
-              <span style={{
-                fontSize: 12, fontFamily: "DM Sans", fontWeight: 600, color: "var(--purple)",
-                background: "var(--purple-bg)", padding: "3px 12px", borderRadius: 20, marginLeft: 8
-              }}>
+              <span style={{ fontSize: 12, fontFamily: "DM Sans", fontWeight: 600, color: "var(--purple)", background: "var(--purple-bg)", padding: "3px 12px", borderRadius: 20, marginLeft: 8 }}>
                 {selectedIds.length} selected for shared
               </span>
             )}
           </p>
           <p style={{ fontSize: 12, color: "var(--text-dim)", marginBottom: 18, marginTop: -12 }}>
-            💡 Check the checkbox to include in shared expense · ✏️ to edit · "Mark as Settled" to lock the card
+            💡 Checkbox = include in shared · ✏️ edit · "Mark as Settled" to lock · Balance ₹0 = auto-settles
           </p>
 
-          {/* FILTER BAR */}
           {!loading && bulkIncomes.length > 0 && (
             <div className="filter-bar">
               <input className="filter-search" placeholder="🔍 Search by name or note…"
                 value={searchQ} onChange={e => setSearchQ(e.target.value)} />
               <div className="filter-pills">
                 {["all", "pending", "partial"].map(s => (
-                  <button key={s}
-                    className={`filter-pill ${s}${filterStatus === s ? " active" : ""}`}
+                  <button key={s} className={`filter-pill ${s}${filterStatus === s ? " active" : ""}`}
                     onClick={() => setFilterStatus(s)}>
                     {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
                   </button>
@@ -997,7 +943,7 @@ export default function BulkTracker() {
             <div className="empty-state">
               <div className="empty-icon">💼</div>
               <div className="empty-title">No bulk income added yet</div>
-              <div className="empty-sub">Enter a person name and amount in the form above to get started</div>
+              <div className="empty-sub">Enter a person name and amount above to get started</div>
             </div>
           ) : filteredActive.length === 0 && activePersons.length > 0 ? (
             <div className="empty-state">
@@ -1006,25 +952,52 @@ export default function BulkTracker() {
               <div className="empty-sub">Try a different search or filter</div>
             </div>
           ) : (
-            <div className="persons-grid">
+            <div className="persons-grid" style={{ marginBottom: 28 }}>
               {filteredActive.map(inc => renderActiveCard(inc))}
             </div>
           )}
 
-          {/* SETTLED PERSONS SECTION */}
+          {/* ═══════════════════════════════════════════════
+              SETTLED SECTION
+              - Always starts collapsed (showSettledSection=false)
+              - Only shows when user clicks the accordion header
+              - Cards inside are also individually collapsible (read-only)
+              ═══════════════════════════════════════════════ */}
           {settledPersons.length > 0 && (
-            <>
-              <div className="settled-section-toggle" onClick={() => setShowSettledSection(v => !v)}>
-                🔒 Settled Persons
-                <span className="settled-section-count">{settledPersons.length}</span>
-                <span className="settled-section-arrow" style={{ transform: showSettledSection ? "rotate(180deg)" : "none" }}>▼</span>
+            <div className="settled-section-wrap">
+              {/* Accordion header — click to toggle */}
+              <div
+                className={`settled-accordion-header${showSettledSection ? " is-open" : ""}`}
+                onClick={() => setShowSettledSection(v => !v)}
+              >
+                <span className="sah-lock">🔒</span>
+                <div className="sah-info">
+                  <div className="sah-title">Settled Persons</div>
+                  <div className="sah-sub">
+                    {showSettledSection
+                      ? "Click to hide · All cards are read-only"
+                      : "Click to view · Hidden for a clean workspace"}
+                  </div>
+                </div>
+                <span className="sah-badge">{settledPersons.length}</span>
+                <span className={`sah-arrow${showSettledSection ? " open" : ""}`}>▼</span>
               </div>
+
+              {/* Accordion body — only rendered when open */}
               {showSettledSection && (
-                <div className="persons-grid">
-                  {filteredSettled.map(inc => renderSettledCard(inc))}
+                <div className="settled-accordion-body">
+                  {filteredSettled.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "24px 0", color: "var(--text-faint)", fontSize: 13, fontStyle: "italic" }}>
+                      No settled persons match your current search/filter
+                    </div>
+                  ) : (
+                    <div className="persons-grid">
+                      {filteredSettled.map(inc => renderSettledCard(inc))}
+                    </div>
+                  )}
                 </div>
               )}
-            </>
+            </div>
           )}
 
           {/* SHARED EXPENSE */}
@@ -1040,7 +1013,6 @@ export default function BulkTracker() {
                   : `✅ ${selectedIds.length} person${selectedIds.length > 1 ? "s" : ""} selected`}
               </div>
             </div>
-
             <div className="shared-body">
               <div className="selected-chips">
                 {selectedPersons.length === 0 ? (
@@ -1072,16 +1044,12 @@ export default function BulkTracker() {
                     <div className="field-wrap">
                       <label className="field-label" style={{ opacity: 0 }}>-</label>
                       <button className="btn btn-purple"
-                        style={{
-                          opacity: enteredTotal === 0 || !sharedDesc.trim() ? 0.45 : 1,
-                          cursor: enteredTotal === 0 || !sharedDesc.trim() ? "not-allowed" : "pointer"
-                        }}
+                        style={{ opacity: enteredTotal === 0 || !sharedDesc.trim() ? 0.45 : 1, cursor: enteredTotal === 0 || !sharedDesc.trim() ? "not-allowed" : "pointer" }}
                         onClick={addSharedExpense}>
                         + Save Shared
                       </button>
                     </div>
                   </div>
-
                   <div className="manual-split-box">
                     <div className="manual-split-header">
                       <div>
@@ -1091,18 +1059,14 @@ export default function BulkTracker() {
                       {enteredTotal > 0 && (
                         <div style={{ textAlign: "right" }}>
                           <div style={{ fontSize: 11, color: "var(--purple)", fontWeight: 600, marginBottom: 4 }}>Total Entered</div>
-                          <div style={{ fontFamily: "Playfair Display, serif", fontSize: 24, fontWeight: 700, color: "var(--purple)" }}>
-                            ₹{fmt(enteredTotal)}
-                          </div>
+                          <div style={{ fontFamily: "Playfair Display, serif", fontSize: 24, fontWeight: 700, color: "var(--purple)" }}>₹{fmt(enteredTotal)}</div>
                         </div>
                       )}
                     </div>
                     <div className="manual-split-rows">
                       {selectedPersons.map(inc => (
                         <div className="manual-split-row" key={inc.id}>
-                          <div className="split-row-avatar" style={{ background: avatarColor(inc.person_name) }}>
-                            {inc.person_name.charAt(0).toUpperCase()}
-                          </div>
+                          <div className="split-row-avatar" style={{ background: avatarColor(inc.person_name) }}>{inc.person_name.charAt(0).toUpperCase()}</div>
                           <div className="split-row-name">{inc.person_name}</div>
                           <div className="split-row-bal">Balance: ₹{fmt(Math.max(0, getRemaining(inc)))}</div>
                           <input className="split-row-input" type="number" placeholder="₹ amount"
@@ -1131,9 +1095,7 @@ export default function BulkTracker() {
                     <div className="shared-exp-date">{se.date}</div>
                     <div className="shared-exp-total">−₹{fmt(se.total_amount)}</div>
                     <button className="del-btn" onClick={() => deleteSharedExpense(se.id)}>
-                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-                      </svg>
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" /></svg>
                     </button>
                   </div>
                   <div className="shared-exp-persons">
@@ -1155,17 +1117,16 @@ export default function BulkTracker() {
         </div>
       </div>
 
-      {/* ─── CUSTOM CONFIRM DIALOG ─── */}
+      {/* AUTO-SETTLE TOASTS */}
+      {toasts.map(t => (
+        <AutoSettleToast key={t.id} name={t.name}
+          onDone={() => setToasts(prev => prev.filter(x => x.id !== t.id))} />
+      ))}
+
       <ConfirmDialog
-        isOpen={dialog.isOpen}
-        onClose={closeDialog}
-        onConfirm={dialog.onConfirm}
-        title={dialog.title}
-        message={dialog.message}
-        personName={dialog.personName}
-        warning={dialog.warning}
-        confirmLabel={dialog.confirmLabel}
-        variant={dialog.variant}
+        isOpen={dialog.isOpen} onClose={closeDialog} onConfirm={dialog.onConfirm}
+        title={dialog.title} message={dialog.message} personName={dialog.personName}
+        warning={dialog.warning} confirmLabel={dialog.confirmLabel} variant={dialog.variant}
       />
 
       {/* EXPENSE HISTORY POPUP */}
@@ -1176,11 +1137,7 @@ export default function BulkTracker() {
               <div>
                 <div className="popup-title">
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                    <span style={{
-                      width: 28, height: 28, borderRadius: "50%", background: avatarColor(popupPerson.person_name),
-                      color: "#fff", fontSize: 11, fontWeight: 700, display: "inline-flex",
-                      alignItems: "center", justifyContent: "center", flexShrink: 0
-                    }}>
+                    <span style={{ width: 28, height: 28, borderRadius: "50%", background: avatarColor(popupPerson.person_name), color: "#fff", fontSize: 11, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       {popupPerson.person_name.charAt(0).toUpperCase()}
                     </span>
                     {popupPerson.person_name}
@@ -1190,7 +1147,7 @@ export default function BulkTracker() {
                   Received ₹{fmt(popupPerson.amount)} · {popupIndivExp.length + popupShared.length} expense entries
                 </div>
                 {popupIsReadonly && (
-                  <div className="popup-readonly-badge">🔒 Read-only — settled on {settledMap[popupPersonId]}</div>
+                  <div className="popup-readonly-badge">🔒 Read-only — settled on {popupPerson.settled_at}</div>
                 )}
               </div>
               <button className="popup-close" onClick={() => setPopupPersonId(null)}>✕</button>
@@ -1212,10 +1169,8 @@ export default function BulkTracker() {
                           </div>
                           <div className="popup-exp-amt">−₹{fmt(exp.amount)}</div>
                           {!popupIsReadonly && (
-                            <button className="popup-del-btn" onClick={() => deleteExpense(exp.id)}>
-                              <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-                              </svg>
+                            <button className="popup-del-btn" onClick={() => deleteExpense(exp.id, exp.bulk_income_id)}>
+                              <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" /></svg>
                             </button>
                           )}
                         </div>
