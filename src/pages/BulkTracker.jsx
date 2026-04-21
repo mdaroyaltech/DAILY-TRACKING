@@ -21,10 +21,10 @@ const CSS = `
   --teal:#0d9488; --green:#16a34a; --green-bg:#dcfce7;
   --red:#dc2626; --red-bg:#fee2e2; --amber:#b45309; --amber-bg:#fef3c7;
   --purple:#7c3aed; --purple-bg:#ede9fe;
+  --orange:#ea580c; --orange-bg:#fff7ed;
   --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
   --shadow:0 4px 16px rgba(0,0,0,.07),0 1px 4px rgba(0,0,0,.04);
 
-  /* settled-specific tokens — light mode */
   --settled-card-bg: #f0fdf4;
   --settled-card-border: rgba(22,163,74,.35);
   --settled-card-shadow: 0 2px 8px rgba(22,163,74,.12);
@@ -51,7 +51,6 @@ const CSS = `
   --settled-banner-color: #15803d;
 }
 
-/* ── DARK MODE OVERRIDES ── */
 @media (prefers-color-scheme: dark) {
   :root {
     --bg:#18181b; --bg2:#27272a; --surface:#1f1f23; --surface2:#27272a;
@@ -61,8 +60,8 @@ const CSS = `
     --red:#f87171; --red-bg:rgba(248,113,113,.12);
     --amber:#fbbf24; --amber-bg:rgba(251,191,36,.12);
     --purple:#a78bfa; --purple-bg:rgba(167,139,250,.12);
+    --orange:#fb923c; --orange-bg:rgba(251,146,60,.12);
 
-    /* settled — dark mode */
     --settled-card-bg: rgba(74,222,128,.07);
     --settled-card-border: rgba(74,222,128,.25);
     --settled-card-shadow: 0 2px 10px rgba(0,0,0,.3);
@@ -117,6 +116,7 @@ const CSS = `
 .btn:active{transform:translateY(0);}
 .btn-green{background:var(--green);color:#fff;} .btn-red{background:var(--red);color:#fff;}
 .btn-teal{background:var(--teal);color:#fff;} .btn-purple{background:var(--purple);color:#fff;}
+.btn-orange{background:var(--orange);color:#fff;}
 .btn-ghost{background:var(--bg2);color:var(--text-med);border:1.5px solid var(--border);}
 .btn-sm{padding:9px 20px;font-size:12px;}
 .summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:36px;}
@@ -128,7 +128,6 @@ const CSS = `
 .sum-value.green{color:var(--green);}.sum-value.red{color:var(--red);}.sum-value.teal{color:var(--teal);}
 .persons-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;margin-bottom:0;}
 
-/* ACTIVE CARD */
 .person-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);transition:box-shadow .2s,transform .2s;}
 .person-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);}
 .person-card.selected-card{border-color:var(--purple);box-shadow:0 0 0 3px rgba(124,58,237,.15),var(--shadow);}
@@ -173,136 +172,107 @@ const CSS = `
 .badge-partial{background:var(--amber-bg);color:var(--amber);}
 .badge-pending{background:var(--red-bg);color:var(--red);}
 
+/* ══════════════════════════════════════
+   IMPORT MODAL
+══════════════════════════════════════ */
+.import-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:1500;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .18s ease;}
+.import-modal-box{background:var(--surface);border-radius:20px;width:100%;max-width:640px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.22);animation:slideUp .22s cubic-bezier(.34,1.56,.64,1);overflow:hidden;}
+.import-modal-header{padding:22px 28px 16px;border-bottom:1.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-shrink:0;background:linear-gradient(135deg,#fff7ed 0%,#fff 100%);}
+@media(prefers-color-scheme:dark){.import-modal-header{background:linear-gradient(135deg,rgba(251,146,60,.08) 0%,var(--surface) 100%);}}
+.import-modal-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--text);}
+.import-modal-sub{font-size:12px;color:var(--text-dim);margin-top:4px;line-height:1.5;}
+.import-modal-close{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:16px;transition:all .15s;flex-shrink:0;}
+.import-modal-close:hover{background:var(--red-bg);border-color:var(--red);color:var(--red);}
+.import-modal-body{overflow-y:auto;flex:1;padding:24px 28px;display:flex;flex-direction:column;gap:20px;}
+.import-modal-footer{padding:16px 28px;border-top:1.5px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:var(--surface2);flex-shrink:0;}
+
+/* Step 1 – person fields */
+.import-person-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:500px){.import-person-row{grid-template-columns:1fr;}}
+
+/* File drop zone */
+.import-dropzone{border:2px dashed var(--border2);border-radius:14px;padding:32px 24px;text-align:center;background:var(--bg2);cursor:pointer;transition:all .2s;position:relative;}
+.import-dropzone:hover,.import-dropzone.drag-over{border-color:var(--orange);background:var(--orange-bg);box-shadow:0 0 0 3px rgba(234,88,12,.08);}
+.import-dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.import-dz-icon{font-size:36px;margin-bottom:10px;}
+.import-dz-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.import-dz-sub{font-size:12px;color:var(--text-dim);}
+.import-dz-badge{display:inline-block;margin-top:10px;background:var(--orange-bg);border:1px solid rgba(234,88,12,.25);border-radius:20px;padding:4px 14px;font-size:11px;font-weight:600;color:var(--orange);}
+
+/* Column mapping */
+.import-map-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:18px 20px;}
+.import-map-title{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-med);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.import-map-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.import-map-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:500px){.import-map-grid{grid-template-columns:1fr;}}
+.import-map-field{display:flex;flex-direction:column;gap:5px;}
+.import-map-label{font-size:11px;font-weight:600;color:var(--text-dim);}
+.import-map-label span{color:var(--orange);margin-left:3px;}
+.import-map-select{background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;cursor:pointer;transition:border-color .2s;appearance:none;}
+.import-map-select:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(234,88,12,.1);}
+
+/* Preview table */
+.import-preview-wrap{border:1.5px solid var(--border);border-radius:12px;overflow:hidden;}
+.import-preview-header{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;background:var(--bg2);border-bottom:1.5px solid var(--border);}
+.import-preview-title{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-med);}
+.import-preview-count{font-size:11px;color:var(--text-faint);}
+.import-table-wrap{overflow-x:auto;max-height:220px;overflow-y:auto;}
+.import-table{width:100%;border-collapse:collapse;font-size:13px;}
+.import-table th{background:var(--surface2);padding:9px 14px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);border-bottom:1px solid var(--border);position:sticky;top:0;}
+.import-table td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text);}
+.import-table tr:last-child td{border-bottom:none;}
+.import-table tr:hover td{background:var(--surface2);}
+.import-table td.amt-col{font-family:'Playfair Display',serif;font-weight:700;color:var(--red);}
+.import-table td.invalid{color:var(--red);font-style:italic;}
+.import-row-skip{opacity:.4;}
+
+/* Import summary bar */
+.import-summary-bar{display:flex;align-items:center;gap:16px;padding:12px 16px;background:var(--orange-bg);border:1.5px solid rgba(234,88,12,.25);border-radius:10px;flex-wrap:wrap;}
+.import-sum-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;}
+.import-sum-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.import-progress-overlay{position:absolute;inset:0;background:rgba(255,255,255,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border-radius:20px;z-index:10;}
+@media(prefers-color-scheme:dark){.import-progress-overlay{background:rgba(31,31,35,.9);}}
+.import-progress-text{font-size:14px;font-weight:600;color:var(--text);}
+.import-spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* import btn in card (below the add-expense-section) */
+.import-expense-toggle{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);cursor:pointer;padding:6px 0;user-select:none;transition:opacity .15s;}
+.import-expense-toggle:hover{opacity:.75;}
+
 /* ════════════════════════════════════════════════════
    SETTLED SECTION
    ════════════════════════════════════════════════════ */
 .settled-section-wrap{margin:24px 0 28px;}
-
-.settled-accordion-header{
-  display:flex;align-items:center;gap:14px;
-  padding:16px 22px;
-  background:var(--settled-accordion-bg);
-  border:1.5px solid var(--settled-accordion-border);
-  border-radius:14px;
-  cursor:pointer;user-select:none;
-  transition:background .18s,border-color .18s,border-radius .18s;
-  box-shadow:var(--shadow-sm);
-}
-.settled-accordion-header:hover{
-  background:var(--settled-accordion-hover-bg);
-}
-.settled-accordion-header.is-open{
-  border-radius:14px 14px 0 0;
-  border-bottom-color:transparent;
-  background:var(--settled-accordion-open-bg);
-}
+.settled-accordion-header{display:flex;align-items:center;gap:14px;padding:16px 22px;background:var(--settled-accordion-bg);border:1.5px solid var(--settled-accordion-border);border-radius:14px;cursor:pointer;user-select:none;transition:background .18s,border-color .18s,border-radius .18s;box-shadow:var(--shadow-sm);}
+.settled-accordion-header:hover{background:var(--settled-accordion-hover-bg);}
+.settled-accordion-header.is-open{border-radius:14px 14px 0 0;border-bottom-color:transparent;background:var(--settled-accordion-open-bg);}
 .sah-lock{font-size:20px;flex-shrink:0;color:var(--settled-lock-color);}
 .sah-info{flex:1;min-width:0;}
-.sah-title{
-  font-family:'Playfair Display',serif;
-  font-size:16px;font-weight:700;
-  color:var(--text);
-}
-.sah-sub{
-  font-size:12px;
-  color:var(--text-med);
-  margin-top:2px;letter-spacing:0;font-weight:400;
-}
-.sah-badge{
-  background:var(--settled-badge-bg);
-  color:var(--settled-badge-color);
-  border-radius:20px;padding:5px 16px;
-  font-size:13px;font-weight:700;flex-shrink:0;
-  border:1.5px solid var(--settled-accordion-border);
-}
-.sah-arrow{
-  font-size:13px;
-  color:var(--settled-lock-color);
-  flex-shrink:0;
-  transition:transform .25s cubic-bezier(.4,0,.2,1);
-}
+.sah-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--text);}
+.sah-sub{font-size:12px;color:var(--text-med);margin-top:2px;letter-spacing:0;font-weight:400;}
+.sah-badge{background:var(--settled-badge-bg);color:var(--settled-badge-color);border-radius:20px;padding:5px 16px;font-size:13px;font-weight:700;flex-shrink:0;border:1.5px solid var(--settled-accordion-border);}
+.sah-arrow{font-size:13px;color:var(--settled-lock-color);flex-shrink:0;transition:transform .25s cubic-bezier(.4,0,.2,1);}
 .sah-arrow.open{transform:rotate(180deg);}
-
-.settled-accordion-body{
-  border:1.5px solid var(--settled-body-border);
-  border-top:none;
-  border-radius:0 0 14px 14px;
-  background:var(--settled-body-bg);
-  padding:20px;
-  animation:accordionDown .22s ease;
-}
+.settled-accordion-body{border:1.5px solid var(--settled-body-border);border-top:none;border-radius:0 0 14px 14px;background:var(--settled-body-bg);padding:20px;animation:accordionDown .22s ease;}
 @keyframes accordionDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 
-/* ── SETTLED CARD ── */
-.settled-card{
-  background:var(--settled-card-bg) !important;
-  border:1.5px solid var(--settled-card-border) !important;
-  box-shadow:var(--settled-card-shadow) !important;
-  transform:none !important;
-}
-.settled-card:hover{
-  transform:translateY(-2px) !important;
-  box-shadow:0 6px 20px rgba(22,163,74,.18) !important;
-}
-
-/* collapsed header row inside settled card */
-.settled-collapsed{
-  display:flex;align-items:center;padding:14px 18px;gap:12px;flex-wrap:wrap;
-  cursor:pointer;transition:background .15s;border-radius:14px;
-}
+.settled-card{background:var(--settled-card-bg) !important;border:1.5px solid var(--settled-card-border) !important;box-shadow:var(--settled-card-shadow) !important;transform:none !important;}
+.settled-card:hover{transform:translateY(-2px) !important;box-shadow:0 6px 20px rgba(22,163,74,.18) !important;}
+.settled-collapsed{display:flex;align-items:center;padding:14px 18px;gap:12px;flex-wrap:wrap;cursor:pointer;transition:background .15s;border-radius:14px;}
 .settled-collapsed:hover{background:rgba(22,163,74,.06);}
-
 .settled-lock-icon{font-size:16px;flex-shrink:0;color:var(--settled-lock-color);}
-
 .settled-person-info{flex:1;min-width:0;}
-.settled-person-name{
-  font-family:'Playfair Display',serif;
-  font-size:15px;font-weight:700;
-  color:var(--settled-name-color);
-}
-.settled-person-meta{
-  font-size:11px;
-  color:var(--settled-meta-color);
-  margin-top:3px;font-weight:500;
-}
-
-/* remaining column inside collapsed card */
+.settled-person-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--settled-name-color);}
+.settled-person-meta{font-size:11px;color:var(--settled-meta-color);margin-top:3px;font-weight:500;}
 .settled-remaining-mini{text-align:right;flex-shrink:0;}
-.settled-remaining-label{
-  font-size:10px;
-  font-weight:700;
-  letter-spacing:.09em;
-  text-transform:uppercase;
-  color:var(--settled-remaining-label);
-  margin-bottom:3px;
-}
-.settled-remaining-val{
-  font-family:'Playfair Display',serif;
-  font-size:15px;font-weight:700;
-}
-
-/* view/collapse button */
-.settled-expand-hint{
-  font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
-  color:var(--settled-view-color);
-  display:flex;align-items:center;gap:5px;flex-shrink:0;
-  padding:6px 14px;border-radius:20px;
-  background:var(--settled-view-bg);
-  border:1.5px solid var(--settled-view-border);
-  transition:all .15s;
-}
-.settled-expand-hint:hover{
-  background:var(--settled-view-hover-bg);
-  color:var(--settled-view-hover-color);
-}
+.settled-remaining-label{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--settled-remaining-label);margin-bottom:3px;}
+.settled-remaining-val{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;}
+.settled-expand-hint{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--settled-view-color);display:flex;align-items:center;gap:5px;flex-shrink:0;padding:6px 14px;border-radius:20px;background:var(--settled-view-bg);border:1.5px solid var(--settled-view-border);transition:all .15s;}
+.settled-expand-hint:hover{background:var(--settled-view-hover-bg);color:var(--settled-view-hover-color);}
 .settled-expand-arrow{font-size:9px;transition:transform .2s;}
 .settled-expand-arrow.open{transform:rotate(180deg);}
-
-/* expanded body */
-.settled-expanded-body{
-  border-top:1.5px solid var(--settled-card-border);
-  background:rgba(240,253,244,.3);
-}
+.settled-expanded-body{border-top:1.5px solid var(--settled-card-border);background:rgba(240,253,244,.3);}
 @media(prefers-color-scheme:dark){
   .settled-expanded-body{background:rgba(74,222,128,.04);}
   .settled-expanded-body .amt-label{color:var(--settled-remaining-label);}
@@ -315,56 +285,26 @@ const CSS = `
   .sah-sub{color:var(--text-med);}
   .settled-readonly-banner{color:var(--settled-banner-color);}
 }
-
-.settled-readonly-banner{
-  display:flex;align-items:center;gap:8px;
-  padding:10px 18px;
-  background:var(--settled-banner-bg);
-  border-bottom:1px solid var(--settled-banner-border);
-  font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--settled-banner-color);
-}
-.settled-unsettle-btn{
-  margin-left:auto;padding:5px 14px;border-radius:20px;
-  font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-  background:var(--red-bg);color:var(--red);
-  border:1.5px solid rgba(220,38,38,.25);
-  cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;
-}
+.settled-readonly-banner{display:flex;align-items:center;gap:8px;padding:10px 18px;background:var(--settled-banner-bg);border-bottom:1px solid var(--settled-banner-border);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--settled-banner-color);}
+.settled-unsettle-btn{margin-left:auto;padding:5px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--red-bg);color:var(--red);border:1.5px solid rgba(220,38,38,.25);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
 .settled-unsettle-btn:hover{background:var(--red);color:#fff;}
-
-/* amounts grid inside expanded settled card */
-.readonly-amounts{
-  display:grid;grid-template-columns:repeat(3,1fr);
-  padding:14px 18px;gap:8px;
-  border-bottom:1.5px solid var(--settled-card-border);
-}
+.readonly-amounts{display:grid;grid-template-columns:repeat(3,1fr);padding:14px 18px;gap:8px;border-bottom:1.5px solid var(--settled-card-border);}
 .readonly-amounts .amt-label{color:var(--settled-remaining-label);}
-
 .readonly-progress{padding:10px 18px 12px;}
 .progress-track{height:5px;background:rgba(22,163,74,.15);border-radius:99px;overflow:hidden;}
-
-.readonly-history-btn{
-  display:flex;align-items:center;gap:6px;
-  padding:10px 18px 14px;
-  font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--settled-view-color);
-  cursor:pointer;background:none;border:none;
-  font-family:'DM Sans',sans-serif;transition:color .15s;width:100%;
-}
+.readonly-history-btn{display:flex;align-items:center;gap:6px;padding:10px 18px 14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--settled-view-color);cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;transition:color .15s;width:100%;}
 .readonly-history-btn:hover{opacity:.75;}
-.readonly-badge-count{
-  background:var(--settled-view-bg);
-  border:1px solid var(--settled-view-border);
-  border-radius:20px;padding:1px 8px;
-  font-size:10px;color:var(--settled-view-color);margin-left:2px;
-}
+.readonly-badge-count{background:var(--settled-view-bg);border:1px solid var(--settled-view-border);border-radius:20px;padding:1px 8px;font-size:10px;color:var(--settled-view-color);margin-left:2px;}
 
 /* AUTO-SETTLE TOAST */
 .auto-settle-toast{position:fixed;bottom:24px;right:24px;z-index:3000;background:var(--green);color:#fff;padding:14px 20px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(22,163,74,.4);display:flex;align-items:center;gap:10px;animation:toastIn .3s cubic-bezier(.34,1.56,.64,1);max-width:320px;}
 @keyframes toastIn{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
 .auto-settle-toast.out{animation:toastOut .25s ease forwards;}
 @keyframes toastOut{to{transform:translateY(20px);opacity:0}}
+
+/* IMPORT SUCCESS TOAST */
+.import-toast{position:fixed;bottom:72px;right:24px;z-index:3000;background:var(--orange);color:#fff;padding:14px 20px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(234,88,12,.4);display:flex;align-items:center;gap:10px;animation:toastIn .3s cubic-bezier(.34,1.56,.64,1);max-width:320px;}
+.import-toast.out{animation:toastOut .25s ease forwards;}
 
 /* CUSTOM CONFIRM DIALOG */
 .cdialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;animation:cdFadeIn .18s ease;}
@@ -415,6 +355,7 @@ const CSS = `
 .popup-shared-row{display:flex;align-items:center;padding:12px 24px;gap:12px;border-bottom:1px solid var(--border);background:var(--purple-bg);}
 .popup-shared-icon{width:32px;height:32px;border-radius:8px;background:var(--purple-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;}
 .popup-shared-amt{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--purple);white-space:nowrap;}
+.popup-import-row{display:flex;align-items:center;padding:12px 24px;gap:12px;border-bottom:1px solid var(--border);background:var(--orange-bg);}
 
 /* SHARED SECTION */
 .shared-section{background:var(--surface);border:2px solid var(--purple);border-radius:16px;overflow:hidden;margin-bottom:40px;box-shadow:0 4px 20px rgba(124,58,237,.1);}
@@ -478,6 +419,62 @@ const fmt = (n) => Math.round(n).toLocaleString("en-IN");
 const nowSettledAt = () =>
   new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
+// ─── CSV/EXCEL PARSER (no external lib needed) ───────────────────────────────
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  if (lines.length < 2) return { headers: [], rows: [] };
+  const parseRow = (line) => {
+    const cells = [];
+    let cur = "", inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQ = !inQ; continue; }
+      if (ch === "," && !inQ) { cells.push(cur.trim()); cur = ""; continue; }
+      cur += ch;
+    }
+    cells.push(cur.trim());
+    return cells;
+  };
+  const headers = parseRow(lines[0]);
+  const rows = lines.slice(1).map(l => parseRow(l));
+  return { headers, rows };
+}
+
+// Read .xls / .xlsx as text via FileReader (basic xlsx text extraction)
+// For real xlsx support we use a tiny shim — just read as binary and parse cell values
+function parseExcelBasic(buffer) {
+  // Try to extract text content from xlsx (xml-based)
+  try {
+    const decoder = new TextDecoder("utf-8");
+    const text = decoder.decode(buffer);
+    // Find shared strings
+    const ssMatch = text.match(/<sst[^>]*>([\s\S]*?)<\/sst>/);
+    const sharedStrings = [];
+    if (ssMatch) {
+      const tMatches = [...ssMatch[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)];
+      tMatches.forEach(m => sharedStrings.push(m[1].replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'")));
+    }
+    // Find sheet data
+    const sheetMatch = text.match(/<sheetData>([\s\S]*?)<\/sheetData>/);
+    if (!sheetMatch) return null;
+    const rows = [...sheetMatch[1].matchAll(/<row[^>]*>([\s\S]*?)<\/row>/g)].map(rowM => {
+      const cells = [...rowM[1].matchAll(/<c[^>]*r="[A-Z]+\d+"[^>]*t="([^"]*)"[^>]*>[\s\S]*?<v>([\s\S]*?)<\/v>|<c[^>]*r="[A-Z]+\d+"[^>]*>[\s\S]*?<v>([\s\S]*?)<\/v>/g)];
+      return cells.map(c => {
+        const type = c[1];
+        const val = c[2] || c[3] || "";
+        if (type === "s") return sharedStrings[parseInt(val)] ?? "";
+        return val;
+      });
+    });
+    if (rows.length < 2) return null;
+    return { headers: rows[0], rows: rows.slice(1) };
+  } catch {
+    return null;
+  }
+}
+
+// ─── COMPONENTS ──────────────────────────────────────────────────────────────
+
 function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, personName, warning, confirmLabel = "Confirm", variant = "green" }) {
   if (!isOpen) return null;
   return (
@@ -520,6 +517,364 @@ function AutoSettleToast({ name, onDone }) {
   );
 }
 
+function ImportToast({ count, onDone }) {
+  const [leaving, setLeaving] = useState(false);
+  useEffect(() => {
+    const t1 = setTimeout(() => setLeaving(true), 3200);
+    const t2 = setTimeout(onDone, 3500);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [onDone]);
+  return (
+    <div className={`import-toast${leaving ? " out" : ""}`}>
+      📥 <span><strong>{count} expenses</strong> imported successfully!</span>
+    </div>
+  );
+}
+
+// ─── IMPORT MODAL ─────────────────────────────────────────────────────────────
+function ImportModal({ isOpen, onClose, bulkIncomes, onImportDone, today }) {
+  const fileRef = useRef(null);
+  const [step, setStep] = useState(1); // 1=select person+file, 2=map cols, 3=preview+confirm
+  const [selectedIncomeId, setSelectedIncomeId] = useState("");
+  const [parsedData, setParsedData] = useState(null); // {headers, rows}
+  const [colDesc, setColDesc] = useState("");
+  const [colAmt, setColAmt] = useState("");
+  const [colDate, setColDate] = useState(""); // optional
+  const [dragOver, setDragOver] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [fileName, setFileName] = useState("");
+
+  useEffect(() => {
+    if (!isOpen) {
+      setStep(1); setSelectedIncomeId(""); setParsedData(null);
+      setColDesc(""); setColAmt(""); setColDate(""); setFileName(""); setImporting(false);
+    }
+  }, [isOpen]);
+
+  // Auto-detect columns
+  useEffect(() => {
+    if (!parsedData) return;
+    const h = parsedData.headers.map(x => x.toLowerCase());
+    const descGuess = h.findIndex(x => x.includes("desc") || x.includes("note") || x.includes("narr") || x.includes("particular") || x.includes("detail") || x.includes("remark") || x.includes("item") || x.includes("name"));
+    const amtGuess = h.findIndex(x => x.includes("amt") || x.includes("amount") || x.includes("debit") || x.includes("credit") || x.includes("total") || x.includes("price") || x.includes("value") || x.includes("₹"));
+    const dateGuess = h.findIndex(x => x.includes("date") || x.includes("dt") || x.includes("time"));
+    if (descGuess >= 0) setColDesc(String(descGuess));
+    if (amtGuess >= 0) setColAmt(String(amtGuess));
+    if (dateGuess >= 0) setColDate(String(dateGuess));
+  }, [parsedData]);
+
+  const handleFile = async (file) => {
+    if (!file) return;
+    setFileName(file.name);
+    const ext = file.name.split(".").pop().toLowerCase();
+    if (ext === "csv" || ext === "txt") {
+      const text = await file.text();
+      const result = parseCSV(text);
+      if (result.headers.length > 0) { setParsedData(result); setStep(2); }
+      else alert("Could not parse CSV. Make sure it has a header row.");
+    } else if (ext === "xlsx" || ext === "xls") {
+      const buffer = await file.arrayBuffer();
+      const result = parseExcelBasic(buffer);
+      if (result) { setParsedData(result); setStep(2); }
+      else alert("Could not read Excel file. Please save as CSV and try again, or ensure the file is not password-protected.");
+    } else {
+      alert("Please upload a .csv or .xlsx file");
+    }
+  };
+
+  const previewRows = parsedData ? parsedData.rows.filter(r => r.length > 0 && r.some(c => c !== "")) : [];
+
+  const getPreviewExpenses = () => {
+    if (!parsedData || colDesc === "" || colAmt === "") return [];
+    const di = parseInt(colDesc), ai = parseInt(colAmt), dti = colDate !== "" ? parseInt(colDate) : -1;
+    return previewRows.map(row => {
+      const desc = (row[di] || "").trim();
+      const rawAmt = (row[ai] || "").toString().replace(/[₹,\s]/g, "");
+      const amt = parseFloat(rawAmt);
+      const dateVal = dti >= 0 ? (row[dti] || "").trim() : today;
+      return { desc, amt: isNaN(amt) ? null : Math.round(Math.abs(amt)), date: dateVal || today, valid: !!desc && !isNaN(amt) && amt !== 0 };
+    }).filter(r => r.desc || r.amt !== null);
+  };
+
+  const validExpenses = getPreviewExpenses().filter(r => r.valid);
+  const invalidCount = getPreviewExpenses().length - validExpenses.length;
+
+  const doImport = async () => {
+    if (!selectedIncomeId) { alert("Select a person first"); return; }
+    if (validExpenses.length === 0) { alert("No valid rows to import"); return; }
+    setImporting(true);
+    const rows = validExpenses.map(e => ({
+      bulk_income_id: selectedIncomeId,
+      description: e.desc,
+      amount: e.amt,
+      date: e.date,
+    }));
+    // Batch insert in chunks of 100
+    for (let i = 0; i < rows.length; i += 100) {
+      const chunk = rows.slice(i, i + 100);
+      const { error } = await supabase.from("bulk_expense").insert(chunk);
+      if (error) { alert("Import error: " + error.message); setImporting(false); return; }
+    }
+    setImporting(false);
+    onImportDone(validExpenses.length);
+    onClose();
+  };
+
+  const activePersons = bulkIncomes.filter(i => !i.is_settled);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="import-modal-overlay" onClick={onClose}>
+      <div className="import-modal-box" onClick={e => e.stopPropagation()} style={{ position: "relative" }}>
+        {importing && (
+          <div className="import-progress-overlay">
+            <div className="import-spinner" />
+            <div className="import-progress-text">Importing {validExpenses.length} expenses…</div>
+          </div>
+        )}
+
+        <div className="import-modal-header">
+          <div>
+            <div className="import-modal-title">📥 Import Expenses from File</div>
+            <div className="import-modal-sub">
+              Upload a CSV or Excel file. You select the person — only description &amp; amount will be imported as expenses.
+            </div>
+          </div>
+          <button className="import-modal-close" onClick={onClose}>✕</button>
+        </div>
+
+        <div className="import-modal-body">
+
+          {/* STEP INDICATOR */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            {[1, 2, 3].map(s => (
+              <div key={s} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{
+                  width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                  fontWeight: 700, fontSize: 12,
+                  background: step >= s ? "var(--orange)" : "var(--bg2)",
+                  color: step >= s ? "#fff" : "var(--text-faint)",
+                  border: `2px solid ${step >= s ? "var(--orange)" : "var(--border)"}`,
+                  transition: "all .2s",
+                }}>{s}</div>
+                {s < 3 && <div style={{ width: 32, height: 2, background: step > s ? "var(--orange)" : "var(--border)", borderRadius: 2, transition: "background .2s" }} />}
+              </div>
+            ))}
+            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-dim)", marginLeft: 8 }}>
+              {step === 1 ? "Select Person & File" : step === 2 ? "Map Columns" : "Preview & Import"}
+            </span>
+          </div>
+
+          {/* ─── STEP 1: Person + File ─── */}
+          {step === 1 && (
+            <>
+              <div>
+                <div className="field-label" style={{ marginBottom: 8 }}>Select Person (Active Only)</div>
+                {activePersons.length === 0 ? (
+                  <div style={{ padding: "12px 16px", background: "var(--amber-bg)", borderRadius: 10, fontSize: 13, color: "var(--amber)", fontWeight: 600 }}>
+                    ⚠️ No active persons found. Add a person with income amount first.
+                  </div>
+                ) : (
+                  <select className="bt-input" value={selectedIncomeId} onChange={e => setSelectedIncomeId(e.target.value)}>
+                    <option value="">— Choose person —</option>
+                    {activePersons.map(inc => (
+                      <option key={inc.id} value={inc.id}>
+                        {inc.person_name} · ₹{fmt(inc.amount)} received
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div
+                className={`import-dropzone${dragOver ? " drag-over" : ""}`}
+                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
+              >
+                <input type="file" accept=".csv,.xlsx,.xls,.txt" ref={fileRef}
+                  onChange={e => { if (e.target.files[0]) handleFile(e.target.files[0]); e.target.value = ""; }} />
+                <div className="import-dz-icon">📂</div>
+                <div className="import-dz-title">Drop your file here or click to browse</div>
+                <div className="import-dz-sub">Supports CSV (.csv) and Excel (.xlsx)</div>
+                <div className="import-dz-badge">CSV · XLSX</div>
+              </div>
+
+              <div style={{ background: "var(--bg2)", border: "1.5px solid var(--border)", borderRadius: 10, padding: "14px 18px" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "var(--text-dim)", marginBottom: 8 }}>💡 File Format Tips</div>
+                <div style={{ fontSize: 12, color: "var(--text-med)", lineHeight: 1.7 }}>
+                  • First row must be the <strong>header row</strong> (column names)<br />
+                  • Column names like <strong>Description, Amount, Date</strong> are auto-detected<br />
+                  • Date column is optional — defaults to today if missing<br />
+                  • Amounts with ₹ symbol or commas are cleaned automatically<br />
+                  • Rows with empty description or zero amount are skipped
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ─── STEP 2: Column Mapping ─── */}
+          {step === 2 && parsedData && (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "var(--orange-bg)", border: "1.5px solid rgba(234,88,12,.25)", borderRadius: 10 }}>
+                <span style={{ fontSize: 18 }}>📄</span>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{fileName}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-dim)" }}>{parsedData.headers.length} columns · {previewRows.length} rows detected</div>
+                </div>
+              </div>
+
+              <div className="import-map-card">
+                <div className="import-map-title">Map Columns</div>
+                <div className="import-map-grid">
+                  <div className="import-map-field">
+                    <div className="import-map-label">Description Column <span>*required</span></div>
+                    <select className="import-map-select" value={colDesc} onChange={e => setColDesc(e.target.value)}>
+                      <option value="">— Select —</option>
+                      {parsedData.headers.map((h, i) => <option key={i} value={i}>{h || `Column ${i + 1}`}</option>)}
+                    </select>
+                  </div>
+                  <div className="import-map-field">
+                    <div className="import-map-label">Amount Column <span>*required</span></div>
+                    <select className="import-map-select" value={colAmt} onChange={e => setColAmt(e.target.value)}>
+                      <option value="">— Select —</option>
+                      {parsedData.headers.map((h, i) => <option key={i} value={i}>{h || `Column ${i + 1}`}</option>)}
+                    </select>
+                  </div>
+                  <div className="import-map-field">
+                    <div className="import-map-label">Date Column <span style={{ color: "var(--text-faint)", fontSize: 10 }}>(optional)</span></div>
+                    <select className="import-map-select" value={colDate} onChange={e => setColDate(e.target.value)}>
+                      <option value="">— None (use today) —</option>
+                      {parsedData.headers.map((h, i) => <option key={i} value={i}>{h || `Column ${i + 1}`}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mini raw preview */}
+              <div className="import-preview-wrap">
+                <div className="import-preview-header">
+                  <span className="import-preview-title">Raw Preview (first 5 rows)</span>
+                  <span className="import-preview-count">{previewRows.length} total rows</span>
+                </div>
+                <div className="import-table-wrap">
+                  <table className="import-table">
+                    <thead>
+                      <tr>{parsedData.headers.map((h, i) => <th key={i}>{h || `Col ${i + 1}`}</th>)}</tr>
+                    </thead>
+                    <tbody>
+                      {previewRows.slice(0, 5).map((row, ri) => (
+                        <tr key={ri}>{parsedData.headers.map((_, ci) => <td key={ci}>{row[ci] ?? ""}</td>)}</tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ─── STEP 3: Preview & Confirm ─── */}
+          {step === 3 && (
+            <>
+              {/* Person summary */}
+              {(() => {
+                const inc = bulkIncomes.find(i => i.id === selectedIncomeId);
+                return inc ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: "var(--orange-bg)", border: "1.5px solid rgba(234,88,12,.3)", borderRadius: 10 }}>
+                    <span style={{ fontSize: 22 }}>👤</span>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text)" }}>{inc.person_name}</div>
+                      <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 2 }}>Importing expenses for this person · ₹{fmt(inc.amount)} total received</div>
+                    </div>
+                  </div>
+                ) : null;
+              })()}
+
+              <div className="import-summary-bar">
+                <div className="import-sum-item">
+                  <div className="import-sum-dot" style={{ background: "var(--green)" }} />
+                  <span style={{ color: "var(--green)" }}>{validExpenses.length} valid rows</span>
+                </div>
+                {invalidCount > 0 && (
+                  <div className="import-sum-item">
+                    <div className="import-sum-dot" style={{ background: "var(--red)" }} />
+                    <span style={{ color: "var(--red)" }}>{invalidCount} skipped (empty/invalid)</span>
+                  </div>
+                )}
+                <div className="import-sum-item" style={{ marginLeft: "auto" }}>
+                  <span style={{ color: "var(--orange)", fontFamily: "Playfair Display, serif", fontSize: 16 }}>
+                    Total: ₹{fmt(validExpenses.reduce((s, e) => s + (e.amt || 0), 0))}
+                  </span>
+                </div>
+              </div>
+
+              <div className="import-preview-wrap">
+                <div className="import-preview-header">
+                  <span className="import-preview-title">Expenses to Import</span>
+                  <span className="import-preview-count">{validExpenses.length} rows</span>
+                </div>
+                <div className="import-table-wrap">
+                  <table className="import-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {validExpenses.map((e, i) => (
+                        <tr key={i}>
+                          <td style={{ color: "var(--text-faint)", fontSize: 11 }}>{i + 1}</td>
+                          <td>{e.desc}</td>
+                          <td className="amt-col">−₹{fmt(e.amt)}</td>
+                          <td style={{ color: "var(--text-dim)", fontSize: 12 }}>{e.date}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* FOOTER */}
+        <div className="import-modal-footer">
+          {step > 1 && (
+            <button className="btn btn-ghost btn-sm" onClick={() => setStep(s => s - 1)}>← Back</button>
+          )}
+          <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
+          {step === 1 && (
+            <button className="btn btn-orange btn-sm"
+              style={{ opacity: !selectedIncomeId || !parsedData ? .45 : 1, cursor: !selectedIncomeId || !parsedData ? "not-allowed" : "pointer" }}
+              onClick={() => { if (selectedIncomeId && parsedData) setStep(2); }}>
+              Next: Map Columns →
+            </button>
+          )}
+          {step === 2 && (
+            <button className="btn btn-orange btn-sm"
+              style={{ opacity: colDesc === "" || colAmt === "" ? .45 : 1, cursor: colDesc === "" || colAmt === "" ? "not-allowed" : "pointer" }}
+              onClick={() => { if (colDesc !== "" && colAmt !== "") setStep(3); }}>
+              Preview →
+            </button>
+          )}
+          {step === 3 && (
+            <button className="btn btn-orange btn-sm"
+              style={{ opacity: validExpenses.length === 0 ? .45 : 1, cursor: validExpenses.length === 0 ? "not-allowed" : "pointer" }}
+              onClick={doImport}>
+              ✓ Import {validExpenses.length} Expenses
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function BulkTracker() {
   const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
@@ -553,8 +908,13 @@ export default function BulkTracker() {
   const [toasts, setToasts] = useState([]);
   const toastId = useRef(0);
 
+  const [importToasts, setImportToasts] = useState([]);
+  const importToastId = useRef(0);
+
   const [showSettledSection, setShowSettledSection] = useState(false);
   const [settledExpanded, setSettledExpanded] = useState({});
+
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const autoSettledRef = useRef(new Set());
 
@@ -759,6 +1119,12 @@ export default function BulkTracker() {
     });
   };
 
+  const handleImportDone = (count) => {
+    const tid = ++importToastId.current;
+    setImportToasts(prev => [...prev, { id: tid, count }]);
+    fetchData();
+  };
+
   const totalBulkIn = bulkIncomes.reduce((s, i) => s + i.amount, 0);
   const totalIndivExp = bulkExpenses.reduce((s, e) => s + e.amount, 0);
   const totalSharedExp = sharedExpenses.reduce((s, e) => s + e.total_amount, 0);
@@ -918,6 +1284,13 @@ export default function BulkTracker() {
           )}
         </div>
 
+        {/* IMPORT FROM FILE BUTTON */}
+        <div style={{ padding: "4px 18px 6px", borderBottom: "1.5px solid var(--border)" }}>
+          <div className="import-expense-toggle" onClick={() => setShowImportModal(true)}>
+            <span>📥 Import from File (CSV/Excel)</span>
+          </div>
+        </div>
+
         <button className="exp-history-btn" onClick={() => openPopup(inc.id, false)}>
           📋 Expense History
           <span className="badge-count">{expCount}</span>
@@ -927,7 +1300,7 @@ export default function BulkTracker() {
     );
   };
 
-  // ─── SETTLED CARD (read-only, expandable) ───
+  // ─── SETTLED CARD ───
   const renderSettledCard = (inc) => {
     const indivSpent = getIndivExp(inc.id);
     const sharedCut = getSharedCut(inc.id);
@@ -946,7 +1319,6 @@ export default function BulkTracker() {
 
     return (
       <div className="person-card settled-card" key={inc.id}>
-        {/* collapsed header row */}
         <div className="settled-collapsed" onClick={() => toggleSettledExpand(inc.id)}>
           <div className="settled-lock-icon">🔒</div>
           <div className="person-avatar" style={{ background: avatarColor(inc.person_name), width: 34, height: 34, fontSize: 13 }}>
@@ -970,7 +1342,6 @@ export default function BulkTracker() {
           </div>
         </div>
 
-        {/* expanded read-only body */}
         {isExpanded && (
           <div className="settled-expanded-body">
             <div className="settled-readonly-banner">
@@ -1025,6 +1396,11 @@ export default function BulkTracker() {
               <div className="bt-eyebrow">Bulk Income Tracker</div>
               <h1 className="bt-title">Person-wise <em>Expense Tracking</em></h1>
             </div>
+            {/* Global Import Button */}
+            <button className="btn btn-orange" onClick={() => setShowImportModal(true)}
+              style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              📥 Import Expenses
+            </button>
           </div>
         </div>
 
@@ -1083,7 +1459,7 @@ export default function BulkTracker() {
             )}
           </p>
           <p style={{ fontSize: 12, color: "var(--text-dim)", marginBottom: 18, marginTop: -12 }}>
-            💡 Checkbox = include in shared · ✏️ edit · "Mark as Settled" to lock · Balance ₹0 = auto-settles
+            💡 Checkbox = include in shared · ✏️ edit · "Mark as Settled" to lock · Balance ₹0 = auto-settles · 📥 Import from CSV/Excel
           </p>
 
           {!loading && bulkIncomes.length > 0 && (
@@ -1129,7 +1505,7 @@ export default function BulkTracker() {
             </div>
           )}
 
-          {/* ═══════════════════ SETTLED SECTION ═══════════════════ */}
+          {/* SETTLED SECTION */}
           {settledPersons.length > 0 && (
             <div className="settled-section-wrap">
               <div
@@ -1288,10 +1664,25 @@ export default function BulkTracker() {
           onDone={() => setToasts(prev => prev.filter(x => x.id !== t.id))} />
       ))}
 
+      {/* IMPORT TOASTS */}
+      {importToasts.map(t => (
+        <ImportToast key={t.id} count={t.count}
+          onDone={() => setImportToasts(prev => prev.filter(x => x.id !== t.id))} />
+      ))}
+
       <ConfirmDialog
         isOpen={dialog.isOpen} onClose={closeDialog} onConfirm={dialog.onConfirm}
         title={dialog.title} message={dialog.message} personName={dialog.personName}
         warning={dialog.warning} confirmLabel={dialog.confirmLabel} variant={dialog.variant}
+      />
+
+      {/* IMPORT MODAL */}
+      <ImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        bulkIncomes={bulkIncomes}
+        onImportDone={handleImportDone}
+        today={today}
       />
 
       {/* EXPENSE HISTORY POPUP */}
