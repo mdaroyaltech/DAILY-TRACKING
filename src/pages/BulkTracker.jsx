@@ -23,7 +23,73 @@ const CSS = `
   --purple:#7c3aed; --purple-bg:#ede9fe;
   --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
   --shadow:0 4px 16px rgba(0,0,0,.07),0 1px 4px rgba(0,0,0,.04);
+
+  /* settled-specific tokens — light mode */
+  --settled-card-bg: #f0fdf4;
+  --settled-card-border: rgba(22,163,74,.35);
+  --settled-card-shadow: 0 2px 8px rgba(22,163,74,.12);
+  --settled-name-color: #14532d;
+  --settled-meta-color: #166534;
+  --settled-remaining-label: #166534;
+  --settled-remaining-val-zero: #6b7280;
+  --settled-accordion-bg: #f0fdf4;
+  --settled-accordion-border: rgba(22,163,74,.4);
+  --settled-accordion-hover-bg: #dcfce7;
+  --settled-accordion-open-bg: #dcfce7;
+  --settled-body-bg: rgba(240,253,244,.7);
+  --settled-body-border: rgba(22,163,74,.35);
+  --settled-view-bg: #d1fae5;
+  --settled-view-color: #15803d;
+  --settled-view-border: rgba(22,163,74,.4);
+  --settled-view-hover-bg: #16a34a;
+  --settled-view-hover-color: #fff;
+  --settled-lock-color: #15803d;
+  --settled-badge-bg: #16a34a;
+  --settled-badge-color: #fff;
+  --settled-banner-bg: rgba(22,163,74,.1);
+  --settled-banner-border: rgba(22,163,74,.2);
+  --settled-banner-color: #15803d;
 }
+
+/* ── DARK MODE OVERRIDES ── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:#18181b; --bg2:#27272a; --surface:#1f1f23; --surface2:#27272a;
+    --border:#3f3f46; --border2:#52525b;
+    --text:#f4f4f5; --text-med:#a1a1aa; --text-dim:#71717a; --text-faint:#52525b;
+    --teal:#2dd4bf; --green:#4ade80; --green-bg:rgba(74,222,128,.12);
+    --red:#f87171; --red-bg:rgba(248,113,113,.12);
+    --amber:#fbbf24; --amber-bg:rgba(251,191,36,.12);
+    --purple:#a78bfa; --purple-bg:rgba(167,139,250,.12);
+
+    /* settled — dark mode */
+    --settled-card-bg: rgba(74,222,128,.07);
+    --settled-card-border: rgba(74,222,128,.25);
+    --settled-card-shadow: 0 2px 10px rgba(0,0,0,.3);
+    --settled-name-color: #bbf7d0;
+    --settled-meta-color: #86efac;
+    --settled-remaining-label: #86efac;
+    --settled-remaining-val-zero: #9ca3af;
+    --settled-accordion-bg: rgba(74,222,128,.06);
+    --settled-accordion-border: rgba(74,222,128,.3);
+    --settled-accordion-hover-bg: rgba(74,222,128,.12);
+    --settled-accordion-open-bg: rgba(74,222,128,.12);
+    --settled-body-bg: rgba(74,222,128,.05);
+    --settled-body-border: rgba(74,222,128,.25);
+    --settled-view-bg: rgba(74,222,128,.18);
+    --settled-view-color: #86efac;
+    --settled-view-border: rgba(74,222,128,.35);
+    --settled-view-hover-bg: #4ade80;
+    --settled-view-hover-color: #18181b;
+    --settled-lock-color: #4ade80;
+    --settled-badge-bg: rgba(74,222,128,.22);
+    --settled-badge-color: #bbf7d0;
+    --settled-banner-bg: rgba(74,222,128,.1);
+    --settled-banner-border: rgba(74,222,128,.25);
+    --settled-banner-color: #86efac;
+  }
+}
+
 *{box-sizing:border-box;margin:0;padding:0;}
 .bt-root{min-height:100vh;background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);padding-bottom:80px;}
 .bt-header{background:var(--surface);border-bottom:1px solid var(--border);padding:36px 0 28px;margin-bottom:36px;box-shadow:var(--shadow-sm);}
@@ -108,90 +174,191 @@ const CSS = `
 .badge-pending{background:var(--red-bg);color:var(--red);}
 
 /* ════════════════════════════════════════════════════
-   SETTLED SECTION — collapsed accordion, hidden by default
+   SETTLED SECTION
    ════════════════════════════════════════════════════ */
 .settled-section-wrap{margin:24px 0 28px;}
 
 .settled-accordion-header{
   display:flex;align-items:center;gap:14px;
   padding:16px 22px;
-  background:var(--surface);
-  border:1.5px solid rgba(22,163,74,.3);
+  background:var(--settled-accordion-bg);
+  border:1.5px solid var(--settled-accordion-border);
   border-radius:14px;
   cursor:pointer;user-select:none;
   transition:background .18s,border-color .18s,border-radius .18s;
   box-shadow:var(--shadow-sm);
 }
 .settled-accordion-header:hover{
-  background:var(--green-bg);
-  border-color:rgba(22,163,74,.5);
+  background:var(--settled-accordion-hover-bg);
 }
 .settled-accordion-header.is-open{
   border-radius:14px 14px 0 0;
   border-bottom-color:transparent;
-  background:var(--green-bg);
+  background:var(--settled-accordion-open-bg);
 }
-.sah-lock{font-size:20px;flex-shrink:0;}
+.sah-lock{font-size:20px;flex-shrink:0;color:var(--settled-lock-color);}
 .sah-info{flex:1;min-width:0;}
-.sah-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--text-med);}
-.sah-sub{font-size:11px;color:var(--text-faint);margin-top:2px;letter-spacing:0;font-weight:400;}
+.sah-title{
+  font-family:'Playfair Display',serif;
+  font-size:16px;font-weight:700;
+  color:var(--text);
+}
+.sah-sub{
+  font-size:12px;
+  color:var(--text-med);
+  margin-top:2px;letter-spacing:0;font-weight:400;
+}
 .sah-badge{
-  background:var(--green);color:#fff;
-  border-radius:20px;padding:4px 14px;
-  font-size:12px;font-weight:700;flex-shrink:0;
+  background:var(--settled-badge-bg);
+  color:var(--settled-badge-color);
+  border-radius:20px;padding:5px 16px;
+  font-size:13px;font-weight:700;flex-shrink:0;
+  border:1.5px solid var(--settled-accordion-border);
 }
 .sah-arrow{
-  font-size:12px;color:var(--green);flex-shrink:0;
+  font-size:13px;
+  color:var(--settled-lock-color);
+  flex-shrink:0;
   transition:transform .25s cubic-bezier(.4,0,.2,1);
 }
 .sah-arrow.open{transform:rotate(180deg);}
 
 .settled-accordion-body{
-  border:1.5px solid rgba(22,163,74,.3);
+  border:1.5px solid var(--settled-body-border);
   border-top:none;
   border-radius:0 0 14px 14px;
-  background:rgba(240,253,244,.55);
+  background:var(--settled-body-bg);
   padding:20px;
   animation:accordionDown .22s ease;
 }
 @keyframes accordionDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 
-/* SETTLED CARD */
+/* ── SETTLED CARD ── */
 .settled-card{
-  background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%);
-  border:1.5px solid rgba(22,163,74,.22) !important;
-  opacity:.88;
-  box-shadow:none !important;
+  background:var(--settled-card-bg) !important;
+  border:1.5px solid var(--settled-card-border) !important;
+  box-shadow:var(--settled-card-shadow) !important;
   transform:none !important;
 }
-.settled-card:hover{opacity:1 !important;box-shadow:0 2px 10px rgba(22,163,74,.14) !important;}
+.settled-card:hover{
+  transform:translateY(-2px) !important;
+  box-shadow:0 6px 20px rgba(22,163,74,.18) !important;
+}
 
+/* collapsed header row inside settled card */
 .settled-collapsed{
   display:flex;align-items:center;padding:14px 18px;gap:12px;flex-wrap:wrap;
-  cursor:pointer;transition:background .15s;
+  cursor:pointer;transition:background .15s;border-radius:14px;
 }
-.settled-collapsed:hover{background:rgba(22,163,74,.05);}
-.settled-lock-icon{font-size:15px;flex-shrink:0;}
+.settled-collapsed:hover{background:rgba(22,163,74,.06);}
+
+.settled-lock-icon{font-size:16px;flex-shrink:0;color:var(--settled-lock-color);}
+
 .settled-person-info{flex:1;min-width:0;}
-.settled-person-name{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--text-med);}
-.settled-person-meta{font-size:11px;color:var(--text-faint);margin-top:2px;}
-.settled-expand-hint{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--green);display:flex;align-items:center;gap:4px;flex-shrink:0;padding:5px 12px;border-radius:20px;background:var(--green-bg);border:1px solid rgba(22,163,74,.2);}
+.settled-person-name{
+  font-family:'Playfair Display',serif;
+  font-size:15px;font-weight:700;
+  color:var(--settled-name-color);
+}
+.settled-person-meta{
+  font-size:11px;
+  color:var(--settled-meta-color);
+  margin-top:3px;font-weight:500;
+}
+
+/* remaining column inside collapsed card */
+.settled-remaining-mini{text-align:right;flex-shrink:0;}
+.settled-remaining-label{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  color:var(--settled-remaining-label);
+  margin-bottom:3px;
+}
+.settled-remaining-val{
+  font-family:'Playfair Display',serif;
+  font-size:15px;font-weight:700;
+}
+
+/* view/collapse button */
+.settled-expand-hint{
+  font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--settled-view-color);
+  display:flex;align-items:center;gap:5px;flex-shrink:0;
+  padding:6px 14px;border-radius:20px;
+  background:var(--settled-view-bg);
+  border:1.5px solid var(--settled-view-border);
+  transition:all .15s;
+}
+.settled-expand-hint:hover{
+  background:var(--settled-view-hover-bg);
+  color:var(--settled-view-hover-color);
+}
 .settled-expand-arrow{font-size:9px;transition:transform .2s;}
 .settled-expand-arrow.open{transform:rotate(180deg);}
-.settled-remaining-mini{text-align:right;}
-.settled-remaining-label{font-size:10px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
-.settled-remaining-val{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;}
 
-.settled-expanded-body{border-top:1.5px solid rgba(22,163,74,.18);background:rgba(240,253,244,.5);}
-.settled-readonly-banner{display:flex;align-items:center;gap:8px;padding:10px 18px;background:rgba(22,163,74,.07);border-bottom:1px solid rgba(22,163,74,.13);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--green);}
-.settled-unsettle-btn{margin-left:auto;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--red-bg);color:var(--red);border:1px solid rgba(220,38,38,.2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+/* expanded body */
+.settled-expanded-body{
+  border-top:1.5px solid var(--settled-card-border);
+  background:rgba(240,253,244,.3);
+}
+@media(prefers-color-scheme:dark){
+  .settled-expanded-body{background:rgba(74,222,128,.04);}
+  .settled-expanded-body .amt-label{color:var(--settled-remaining-label);}
+  .settled-expanded-body .amt-value{color:var(--text);}
+  .settled-expanded-body .amt-value.green{color:var(--green);}
+  .settled-expanded-body .amt-value.red{color:var(--red);}
+  .settled-expanded-body .amt-value.zero{color:var(--text-faint);}
+  .settled-expanded-body .progress-label-row{color:var(--text-med);}
+  .sah-title{color:var(--text);}
+  .sah-sub{color:var(--text-med);}
+  .settled-readonly-banner{color:var(--settled-banner-color);}
+}
+
+.settled-readonly-banner{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 18px;
+  background:var(--settled-banner-bg);
+  border-bottom:1px solid var(--settled-banner-border);
+  font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--settled-banner-color);
+}
+.settled-unsettle-btn{
+  margin-left:auto;padding:5px 14px;border-radius:20px;
+  font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--red-bg);color:var(--red);
+  border:1.5px solid rgba(220,38,38,.25);
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;
+}
 .settled-unsettle-btn:hover{background:var(--red);color:#fff;}
-.readonly-amounts{display:grid;grid-template-columns:repeat(3,1fr);padding:12px 18px;gap:8px;border-bottom:1.5px solid rgba(22,163,74,.13);}
+
+/* amounts grid inside expanded settled card */
+.readonly-amounts{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  padding:14px 18px;gap:8px;
+  border-bottom:1.5px solid var(--settled-card-border);
+}
+.readonly-amounts .amt-label{color:var(--settled-remaining-label);}
+
 .readonly-progress{padding:10px 18px 12px;}
-.progress-track{height:5px;background:rgba(22,163,74,.13);border-radius:99px;overflow:hidden;}
-.readonly-history-btn{display:flex;align-items:center;gap:6px;padding:10px 18px 12px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--green);cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;transition:color .15s;width:100%;}
-.readonly-history-btn:hover{color:var(--teal);}
-.readonly-badge-count{background:var(--green-bg);border:1px solid rgba(22,163,74,.2);border-radius:20px;padding:1px 8px;font-size:10px;color:var(--green);margin-left:2px;}
+.progress-track{height:5px;background:rgba(22,163,74,.15);border-radius:99px;overflow:hidden;}
+
+.readonly-history-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:10px 18px 14px;
+  font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--settled-view-color);
+  cursor:pointer;background:none;border:none;
+  font-family:'DM Sans',sans-serif;transition:color .15s;width:100%;
+}
+.readonly-history-btn:hover{opacity:.75;}
+.readonly-badge-count{
+  background:var(--settled-view-bg);
+  border:1px solid var(--settled-view-border);
+  border-radius:20px;padding:1px 8px;
+  font-size:10px;color:var(--settled-view-color);margin-left:2px;
+}
 
 /* AUTO-SETTLE TOAST */
 .auto-settle-toast{position:fixed;bottom:24px;right:24px;z-index:3000;background:var(--green);color:#fff;padding:14px 20px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(22,163,74,.4);display:flex;align-items:center;gap:10px;animation:toastIn .3s cubic-bezier(.34,1.56,.64,1);max-width:320px;}
@@ -245,7 +412,7 @@ const CSS = `
 .popup-exp-amt{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--red);white-space:nowrap;}
 .popup-del-btn{background:none;border:none;cursor:pointer;padding:5px;border-radius:6px;color:var(--text-faint);transition:all .15s;display:inline-flex;flex-shrink:0;}
 .popup-del-btn:hover{color:var(--red);background:var(--red-bg);}
-.popup-shared-row{display:flex;align-items:center;padding:12px 24px;gap:12px;border-bottom:1px solid var(--border);background:#faf5ff;}
+.popup-shared-row{display:flex;align-items:center;padding:12px 24px;gap:12px;border-bottom:1px solid var(--border);background:var(--purple-bg);}
 .popup-shared-icon{width:32px;height:32px;border-radius:8px;background:var(--purple-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;}
 .popup-shared-amt{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--purple);white-space:nowrap;}
 
@@ -386,9 +553,7 @@ export default function BulkTracker() {
   const [toasts, setToasts] = useState([]);
   const toastId = useRef(0);
 
-  // Settled section: ALWAYS starts collapsed (false), user must click to open
   const [showSettledSection, setShowSettledSection] = useState(false);
-  // Which settled cards are expanded inside the section
   const [settledExpanded, setSettledExpanded] = useState({});
 
   const autoSettledRef = useRef(new Set());
@@ -428,7 +593,6 @@ export default function BulkTracker() {
     return cols[Math.abs(h) % cols.length];
   };
 
-  // Auto-settle: silently moves card to settled section when balance hits 0
   useEffect(() => {
     if (loading || bulkIncomes.length === 0) return;
     bulkIncomes.filter(inc => !inc.is_settled).forEach(inc => {
@@ -774,21 +938,29 @@ export default function BulkTracker() {
     const expCount = bulkExpenses.filter(e => e.bulk_income_id === inc.id).length
       + sharedExpenses.filter(se => (se.shared_expense_split || []).some(s => s.bulk_income_id === inc.id)).length;
 
+    const remainingColor = remaining < 0
+      ? "var(--red)"
+      : remaining === 0
+        ? "var(--settled-remaining-val-zero)"
+        : "var(--green)";
+
     return (
       <div className="person-card settled-card" key={inc.id}>
         {/* collapsed header row */}
         <div className="settled-collapsed" onClick={() => toggleSettledExpand(inc.id)}>
           <div className="settled-lock-icon">🔒</div>
-          <div className="person-avatar" style={{ background: avatarColor(inc.person_name), width: 32, height: 32, fontSize: 13 }}>
+          <div className="person-avatar" style={{ background: avatarColor(inc.person_name), width: 34, height: 34, fontSize: 13 }}>
             {inc.person_name.charAt(0).toUpperCase()}
           </div>
           <div className="settled-person-info">
             <div className="settled-person-name">{inc.person_name}</div>
-            <div className="settled-person-meta">Settled {inc.settled_at} · ₹{fmt(inc.amount)} received</div>
+            <div className="settled-person-meta">
+              Settled {inc.settled_at} · ₹{fmt(inc.amount)} received
+            </div>
           </div>
           <div className="settled-remaining-mini">
             <div className="settled-remaining-label">Remaining</div>
-            <div className="settled-remaining-val" style={{ color: remaining < 0 ? "var(--red)" : remaining === 0 ? "var(--text-faint)" : "var(--green)" }}>
+            <div className="settled-remaining-val" style={{ color: remainingColor }}>
               ₹{fmt(remaining)}
             </div>
           </div>
@@ -821,7 +993,7 @@ export default function BulkTracker() {
               </div>
               <div className="amt-block">
                 <div className="amt-label">Remaining</div>
-                <div className={`amt-value ${remaining > 0 ? "teal" : remaining < 0 ? "red" : "zero"}`}>₹{fmt(remaining)}</div>
+                <div className="amt-value" style={{ color: remainingColor }}>₹{fmt(remaining)}</div>
               </div>
             </div>
             <div className="readonly-progress">
@@ -957,15 +1129,9 @@ export default function BulkTracker() {
             </div>
           )}
 
-          {/* ═══════════════════════════════════════════════
-              SETTLED SECTION
-              - Always starts collapsed (showSettledSection=false)
-              - Only shows when user clicks the accordion header
-              - Cards inside are also individually collapsible (read-only)
-              ═══════════════════════════════════════════════ */}
+          {/* ═══════════════════ SETTLED SECTION ═══════════════════ */}
           {settledPersons.length > 0 && (
             <div className="settled-section-wrap">
-              {/* Accordion header — click to toggle */}
               <div
                 className={`settled-accordion-header${showSettledSection ? " is-open" : ""}`}
                 onClick={() => setShowSettledSection(v => !v)}
@@ -983,7 +1149,6 @@ export default function BulkTracker() {
                 <span className={`sah-arrow${showSettledSection ? " open" : ""}`}>▼</span>
               </div>
 
-              {/* Accordion body — only rendered when open */}
               {showSettledSection && (
                 <div className="settled-accordion-body">
                   {filteredSettled.length === 0 ? (
