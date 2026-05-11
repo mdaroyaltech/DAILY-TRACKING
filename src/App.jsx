@@ -10,6 +10,7 @@ import CashBox from "./pages/CashBox";
 import ImportExpenses from "./pages/ImportExpenses";
 import BulkTracker from "./pages/BulkTracker";
 import Reports from "./pages/Reports";
+import PersonSearch from "./pages/PersonSearch";
 import SplashScreen from "./components/SplashScreen";
 import { supabase } from "./lib/supabase";
 
@@ -118,6 +119,7 @@ export default function App() {
           <Route path="/monthly" element={loggedIn ? <MonthlyReport /> : <Navigate to="/login" replace />} />
           <Route path="/bulk" element={loggedIn ? <BulkTracker /> : <Navigate to="/login" replace />} />
           <Route path="/reports" element={loggedIn ? <Reports /> : <Navigate to="/login" replace />} />
+          <Route path="/person-search" element={loggedIn ? <PersonSearch /> : <Navigate to="/login" replace />} />
           <Route path="/import-expenses" element={loggedIn ? <ImportExpenses /> : <Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

@@ -24,6 +24,41 @@ export default function Navbar() {
 
   const closeMenu = () => setMenuOpen(false);
 
+  const NAV_LINKS = [
+    {
+      to: "/dashboard", label: "Dashboard",
+      icon: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>
+    },
+    {
+      to: "/cashbox", label: "Cash Box",
+      icon: <><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></>
+    },
+    {
+      to: "/daily", label: "Daily",
+      icon: <><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></>
+    },
+    {
+      to: "/monthly", label: "Monthly",
+      icon: <><path d="M3 3v18h18" /><path d="M7 16l4-4 4 4 4-6" /></>
+    },
+    {
+      to: "/bulk", label: "Bulk Tracker",
+      icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>
+    },
+    {
+      to: "/reports", label: "Reports",
+      icon: <><path d="M3 3v18h18" /><path d="M7 16l4-4 4 4 4-6" /></>
+    },
+    {
+      to: "/person-search", label: "Person Search",
+      icon: <><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></>
+    },
+    {
+      to: "/import-expenses", label: "Import",
+      icon: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></>
+    },
+  ];
+
   return (
     <>
       <style>{`
@@ -44,7 +79,7 @@ export default function Navbar() {
           --nav-shadow:0 1px 8px rgba(0,0,0,0.35);
         }
 
-        /* ══ GLOBAL DARK MODE for all pages ══ */
+        /* ══ GLOBAL DARK MODE ══ */
         [data-theme="dark"] {
           --bg:#0f0e0c; --bg2:#1a1815; --surface:#1c1a17; --surface2:#211f1b;
           --border:#2a2620; --border2:#3a3530;
@@ -53,12 +88,11 @@ export default function Navbar() {
           --green:#4ade80; --green-bg:rgba(74,222,128,0.12);
           --red:#f87171; --red-bg:rgba(248,113,113,0.12);
           --amber:#fbbf24; --amber-bg:rgba(251,191,36,0.12);
-          --blue:#60a5fa; --blue-bg:rgba(96,165,250,0.12);
           --purple:#a78bfa; --purple-bg:rgba(167,139,250,0.12);
           --shadow-sm:0 1px 3px rgba(0,0,0,0.3);
           --shadow:0 4px 16px rgba(0,0,0,0.4);
         }
-        [data-theme="dark"] body, [data-theme="dark"] #root {
+        [data-theme="dark"] body,[data-theme="dark"] #root {
           background:#0f0e0c !important; color:#f0ece6 !important;
         }
 
@@ -69,9 +103,11 @@ export default function Navbar() {
           transition:background .25s,border-color .25s;
         }
         .nav-inner {
-          max-width:1200px; margin:auto; padding:0 24px;
-          height:60px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+          max-width:1200px; margin:auto; padding:0 20px;
+          height:60px; display:flex; align-items:center; justify-content:space-between; gap:10px;
         }
+
+        /* BRAND */
         .nav-brand { display:flex; align-items:center; gap:10px; text-decoration:none; flex-shrink:0; }
         .nav-logo-diamond {
           width:32px; height:32px; background:#0d9488;
@@ -81,24 +117,40 @@ export default function Navbar() {
         .nav-logo-diamond span { display:block; transform:rotate(-45deg); color:#fff; font-size:13px; font-weight:700; }
         .nav-brand-text { display:flex; flex-direction:column; line-height:1; }
         .nav-brand-name { font-family:'Playfair Display',serif; font-size:16px; font-weight:700; color:var(--nav-text-dark); }
-        .nav-brand-sub { font-size:9px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--nav-text); margin-top:2px; }
+        .nav-brand-sub  { font-size:9px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--nav-text); margin-top:2px; }
 
-        .nav-links { display:flex; align-items:center; gap:4px; }
-        @media(max-width:640px){ .nav-links{display:none;} }
+        /* DESKTOP LINKS */
+        .nav-links { display:flex; align-items:center; gap:2px; flex:1; justify-content:center; }
+        @media(max-width:900px){ .nav-links{display:none;} }
 
         .nav-link {
-          position:relative; padding:7px 14px; border-radius:8px;
-          font-size:13px; font-weight:500; color:var(--nav-text); text-decoration:none;
+          position:relative; padding:6px 11px; border-radius:8px;
+          font-size:12px; font-weight:500; color:var(--nav-text); text-decoration:none;
           transition:background .18s,color .18s; white-space:nowrap;
         }
         .nav-link:hover { background:var(--nav-teal-light); color:var(--nav-teal); }
         .nav-link.active { background:var(--nav-teal-light); color:var(--nav-teal); font-weight:600; }
         .nav-link.active::after {
-          content:''; position:absolute; bottom:-1px; left:14px; right:14px;
+          content:''; position:absolute; bottom:-1px; left:11px; right:11px;
           height:2px; background:var(--nav-teal); border-radius:2px 2px 0 0;
         }
 
-        .nav-divider { width:1px; height:22px; background:var(--nav-border); margin:0 4px; }
+        /* PERSON SEARCH — highlighted */
+        .nav-link.highlight {
+          background: rgba(13,148,136,0.1);
+          color: var(--nav-teal);
+          border: 1px solid rgba(13,148,136,0.25);
+          font-weight: 600;
+        }
+        .nav-link.highlight:hover { background: var(--nav-teal-light); }
+        .nav-link.highlight.active { background: var(--nav-teal); color: #fff; }
+        .nav-link.highlight.active::after { display:none; }
+
+        .nav-divider { width:1px; height:22px; background:var(--nav-border); margin:0 4px; flex-shrink:0; }
+
+        /* RIGHT CONTROLS */
+        .nav-controls { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+        @media(max-width:900px){ .nav-controls .theme-toggle,.nav-controls .nav-logout{display:flex;} }
 
         .theme-toggle {
           width:36px; height:36px; border-radius:9px;
@@ -109,7 +161,7 @@ export default function Navbar() {
         .theme-toggle:hover { background:var(--nav-teal-light); border-color:var(--nav-teal); transform:scale(1.08); }
 
         .nav-logout {
-          display:flex; align-items:center; gap:6px; padding:7px 14px;
+          display:flex; align-items:center; gap:5px; padding:6px 12px;
           border-radius:8px; font-size:12px; font-weight:600; letter-spacing:.05em;
           color:var(--nav-red); background:var(--nav-red-bg);
           border:1.5px solid rgba(220,38,38,0.2); cursor:pointer;
@@ -118,6 +170,7 @@ export default function Navbar() {
         }
         .nav-logout:hover { opacity:.85; transform:translateY(-1px); }
 
+        /* HAMBURGER */
         .nav-hamburger {
           display:none; flex-direction:column; justify-content:center;
           align-items:center; width:38px; height:38px;
@@ -126,7 +179,7 @@ export default function Navbar() {
           transition:background .18s,border-color .18s;
         }
         .nav-hamburger:hover { background:var(--nav-teal-light); border-color:var(--nav-teal); }
-        @media(max-width:640px){ .nav-hamburger{display:flex;} }
+        @media(max-width:900px){ .nav-hamburger{display:flex;} }
         .hb-line {
           display:block; width:16px; height:2px; background:var(--nav-text);
           border-radius:2px; transition:transform .22s,opacity .22s,width .22s; transform-origin:center;
@@ -135,6 +188,7 @@ export default function Navbar() {
         .nav-hamburger.open .hb-line:nth-child(2){ opacity:0; width:0; }
         .nav-hamburger.open .hb-line:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
 
+        /* MOBILE DRAWER */
         .nav-mobile-drawer {
           display:none; background:var(--nav-bg);
           border-top:1.5px solid var(--nav-border);
@@ -153,11 +207,12 @@ export default function Navbar() {
         .mob-link-icon {
           width:30px; height:30px; border-radius:8px; background:var(--nav-bg2);
           display:flex; align-items:center; justify-content:center;
-          font-size:14px; flex-shrink:0;
+          font-size:14px; flex-shrink:0; transition:background .15s;
         }
         .mob-link.active .mob-link-icon { background:var(--nav-teal); }
-        .mob-link-icon svg { stroke:var(--nav-text); }
+        .mob-link-icon svg { stroke:var(--nav-text); transition:stroke .15s; }
         .mob-link.active .mob-link-icon svg { stroke:#fff; }
+
         .mob-divider { height:1px; background:var(--nav-border); margin:6px 0; }
 
         .mob-theme-row {
@@ -199,14 +254,17 @@ export default function Navbar() {
 
       <nav className="nav-root">
         <div className="nav-inner">
-          <div className="nav-brand">
+
+          {/* Brand */}
+          <NavLink to="/dashboard" className="nav-brand">
             <div className="nav-logo-diamond"><span>₹</span></div>
             <div className="nav-brand-text">
               <span className="nav-brand-name">Daily Tracker</span>
               <span className="nav-brand-sub">Income & Expense</span>
             </div>
-          </div>
+          </NavLink>
 
+          {/* Desktop links */}
           <div className="nav-links">
             <NavLink to="/dashboard" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Dashboard</NavLink>
             <NavLink to="/cashbox" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Cash Box</NavLink>
@@ -214,8 +272,12 @@ export default function Navbar() {
             <NavLink to="/monthly" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Monthly</NavLink>
             <NavLink to="/bulk" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Bulk Tracker</NavLink>
             <NavLink to="/reports" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Reports</NavLink>
-            <NavLink to="/import-expenses" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Import Expenses</NavLink>
+            <NavLink to="/person-search" className={({ isActive }) => `nav-link highlight${isActive ? " active" : ""}`}>🔍 Person Search</NavLink>
+            <NavLink to="/import-expenses" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>Import</NavLink>
+          </div>
 
+          {/* Right controls */}
+          <div className="nav-controls">
             <div className="nav-divider" />
             <button className="theme-toggle" onClick={() => setDark(d => !d)} title="Toggle dark mode">
               {dark ? "☀️" : "🌙"}
@@ -226,35 +288,21 @@ export default function Navbar() {
               </svg>
               Logout
             </button>
+            <button className={`nav-hamburger${menuOpen ? " open" : ""}`} onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle menu">
+              <span className="hb-line" /><span className="hb-line" /><span className="hb-line" />
+            </button>
           </div>
-
-          <button className={`nav-hamburger${menuOpen ? " open" : ""}`} onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle menu">
-            <span className="hb-line" /><span className="hb-line" /><span className="hb-line" />
-          </button>
         </div>
 
+        {/* Mobile drawer */}
         <div className={`nav-mobile-drawer${menuOpen ? " open" : ""}`}>
-          {[
-            { to: "/dashboard", label: "Dashboard", icon: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></> },
-            { to: "/cashbox", label: "Cash Box", icon: <><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></> },
-            { to: "/daily", label: "Daily", icon: <><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></> },
-            { to: "/monthly", label: "Monthly", icon: <><path d="M3 3v18h18" /><path d="M7 16l4-4 4 4 4-6" /></> },
-            { to: "/bulk", label: "Bulk Tracker", icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></> },
-            {
-              to: "/reports",
-              label: "Reports",
-              icon: (
-                <>
-                  <path d="M3 3v18h18" />
-                  <path d="M7 16l4-4 4 4 4-6" />
-                </>
-              ),
-            },
-            { to: "/import-expenses", label: "Import Expenses", icon: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></> },
-          ].map(item => (
-            <NavLink key={item.to} to={item.to} onClick={closeMenu} className={({ isActive }) => `mob-link${isActive ? " active" : ""}`}>
+          {NAV_LINKS.map(item => (
+            <NavLink key={item.to} to={item.to} onClick={closeMenu}
+              className={({ isActive }) => `mob-link${isActive ? " active" : ""}`}>
               <div className="mob-link-icon">
-                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">{item.icon}</svg>
+                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  {item.icon}
+                </svg>
               </div>
               {item.label}
             </NavLink>

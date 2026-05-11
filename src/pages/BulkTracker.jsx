@@ -2,16 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "../lib/supabase";
 import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
-
-// ─── SUPABASE MIGRATION NOTE ────────────────────────────────────────────────
-// Run this SQL in your Supabase dashboard (SQL Editor) before using this file:
-//
-//   ALTER TABLE bulk_income
-//     ADD COLUMN IF NOT EXISTS is_settled BOOLEAN NOT NULL DEFAULT false,
-//     ADD COLUMN IF NOT EXISTS settled_at TEXT;
-//
-// ────────────────────────────────────────────────────────────────────────────
-
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
 :root {
@@ -25,66 +15,51 @@ const CSS = `
   --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
   --shadow:0 4px 16px rgba(0,0,0,.07),0 1px 4px rgba(0,0,0,.04);
 
-  /* ── SETTLED CARD – LIGHT MODE ── */
   --settled-card-bg: #ffffff;
   --settled-card-border: rgba(22,163,74,.30);
   --settled-card-shadow: 0 2px 10px rgba(22,163,74,.10), 0 1px 3px rgba(0,0,0,.05);
   --settled-card-hover-shadow: 0 6px 22px rgba(22,163,74,.16);
-
   --settled-name-color: #14532d;
   --settled-meta-color: #166534;
   --settled-meta-date-color: #15803d;
-
   --settled-remaining-label: #166534;
   --settled-remaining-val-zero: #6b7280;
-
   --settled-collapsed-bg: #ffffff;
   --settled-collapsed-hover-bg: #f0fdf4;
-
   --settled-accordion-bg: #f0fdf4;
   --settled-accordion-border: rgba(22,163,74,.35);
   --settled-accordion-hover-bg: #dcfce7;
   --settled-accordion-open-bg: #dcfce7;
   --settled-accordion-title-color: #14532d;
   --settled-accordion-sub-color: #166534;
-
   --settled-body-bg: #f8fffe;
   --settled-body-border: rgba(22,163,74,.28);
-
   --settled-amounts-bg: #fafffe;
   --settled-amounts-border: rgba(22,163,74,.18);
-
   --settled-view-bg: #d1fae5;
   --settled-view-color: #15803d;
   --settled-view-border: rgba(22,163,74,.35);
   --settled-view-hover-bg: #16a34a;
   --settled-view-hover-color: #ffffff;
-
   --settled-lock-color: #16a34a;
   --settled-badge-bg: #16a34a;
   --settled-badge-color: #ffffff;
-
   --settled-banner-bg: #f0fdf4;
   --settled-banner-border: rgba(22,163,74,.20);
   --settled-banner-color: #15803d;
-
   --settled-progress-track: rgba(22,163,74,.12);
   --settled-progress-fill: #16a34a;
-
   --settled-history-btn-color: #15803d;
   --settled-history-badge-bg: #d1fae5;
   --settled-history-badge-border: rgba(22,163,74,.3);
   --settled-history-badge-color: #15803d;
-
   --settled-amt-label-color: #166534;
   --settled-amt-received-color: #16a34a;
   --settled-amt-spent-color: #dc2626;
   --settled-amt-remaining-zero: #9ca3af;
-
   --settled-date-chip-bg: #dcfce7;
   --settled-date-chip-color: #15803d;
   --settled-date-chip-border: rgba(22,163,74,.25);
-
   --settled-added-chip-bg: #f0fdf4;
   --settled-added-chip-color: #4b7c5a;
   --settled-added-chip-border: rgba(22,163,74,.18);
@@ -100,69 +75,51 @@ const CSS = `
     --amber:#fbbf24; --amber-bg:rgba(251,191,36,.12);
     --purple:#a78bfa; --purple-bg:rgba(167,139,250,.12);
     --orange:#fb923c; --orange-bg:rgba(251,146,60,.12);
-
-    /* ── SETTLED CARD – DARK MODE ── */
     --settled-card-bg: #0f1f15;
     --settled-card-border: rgba(74,222,128,.22);
     --settled-card-shadow: 0 2px 12px rgba(0,0,0,.45), 0 0 0 1px rgba(74,222,128,.08);
     --settled-card-hover-shadow: 0 6px 24px rgba(0,0,0,.55), 0 0 0 1px rgba(74,222,128,.18);
-
-    /* ✅ FIX: Bright readable colors for dark mode settled names */
     --settled-name-color: #bbf7d0;
     --settled-meta-color: #86efac;
     --settled-meta-date-color: #6ee7b7;
-
     --settled-remaining-label: #86efac;
     --settled-remaining-val-zero: #6b7280;
-
     --settled-collapsed-bg: #0f1f15;
     --settled-collapsed-hover-bg: #162d1e;
-
     --settled-accordion-bg: rgba(74,222,128,.10);
     --settled-accordion-border: rgba(74,222,128,.30);
     --settled-accordion-hover-bg: rgba(74,222,128,.16);
     --settled-accordion-open-bg: rgba(74,222,128,.16);
-    /* ✅ FIX: Accordion header title & sub text bright in dark mode */
     --settled-accordion-title-color: #bbf7d0;
     --settled-accordion-sub-color: #86efac;
-
     --settled-body-bg: rgba(74,222,128,.04);
     --settled-body-border: rgba(74,222,128,.18);
-
     --settled-amounts-bg: rgba(74,222,128,.06);
     --settled-amounts-border: rgba(74,222,128,.12);
-
     --settled-view-bg: rgba(74,222,128,.14);
     --settled-view-color: #86efac;
     --settled-view-border: rgba(74,222,128,.28);
     --settled-view-hover-bg: #4ade80;
     --settled-view-hover-color: #0f1f15;
-
     --settled-lock-color: #4ade80;
     --settled-badge-bg: rgba(74,222,128,.20);
     --settled-badge-color: #bbf7d0;
-
     --settled-banner-bg: rgba(74,222,128,.08);
     --settled-banner-border: rgba(74,222,128,.18);
     --settled-banner-color: #86efac;
-
     --settled-progress-track: rgba(74,222,128,.10);
     --settled-progress-fill: #4ade80;
-
     --settled-history-btn-color: #86efac;
     --settled-history-badge-bg: rgba(74,222,128,.14);
     --settled-history-badge-border: rgba(74,222,128,.25);
     --settled-history-badge-color: #86efac;
-
     --settled-amt-label-color: #86efac;
     --settled-amt-received-color: #4ade80;
     --settled-amt-spent-color: #f87171;
     --settled-amt-remaining-zero: #71717a;
-
     --settled-date-chip-bg: rgba(74,222,128,.14);
     --settled-date-chip-color: #86efac;
     --settled-date-chip-border: rgba(74,222,128,.22);
-
     --settled-added-chip-bg: rgba(74,222,128,.07);
     --settled-added-chip-color: #6ee7b7;
     --settled-added-chip-border: rgba(74,222,128,.14);
@@ -208,6 +165,103 @@ const CSS = `
 .sum-value.green{color:var(--green);}.sum-value.red{color:var(--red);}.sum-value.teal{color:var(--teal);}
 .persons-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;margin-bottom:0;}
 
+/* ─── GLOBAL SEARCH BAR ─── */
+.global-search-wrap{margin-bottom:8px;position:relative;}
+.global-search-bar{display:flex;align-items:center;gap:0;background:var(--surface);border:2px solid var(--teal);border-radius:14px;box-shadow:0 4px 20px rgba(13,148,136,.12);overflow:visible;transition:box-shadow .2s;position:relative;z-index:200;}
+.global-search-bar:focus-within{box-shadow:0 4px 28px rgba(13,148,136,.22);}
+.global-search-icon{padding:0 16px;font-size:20px;color:var(--teal);flex-shrink:0;}
+.global-search-input{flex:1;background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;color:var(--text);padding:16px 0;min-width:0;}
+.global-search-input::placeholder{color:var(--text-faint);}
+.global-search-clear{padding:8px 16px;background:none;border:none;cursor:pointer;color:var(--text-faint);font-size:18px;transition:color .15s;flex-shrink:0;}
+.global-search-clear:hover{color:var(--red);}
+.global-search-kbd{padding:4px 10px;background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;font-size:11px;font-weight:600;color:var(--text-dim);margin-right:12px;flex-shrink:0;}
+.global-search-mode-tabs{display:flex;gap:0;margin-right:8px;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;flex-shrink:0;}
+.gsm-tab{padding:5px 12px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;background:var(--bg2);color:var(--text-dim);border:none;font-family:'DM Sans',sans-serif;transition:all .15s;border-right:1px solid var(--border);}
+.gsm-tab:last-child{border-right:none;}
+.gsm-tab.active{background:var(--teal);color:#fff;}
+
+/* ─── SUGGESTIONS DROPDOWN ─── */
+.search-suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1.5px solid var(--teal);border-radius:12px;box-shadow:0 8px 32px rgba(13,148,136,.15),0 2px 8px rgba(0,0,0,.08);z-index:300;overflow:hidden;animation:suggDrop .15s ease;}
+@keyframes suggDrop{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.sugg-header{padding:8px 14px 6px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);background:var(--bg2);border-bottom:1px solid var(--border);}
+.sugg-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--border);}
+.sugg-item:last-child{border-bottom:none;}
+.sugg-item:hover,.sugg-item.highlighted{background:var(--surface2);}
+.sugg-item-icon{font-size:14px;flex-shrink:0;}
+.sugg-item-text{flex:1;min-width:0;}
+.sugg-item-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sugg-item-sub{font-size:11px;color:var(--text-dim);margin-top:1px;}
+.sugg-item-amt{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--red);flex-shrink:0;}
+.sugg-fuzzy-badge{display:inline-block;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:700;background:var(--amber-bg);color:var(--amber);border:1px solid rgba(180,83,9,.2);margin-left:4px;vertical-align:middle;}
+
+/* ─── SEARCH RESULTS PANEL ─── */
+.search-results-panel{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);animation:searchSlideIn .2s ease;margin-bottom:28px;margin-top:12px;}
+@keyframes searchSlideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.search-results-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:linear-gradient(135deg,rgba(13,148,136,.06) 0%,var(--surface) 100%);border-bottom:1.5px solid var(--border);}
+.search-results-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;}
+.search-results-count{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);background:var(--bg2);padding:3px 10px;border-radius:20px;border:1px solid var(--border);}
+.search-result-item{display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border);transition:background .12s;cursor:pointer;}
+.search-result-item:last-child{border-bottom:none;}
+.search-result-item:hover{background:var(--surface2);}
+.sri-avatar{width:42px;height:42px;border-radius:12px;color:#fff;font-family:'Playfair Display',serif;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sri-info{flex:1;min-width:0;}
+.sri-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.sri-name-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+.sri-name-badge.active{background:var(--teal);color:#fff;}
+.sri-name-badge.settled{background:var(--settled-badge-bg);color:var(--settled-badge-color);}
+.sri-meta{font-size:12px;color:var(--text-dim);margin-top:3px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.sri-meta-chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+.sri-meta-chip.times{background:var(--purple-bg);color:var(--purple);border:1px solid rgba(124,58,237,.2);}
+.sri-meta-chip.date{background:var(--bg2);color:var(--text-dim);border:1px solid var(--border);}
+.sri-amounts{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;min-width:110px;}
+.sri-amount-row{display:flex;align-items:center;gap:6px;}
+.sri-amount-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);}
+.sri-amount-val{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;}
+.sri-amount-val.green{color:var(--green);}
+.sri-amount-val.red{color:var(--red);}
+.sri-amount-val.teal{color:var(--teal);}
+.sri-amount-val.zero{color:var(--text-faint);}
+.sri-view-btn{padding:6px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--teal);color:#fff;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .15s;flex-shrink:0;}
+.sri-view-btn:hover{opacity:.82;}
+.search-no-results{text-align:center;padding:40px 24px;}
+.search-no-results-icon{font-size:36px;margin-bottom:12px;}
+.search-no-results-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--text-med);margin-bottom:6px;}
+.search-no-results-sub{font-size:13px;color:var(--text-faint);}
+.search-highlight{background:rgba(13,148,136,.18);color:var(--teal);border-radius:3px;padding:0 2px;font-weight:700;}
+
+/* ─── EXPENSE NAME SEARCH RESULTS ─── */
+.exp-search-group{border-bottom:1.5px solid var(--border);}
+.exp-search-group:last-child{border-bottom:none;}
+.exp-group-header{display:flex;align-items:center;gap:12px;padding:14px 20px;background:linear-gradient(135deg,rgba(220,38,38,.04) 0%,var(--surface) 100%);cursor:pointer;user-select:none;transition:background .12s;}
+.exp-group-header:hover{background:var(--surface2);}
+.exp-group-icon{font-size:22px;flex-shrink:0;}
+.exp-group-info{flex:1;min-width:0;}
+.exp-group-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.exp-group-fuzzy{display:inline-block;padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700;background:var(--amber-bg);color:var(--amber);border:1px solid rgba(180,83,9,.2);}
+.exp-group-meta{font-size:12px;color:var(--text-dim);margin-top:3px;display:flex;flex-wrap:wrap;gap:8px;}
+.exp-group-totals{text-align:right;flex-shrink:0;}
+.exp-group-total-amt{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--red);}
+.exp-group-total-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);margin-top:2px;}
+.exp-group-arrow{font-size:11px;color:var(--text-dim);flex-shrink:0;transition:transform .2s;}
+.exp-group-arrow.open{transform:rotate(180deg);}
+.exp-group-breakdown{background:var(--surface2);border-top:1px solid var(--border);}
+.exp-breakdown-row{display:flex;align-items:center;gap:12px;padding:10px 20px 10px 52px;border-bottom:1px solid var(--border);transition:background .1s;}
+.exp-breakdown-row:last-child{border-bottom:none;}
+.exp-breakdown-row:hover{background:var(--bg2);}
+.exp-bd-avatar{width:28px;height:28px;border-radius:8px;color:#fff;font-family:'Playfair Display',serif;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.exp-bd-info{flex:1;min-width:0;}
+.exp-bd-person{font-size:13px;font-weight:700;color:var(--text);}
+.exp-bd-date{font-size:11px;color:var(--text-faint);margin-top:1px;}
+.exp-bd-badge{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700;margin-left:6px;}
+.exp-bd-badge.active{background:rgba(13,148,136,.12);color:var(--teal);}
+.exp-bd-badge.settled{background:var(--settled-badge-bg);color:var(--settled-badge-color);font-size:9px;}
+.exp-bd-amt{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--red);flex-shrink:0;}
+.exp-bd-view{padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;background:var(--bg2);color:var(--text-dim);border:1px solid var(--border);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;flex-shrink:0;}
+.exp-bd-view:hover{background:var(--teal);color:#fff;border-color:var(--teal);}
+.exp-search-summary{display:flex;align-items:center;gap:16px;padding:10px 20px;background:var(--red-bg);border-top:1.5px solid rgba(220,38,38,.15);flex-wrap:wrap;}
+.ess-item{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;}
+.search-mode-hint{padding:10px 20px;font-size:11px;color:var(--text-faint);font-style:italic;background:var(--bg2);border-top:1px solid var(--border);}
+
 /* ─── ACTIVE PERSON CARD ─── */
 .person-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);transition:box-shadow .2s,transform .2s;}
 .person-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);}
@@ -216,11 +270,8 @@ const CSS = `
 .person-avatar{width:38px;height:38px;border-radius:50%;color:#fff;font-family:'Playfair Display',serif;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .person-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--text);flex:1;line-height:1.2;}
 .person-date{font-size:11px;color:var(--text-faint);margin-top:2px;}
-
-/* ── ACTIVE CARD DATE CHIP ── */
 .active-date-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;background:var(--bg2);border:1px solid var(--border);font-size:10px;font-weight:600;color:var(--text-dim);margin-top:3px;}
 .active-date-chip-icon{font-size:9px;}
-
 .select-checkbox{width:22px;height:22px;border-radius:7px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0;background:var(--bg2);}
 .select-checkbox.checked{background:var(--purple);border-color:var(--purple);}
 .select-checkbox svg{display:none;}.select-checkbox.checked svg{display:block;}
@@ -258,16 +309,13 @@ const CSS = `
 .badge-partial{background:var(--amber-bg);color:var(--amber);}
 .badge-pending{background:var(--red-bg);color:var(--red);}
 
-/* ════════════════════════════════════════════════════
-   SETTLED SECTION ACCORDION
-   ════════════════════════════════════════════════════ */
+/* SETTLED SECTION ACCORDION */
 .settled-section-wrap{margin:24px 0 28px;}
 .settled-accordion-header{display:flex;align-items:center;gap:14px;padding:16px 22px;background:var(--settled-accordion-bg);border:1.5px solid var(--settled-accordion-border);border-radius:14px;cursor:pointer;user-select:none;transition:background .18s,border-color .18s,border-radius .18s;box-shadow:var(--shadow-sm);}
 .settled-accordion-header:hover{background:var(--settled-accordion-hover-bg);}
 .settled-accordion-header.is-open{border-radius:14px 14px 0 0;border-bottom-color:transparent;background:var(--settled-accordion-open-bg);}
 .sah-lock{font-size:20px;flex-shrink:0;color:var(--settled-lock-color);}
 .sah-info{flex:1;min-width:0;}
-/* ✅ FIX: Use CSS variables so dark mode shows bright text */
 .sah-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--settled-accordion-title-color);}
 .sah-sub{font-size:12px;color:var(--settled-accordion-sub-color);margin-top:2px;letter-spacing:0;font-weight:400;}
 .sah-badge{background:var(--settled-badge-bg);color:var(--settled-badge-color);border-radius:20px;padding:5px 16px;font-size:13px;font-weight:700;flex-shrink:0;border:1.5px solid var(--settled-accordion-border);}
@@ -276,111 +324,49 @@ const CSS = `
 .settled-accordion-body{border:1.5px solid var(--settled-body-border);border-top:none;border-radius:0 0 14px 14px;background:var(--settled-body-bg);padding:20px;animation:accordionDown .22s ease;}
 @keyframes accordionDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 
-/* ════════════════════════════════════════════════════
-   SETTLED PERSON CARD
-   ════════════════════════════════════════════════════ */
-.settled-card{
-  background:var(--settled-card-bg) !important;
-  border:1.5px solid var(--settled-card-border) !important;
-  box-shadow:var(--settled-card-shadow) !important;
-}
-.settled-card:hover{
-  transform:translateY(-2px) !important;
-  box-shadow:var(--settled-card-hover-shadow) !important;
-}
-.settled-collapsed{
-  display:flex;align-items:center;padding:14px 18px;gap:12px;flex-wrap:wrap;
-  cursor:pointer;transition:background .15s;border-radius:14px;
-  background:var(--settled-collapsed-bg);
-}
+/* SETTLED PERSON CARD */
+.settled-card{background:var(--settled-card-bg) !important;border:1.5px solid var(--settled-card-border) !important;box-shadow:var(--settled-card-shadow) !important;}
+.settled-card:hover{transform:translateY(-2px) !important;box-shadow:var(--settled-card-hover-shadow) !important;}
+.settled-collapsed{display:flex;align-items:center;padding:14px 18px;gap:12px;flex-wrap:wrap;cursor:pointer;transition:background .15s;border-radius:14px;background:var(--settled-collapsed-bg);}
 .settled-collapsed:hover{background:var(--settled-collapsed-hover-bg);}
-
 .settled-lock-icon{font-size:16px;flex-shrink:0;color:var(--settled-lock-color);}
 .settled-person-info{flex:1;min-width:0;}
-/* ✅ FIX: Bright name in dark mode via CSS variable */
 .settled-person-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--settled-name-color);}
 .settled-person-meta{font-size:11px;color:var(--settled-meta-color);margin-top:3px;font-weight:500;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
-
-/* Date chips inside settled card */
 .settled-date-chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;background:var(--settled-date-chip-bg);border:1px solid var(--settled-date-chip-border);font-size:10px;font-weight:600;color:var(--settled-date-chip-color);white-space:nowrap;}
 .settled-added-chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;background:var(--settled-added-chip-bg);border:1px solid var(--settled-added-chip-border);font-size:10px;font-weight:600;color:var(--settled-added-chip-color);white-space:nowrap;}
-
 .settled-remaining-mini{text-align:right;flex-shrink:0;}
 .settled-remaining-label{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--settled-remaining-label);margin-bottom:3px;}
 .settled-remaining-val{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;}
-
 .settled-expand-hint{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--settled-view-color);display:flex;align-items:center;gap:5px;flex-shrink:0;padding:6px 14px;border-radius:20px;background:var(--settled-view-bg);border:1.5px solid var(--settled-view-border);transition:all .15s;}
 .settled-expand-hint:hover{background:var(--settled-view-hover-bg);color:var(--settled-view-hover-color);}
 .settled-expand-arrow{font-size:9px;transition:transform .2s;}
 .settled-expand-arrow.open{transform:rotate(180deg);}
-
 .settled-expanded-body{border-top:1.5px solid var(--settled-card-border);}
-
-.settled-readonly-banner{
-  display:flex;align-items:center;gap:8px;padding:10px 18px;
-  background:var(--settled-banner-bg);
-  border-bottom:1px solid var(--settled-banner-border);
-  font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--settled-banner-color);flex-wrap:wrap;gap:6px;
-}
+.settled-readonly-banner{display:flex;align-items:center;gap:8px;padding:10px 18px;background:var(--settled-banner-bg);border-bottom:1px solid var(--settled-banner-border);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--settled-banner-color);flex-wrap:wrap;gap:6px;}
 .settled-unsettle-btn{margin-left:auto;padding:5px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--red-bg);color:var(--red);border:1.5px solid rgba(220,38,38,.25);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
 .settled-unsettle-btn:hover{background:var(--red);color:#fff;}
-
-.readonly-amounts{
-  display:grid;grid-template-columns:repeat(3,1fr);
-  padding:14px 18px;gap:8px;
-  border-bottom:1.5px solid var(--settled-card-border);
-  background:var(--settled-amounts-bg);
-}
+.readonly-amounts{display:grid;grid-template-columns:repeat(3,1fr);padding:14px 18px;gap:8px;border-bottom:1.5px solid var(--settled-card-border);background:var(--settled-amounts-bg);}
 .readonly-amounts .amt-label{color:var(--settled-amt-label-color) !important;}
 .readonly-amounts .amt-value.green{color:var(--settled-amt-received-color) !important;}
 .readonly-amounts .amt-value.red{color:var(--settled-amt-spent-color) !important;}
 .readonly-amounts .amt-value.zero{color:var(--settled-amt-remaining-zero) !important;}
-
 .readonly-progress{padding:10px 18px 12px;}
 .readonly-progress .progress-label-row{color:var(--settled-remaining-label) !important;}
 .progress-track{height:5px;background:var(--settled-progress-track);border-radius:99px;overflow:hidden;}
 .progress-track .progress-fill{background:var(--settled-progress-fill) !important;}
-
-.readonly-history-btn{
-  display:flex;align-items:center;gap:6px;padding:10px 18px 14px;
-  font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--settled-history-btn-color);cursor:pointer;background:none;border:none;
-  font-family:'DM Sans',sans-serif;transition:opacity .15s;width:100%;
-}
+.readonly-history-btn{display:flex;align-items:center;gap:6px;padding:10px 18px 14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--settled-history-btn-color);cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;transition:opacity .15s;width:100%;}
 .readonly-history-btn:hover{opacity:.75;}
-.readonly-badge-count{
-  background:var(--settled-history-badge-bg);
-  border:1px solid var(--settled-history-badge-border);
-  border-radius:20px;padding:1px 8px;font-size:10px;
-  color:var(--settled-history-badge-color);margin-left:2px;
-}
-
-/* ── SETTLED EDIT INCOME FORM ── */
-.settled-edit-income-form{
-  padding:16px 18px;border-top:1.5px solid var(--settled-card-border);
-  background:var(--settled-amounts-bg);
-  display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:flex-end;
-}
+.readonly-badge-count{background:var(--settled-history-badge-bg);border:1px solid var(--settled-history-badge-border);border-radius:20px;padding:1px 8px;font-size:10px;color:var(--settled-history-badge-color);margin-left:2px;}
+.settled-edit-income-form{padding:16px 18px;border-top:1.5px solid var(--settled-card-border);background:var(--settled-amounts-bg);display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:flex-end;}
 .settled-edit-income-form .edit-name-field{grid-column:1/-1;}
 .settled-edit-income-form .edit-btns-row{grid-column:1/-1;display:flex;gap:8px;}
 @media(max-width:380px){.settled-edit-income-form{grid-template-columns:1fr;}}
-
-/* ── SETTLED ADD EXPENSE ── */
-.settled-add-expense-section{
-  padding:10px 18px;border-bottom:1.5px solid var(--settled-card-border);
-  background:var(--settled-amounts-bg);
-}
-.settled-add-expense-toggle{
-  display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;
-  letter-spacing:.08em;text-transform:uppercase;color:var(--settled-history-btn-color);
-  cursor:pointer;padding:6px 0;user-select:none;transition:opacity .15s;
-}
+.settled-add-expense-section{padding:10px 18px;border-bottom:1.5px solid var(--settled-card-border);background:var(--settled-amounts-bg);}
+.settled-add-expense-toggle{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--settled-history-btn-color);cursor:pointer;padding:6px 0;user-select:none;transition:opacity .15s;}
 .settled-add-expense-toggle:hover{opacity:.75;}
 
-/* ══════════════════════════════════════
-   IMPORT MODAL
-══════════════════════════════════════ */
+/* IMPORT MODAL */
 .import-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:1500;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .18s ease;}
 .import-modal-box{background:var(--surface);border-radius:20px;width:100%;max-width:640px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.22);animation:slideUp .22s cubic-bezier(.34,1.56,.64,1);overflow:hidden;}
 .import-modal-header{padding:22px 28px 16px;border-bottom:1.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-shrink:0;background:linear-gradient(135deg,#fff7ed 0%,#fff 100%);}
@@ -421,8 +407,6 @@ const CSS = `
 .import-table tr:last-child td{border-bottom:none;}
 .import-table tr:hover td{background:var(--surface2);}
 .import-table td.amt-col{font-family:'Playfair Display',serif;font-weight:700;color:var(--red);}
-.import-table td.invalid{color:var(--red);font-style:italic;}
-.import-row-skip{opacity:.4;}
 .import-summary-bar{display:flex;align-items:center;gap:16px;padding:12px 16px;background:var(--orange-bg);border:1.5px solid rgba(234,88,12,.25);border-radius:10px;flex-wrap:wrap;}
 .import-sum-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;}
 .import-sum-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
@@ -493,9 +477,6 @@ const CSS = `
 .popup-shared-row{display:flex;align-items:center;padding:12px 24px;gap:12px;border-bottom:1px solid var(--border);background:var(--purple-bg);}
 .popup-shared-icon{width:32px;height:32px;border-radius:8px;background:var(--purple-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;}
 .popup-shared-amt{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--purple);white-space:nowrap;}
-.popup-import-row{display:flex;align-items:center;padding:12px 24px;gap:12px;border-bottom:1px solid var(--border);background:var(--orange-bg);}
-
-/* inline edit row inside popup */
 .popup-inline-edit{display:flex;flex-direction:column;gap:8px;padding:10px 24px 14px;background:var(--surface2);border-bottom:1px solid var(--border);}
 .popup-inline-edit-row{display:grid;grid-template-columns:1fr 130px;gap:8px;}
 .popup-inline-edit-btns{display:flex;gap:6px;justify-content:flex-end;}
@@ -620,6 +601,66 @@ function parseExcelBasic(buffer) {
     return null;
   }
 }
+
+// ─── HIGHLIGHT HELPER ─────────────────────────────────────────────────────────
+function HighlightText({ text, query }) {
+  if (!query || !text) return <>{text}</>;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="search-highlight">{text.slice(idx, idx + query.length)}</mark>
+      {text.slice(idx + query.length)}
+    </>
+  );
+}
+
+// ─── FUZZY MATCH HELPER ───────────────────────────────────────────────────────
+function fuzzyScore(str, query) {
+  const s = (str || "").toLowerCase().trim();
+  const q = (query || "").toLowerCase().trim();
+  if (!q) return 0;
+  if (s === q) return 1;
+  if (s.includes(q)) return 0.9;
+  if (q.includes(s) && s.length > 2) return 0.85;
+  const qWords = q.split(/\s+/);
+  const sWords = s.split(/\s+/);
+  const wordHits = qWords.filter(qw => sWords.some(sw => sw.includes(qw) || qw.includes(sw))).length;
+  if (wordHits === qWords.length) return 0.8;
+  if (wordHits > 0) return 0.6 + 0.1 * (wordHits / qWords.length);
+  let matches = 0, si = 0;
+  for (let qi = 0; qi < q.length && si < s.length; qi++) {
+    if (q[qi] === s[si]) { matches++; si++; }
+    else { const next = s.indexOf(q[qi], si); if (next >= 0 && next - si <= 2) { matches++; si = next + 1; } }
+  }
+  const ratio = matches / Math.max(q.length, s.length);
+  return ratio >= 0.7 ? 0.55 : ratio >= 0.5 ? 0.4 : 0;
+}
+
+function buildExpenseSearchResults(query, bulkExpenses, bulkIncomes) {
+  if (!query.trim()) return [];
+  const allDescs = [...new Set(bulkExpenses.map(e => e.description).filter(Boolean))];
+  const scored = allDescs
+    .map(desc => ({ desc, score: fuzzyScore(desc, query) }))
+    .filter(x => x.score >= 0.45)
+    .sort((a, b) => b.score - a.score);
+  return scored.map(({ desc, score }) => {
+    const matching = bulkExpenses.filter(e => e.description === desc);
+    const totalAmt = matching.reduce((s, e) => s + e.amount, 0);
+    const occurrences = matching.map(e => {
+      const person = bulkIncomes.find(i => i.id === e.bulk_income_id);
+      return {
+        expId: e.id, personId: e.bulk_income_id,
+        personName: person?.person_name || "Unknown",
+        isSettled: !!person?.is_settled,
+        amount: e.amount, date: e.date,
+      };
+    }).sort((a, b) => new Date(b.date) - new Date(a.date));
+    return { expName: desc, isFuzzy: score < 0.85, matchScore: score, totalAmt, count: matching.length, occurrences };
+  });
+}
+
 
 // ─── COMPONENTS ──────────────────────────────────────────────────────────────
 
@@ -842,16 +883,6 @@ function ImportModal({ isOpen, onClose, bulkIncomes, onImportDone, today }) {
                 <div className="import-dz-sub">Supports CSV (.csv) and Excel (.xlsx)</div>
                 <div className="import-dz-badge">CSV · XLSX</div>
               </div>
-              <div style={{ background: "var(--bg2)", border: "1.5px solid var(--border)", borderRadius: 10, padding: "14px 18px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "var(--text-dim)", marginBottom: 8 }}>💡 File Format Tips</div>
-                <div style={{ fontSize: 12, color: "var(--text-med)", lineHeight: 1.7 }}>
-                  • First row must be the <strong>header row</strong> (column names)<br />
-                  • Column names like <strong>Description, Amount, Date</strong> are auto-detected<br />
-                  • Date column is optional — defaults to today if missing<br />
-                  • Amounts with ₹ symbol or commas are cleaned automatically<br />
-                  • Rows with empty description or zero amount are skipped
-                </div>
-              </div>
             </>
           )}
 
@@ -1001,6 +1032,201 @@ function ImportModal({ isOpen, onClose, bulkIncomes, onImportDone, today }) {
   );
 }
 
+// ─── EXPENSE SEARCH RESULTS PANEL ────────────────────────────────────────────
+function ExpenseSearchResults({ query, bulkExpenses, bulkIncomes, onViewPerson, avatarColor }) {
+  const [openGroups, setOpenGroups] = useState({});
+  const results = buildExpenseSearchResults(query, bulkExpenses, bulkIncomes);
+  const toggleGroup = (key) => setOpenGroups(prev => ({ ...prev, [key]: !prev[key] }));
+
+  const totalExpenses = results.reduce((s, r) => s + r.count, 0);
+  const totalAmt = results.reduce((s, r) => s + r.totalAmt, 0);
+
+  return (
+    <div className="search-results-panel">
+      <div className="search-results-header">
+        <div className="search-results-title">
+          💸 Expense Search
+          <span style={{ fontSize: 12, fontWeight: 400, color: "var(--text-dim)" }}>for "{query}"</span>
+        </div>
+        <div className="search-results-count">{results.length} expense types</div>
+      </div>
+
+      {results.length === 0 ? (
+        <div className="search-no-results">
+          <div className="search-no-results-icon">🕵️</div>
+          <div className="search-no-results-title">No expenses found</div>
+          <div className="search-no-results-sub">Try a different keyword — fuzzy matching is on, even typos work!</div>
+        </div>
+      ) : (
+        <>
+          {results.map((grp, gi) => {
+            const isOpen = !!openGroups[grp.expName];
+            const personNames = [...new Set(grp.occurrences.map(o => o.personName))];
+            return (
+              <div className="exp-search-group" key={grp.expName}>
+                <div className="exp-group-header" onClick={() => toggleGroup(grp.expName)}>
+                  <div className="exp-group-icon">💸</div>
+                  <div className="exp-group-info">
+                    <div className="exp-group-name">
+                      <HighlightText text={grp.expName} query={query} />
+                      {grp.isFuzzy && <span className="exp-group-fuzzy">~fuzzy match</span>}
+                    </div>
+                    <div className="exp-group-meta">
+                      <span className="sri-meta-chip times" style={{ fontSize: 10 }}>
+                        🔁 {grp.count} {grp.count === 1 ? "time" : "times"} across {personNames.length} {personNames.length === 1 ? "person" : "persons"}
+                      </span>
+                      <span style={{ fontSize: 11, color: "var(--text-faint)" }}>
+                        {personNames.slice(0, 3).join(", ")}{personNames.length > 3 ? ` +${personNames.length - 3} more` : ""}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="exp-group-totals">
+                    <div className="exp-group-total-amt">−₹{Math.round(grp.totalAmt).toLocaleString("en-IN")}</div>
+                    <div className="exp-group-total-label">total spent</div>
+                  </div>
+                  <span className={`exp-group-arrow${isOpen ? " open" : ""}`}>▼</span>
+                </div>
+
+                {isOpen && (
+                  <div className="exp-group-breakdown">
+                    {grp.occurrences.map((occ, oi) => (
+                      <div className="exp-breakdown-row" key={occ.expId || oi}>
+                        <div className="exp-bd-avatar" style={{ background: avatarColor(occ.personName) }}>
+                          {occ.personName.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="exp-bd-info">
+                          <span className="exp-bd-person">{occ.personName}</span>
+                          <span className={`exp-bd-badge ${occ.isSettled ? "settled" : "active"}`}>
+                            {occ.isSettled ? "🔒 Settled" : "✅ Active"}
+                          </span>
+                          <div className="exp-bd-date">📅 {occ.date}</div>
+                        </div>
+                        <div className="exp-bd-amt">−₹{Math.round(occ.amount).toLocaleString("en-IN")}</div>
+                        <button className="exp-bd-view" onClick={e => { e.stopPropagation(); onViewPerson(occ.personId); }}>
+                          View →
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          <div className="exp-search-summary">
+            <div className="ess-item">
+              <span style={{ color: "var(--text-dim)" }}>📊</span>
+              <span style={{ color: "var(--text-med)" }}>{results.length} expense type{results.length !== 1 ? "s" : ""}</span>
+            </div>
+            <div className="ess-item">
+              <span style={{ color: "var(--text-dim)" }}>🔁</span>
+              <span style={{ color: "var(--text-med)" }}>{totalExpenses} total entries</span>
+            </div>
+            <div className="ess-item" style={{ marginLeft: "auto" }}>
+              <span style={{ color: "var(--red)", fontFamily: "Playfair Display, serif", fontSize: 15, fontWeight: 700 }}>
+                Grand total: −₹{Math.round(totalAmt).toLocaleString("en-IN")}
+              </span>
+            </div>
+          </div>
+          <div className="search-mode-hint">
+            💡 Click any expense group to expand · "View →" opens that person's expense history · Fuzzy = typo-tolerant match
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── PERSON SEARCH RESULTS ────────────────────────────────────────────────────
+function PersonSearchResults({ query, bulkIncomes, bulkExpenses, sharedExpenses, onViewPerson, getIndivExp, getSharedCut, getRemaining, avatarColor }) {
+  const q = query.trim().toLowerCase();
+  const matched = bulkIncomes.filter(inc =>
+    inc.person_name.toLowerCase().includes(q) ||
+    (inc.note || "").toLowerCase().includes(q)
+  );
+
+  return (
+    <div className="search-results-panel">
+      <div className="search-results-header">
+        <div className="search-results-title">
+          👤 Person Search
+          <span style={{ fontSize: 12, fontWeight: 400, color: "var(--text-dim)" }}>for "{query}"</span>
+        </div>
+        <div className="search-results-count">{matched.length} found</div>
+      </div>
+
+      {matched.length === 0 ? (
+        <div className="search-no-results">
+          <div className="search-no-results-icon">🕵️</div>
+          <div className="search-no-results-title">No person found</div>
+          <div className="search-no-results-sub">Try a different name or keyword</div>
+        </div>
+      ) : (
+        matched.map(inc => {
+          const indivSpent = getIndivExp(inc.id);
+          const sharedCut = getSharedCut(inc.id);
+          const totalSpent = indivSpent + sharedCut;
+          const remaining = getRemaining(inc);
+          const individualExpenses = bulkExpenses.filter(e => e.bulk_income_id === inc.id);
+          const sharedEntries = sharedExpenses.filter(se =>
+            (se.shared_expense_split || []).some(s => s.bulk_income_id === inc.id)
+          );
+          const totalTimes = individualExpenses.length + sharedEntries.length;
+          const remainingColor = remaining > 0 ? "teal" : remaining < 0 ? "red" : "zero";
+
+          return (
+            <div className="search-result-item" key={inc.id} onClick={() => onViewPerson(inc.id)}>
+              <div className="sri-avatar" style={{ background: avatarColor(inc.person_name) }}>
+                {inc.person_name.charAt(0).toUpperCase()}
+              </div>
+              <div className="sri-info">
+                <div className="sri-name">
+                  <HighlightText text={inc.person_name} query={query} />
+                  <span className={`sri-name-badge ${inc.is_settled ? "settled" : "active"}`}>
+                    {inc.is_settled ? "🔒 Settled" : "✅ Active"}
+                  </span>
+                </div>
+                <div className="sri-meta">
+                  <span className="sri-meta-chip times">
+                    🔁 {totalTimes} expense {totalTimes === 1 ? "entry" : "entries"}
+                  </span>
+                  <span className="sri-meta-chip date">📅 Added: {fmtDate(inc.date)}</span>
+                  {inc.is_settled && inc.settled_at && (
+                    <span className="sri-meta-chip date" style={{ background: "var(--settled-date-chip-bg)", color: "var(--settled-date-chip-color)", border: "1px solid var(--settled-date-chip-border)" }}>
+                      🔒 Settled: {inc.settled_at}
+                    </span>
+                  )}
+                  {inc.note && (
+                    <span style={{ fontSize: 11, color: "var(--text-faint)", fontStyle: "italic" }}>
+                      · <HighlightText text={inc.note} query={query} />
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="sri-amounts">
+                <div className="sri-amount-row">
+                  <span className="sri-amount-label">Got</span>
+                  <span className="sri-amount-val green">₹{Math.round(inc.amount).toLocaleString("en-IN")}</span>
+                </div>
+                <div className="sri-amount-row">
+                  <span className="sri-amount-label">Spent</span>
+                  <span className="sri-amount-val red">₹{Math.round(totalSpent).toLocaleString("en-IN")}</span>
+                </div>
+                <div className="sri-amount-row">
+                  <span className="sri-amount-label">Left</span>
+                  <span className={`sri-amount-val ${remainingColor}`}>₹{Math.round(remaining).toLocaleString("en-IN")}</span>
+                </div>
+              </div>
+              <button className="sri-view-btn" onClick={e => { e.stopPropagation(); onViewPerson(inc.id); }}>
+                View →
+              </button>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function BulkTracker() {
   const navigate = useNavigate();
@@ -1016,11 +1242,9 @@ export default function BulkTracker() {
   const [expForm, setExpForm] = useState({ description: "", amount: "" });
   const [editingIncome, setEditingIncome] = useState(null);
 
-  // ── NEW: settled card edit states ──
-  const [settledEditingIncome, setSettledEditingIncome] = useState(null); // { id, person_name, amount }
-  const [settledOpenExpForm, setSettledOpenExpForm] = useState(null);     // incomeId
+  const [settledEditingIncome, setSettledEditingIncome] = useState(null);
+  const [settledOpenExpForm, setSettledOpenExpForm] = useState(null);
   const [settledExpForm, setSettledExpForm] = useState({ description: "", amount: "" });
-  // inline edit for expense entry in popup
   const [editingExpenseId, setEditingExpenseId] = useState(null);
   const [editingExpenseForm, setEditingExpenseForm] = useState({ description: "", amount: "" });
 
@@ -1030,7 +1254,13 @@ export default function BulkTracker() {
   const [manualAmounts, setManualAmounts] = useState({});
 
   const [popupPersonId, setPopupPersonId] = useState(null);
-  const [popupIsReadonly, setPopupIsReadonly] = useState(false);
+
+  // ── GLOBAL SEARCH ──
+  const [globalSearch, setGlobalSearch] = useState("");
+  const [searchMode, setSearchMode] = useState("expense"); // "expense" | "person"
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const globalSearchRef = useRef(null);
+  const searchWrapRef = useRef(null);
 
   const [searchQ, setSearchQ] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -1169,7 +1399,6 @@ export default function BulkTracker() {
     fetchData();
   };
 
-  // ── NEW: save edit for settled card income ──
   const saveSettledEditIncome = async () => {
     if (!settledEditingIncome?.person_name.trim() || !settledEditingIncome?.amount) return;
     await supabase.from("bulk_income").update({
@@ -1181,7 +1410,6 @@ export default function BulkTracker() {
     fetchData();
   };
 
-  // ── NEW: add expense to settled card ──
   const addSettledExpense = async (bulkIncomeId) => {
     if (!settledExpForm.description.trim() || !settledExpForm.amount) return;
     await supabase.from("bulk_expense").insert([{
@@ -1238,7 +1466,6 @@ export default function BulkTracker() {
     fetchData();
   };
 
-  // ── NEW: update expense entry ──
   const saveEditExpense = async () => {
     if (!editingExpenseForm.description.trim() || !editingExpenseForm.amount) return;
     await supabase.from("bulk_expense").update({
@@ -1257,10 +1484,14 @@ export default function BulkTracker() {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
-  const openPopup = (personId, readonly = false) => {
+  const openPopup = (personId) => {
     setPopupPersonId(personId);
-    setPopupIsReadonly(readonly);
     setEditingExpenseId(null);
+  };
+
+  // ── When user clicks "View →" from global search ──
+  const handleViewFromSearch = (personId) => {
+    openPopup(personId);
   };
 
   const selectedPersons = bulkIncomes.filter(inc => selectedIds.includes(inc.id));
@@ -1479,7 +1710,7 @@ export default function BulkTracker() {
           </div>
         </div>
 
-        <button className="exp-history-btn" onClick={() => openPopup(inc.id, false)}>
+        <button className="exp-history-btn" onClick={() => openPopup(inc.id)}>
           📋 Expense History
           <span className="badge-count">{expCount}</span>
           <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--teal)" }}>View →</span>
@@ -1510,7 +1741,6 @@ export default function BulkTracker() {
 
     return (
       <div className="person-card settled-card" key={inc.id}>
-        {/* ── COLLAPSED HEADER ── */}
         <div className="settled-collapsed" onClick={() => toggleSettledExpand(inc.id)}>
           <div className="settled-lock-icon">🔒</div>
           <div className="person-avatar" style={{ background: avatarColor(inc.person_name), width: 34, height: 34, fontSize: 13 }}>
@@ -1520,22 +1750,16 @@ export default function BulkTracker() {
             <div className="settled-person-name">{inc.person_name}</div>
             <div className="settled-person-meta">
               {inc.date && (
-                <span className="settled-added-chip">
-                  📅 Added: {fmtDate(inc.date)}
-                </span>
+                <span className="settled-added-chip">📅 Added: {fmtDate(inc.date)}</span>
               )}
               {inc.settled_at && (
-                <span className="settled-date-chip">
-                  🔒 Settled: {inc.settled_at}
-                </span>
+                <span className="settled-date-chip">🔒 Settled: {inc.settled_at}</span>
               )}
             </div>
           </div>
           <div className="settled-remaining-mini">
             <div className="settled-remaining-label">Remaining</div>
-            <div className="settled-remaining-val" style={{ color: remainingColor }}>
-              ₹{fmt(remaining)}
-            </div>
+            <div className="settled-remaining-val" style={{ color: remainingColor }}>₹{fmt(remaining)}</div>
           </div>
           <div className="settled-expand-hint">
             {isExpanded ? "Collapse" : "View"}
@@ -1543,17 +1767,13 @@ export default function BulkTracker() {
           </div>
         </div>
 
-        {/* ── EXPANDED BODY ── */}
         {isExpanded && (
           <div className="settled-expanded-body">
-            {/* ── Banner row with edit + unsettle + delete ── */}
             <div className="settled-readonly-banner">
               🔒 Settled on {inc.settled_at} · Added on {fmtDate(inc.date)}
               <div style={{ display: "flex", gap: 6, marginLeft: "auto", flexWrap: "wrap" }}>
-                {/* ✏️ Edit Income Amount button */}
                 <button
                   className="edit-btn"
-                  title="Edit name / received amount"
                   style={{
                     padding: "5px 12px", borderRadius: 20, fontSize: 10, fontWeight: 700,
                     letterSpacing: ".06em", textTransform: "uppercase",
@@ -1564,15 +1784,10 @@ export default function BulkTracker() {
                   onClick={e => {
                     e.stopPropagation();
                     setSettledEditingIncome(isEditingSettledIncome ? null : {
-                      id: inc.id,
-                      person_name: inc.person_name,
-                      amount: String(inc.amount),
+                      id: inc.id, person_name: inc.person_name, amount: String(inc.amount),
                     });
                   }}
-                >
-                  ✏️ Edit
-                </button>
-                {/* 🗑️ Delete person */}
+                >✏️ Edit</button>
                 <button
                   style={{
                     padding: "5px 12px", borderRadius: 20, fontSize: 10, fontWeight: 700,
@@ -1582,17 +1797,13 @@ export default function BulkTracker() {
                     fontFamily: "'DM Sans', sans-serif", transition: "all .15s",
                   }}
                   onClick={e => { e.stopPropagation(); deleteBulkIncome(inc.id); }}
-                >
-                  🗑️ Delete
-                </button>
-                {/* ↩ Unsettle */}
+                >🗑️ Delete</button>
                 <button className="settled-unsettle-btn" onClick={e => { e.stopPropagation(); unsettle(inc.id, inc.person_name); }}>
                   ↩ Unsettle
                 </button>
               </div>
             </div>
 
-            {/* ── Edit Income form (inline) ── */}
             {isEditingSettledIncome && (
               <div className="settled-edit-income-form" onClick={e => e.stopPropagation()}>
                 <div className="field-wrap edit-name-field">
@@ -1641,7 +1852,6 @@ export default function BulkTracker() {
               </div>
             </div>
 
-            {/* ── Add expense to settled card ── */}
             <div className="settled-add-expense-section" onClick={e => e.stopPropagation()}>
               <div className="settled-add-expense-toggle"
                 onClick={() => { setSettledOpenExpForm(isAddingSettledExp ? null : inc.id); setSettledExpForm({ description: "", amount: "" }); }}>
@@ -1672,7 +1882,7 @@ export default function BulkTracker() {
               )}
             </div>
 
-            <button className="readonly-history-btn" onClick={() => openPopup(inc.id, false)}>
+            <button className="readonly-history-btn" onClick={() => openPopup(inc.id)}>
               📋 View & Edit Expense History
               <span className="readonly-badge-count">{expCount}</span>
               <span style={{ marginLeft: "auto", fontSize: 11 }}>View →</span>
@@ -1703,6 +1913,112 @@ export default function BulkTracker() {
         </div>
 
         <div className="bt-wrap">
+
+          {/* ══════════ GLOBAL SEARCH BAR ══════════ */}
+          <div className="global-search-wrap" ref={searchWrapRef}>
+            <div className="global-search-bar">
+              <span className="global-search-icon">🔍</span>
+              <input
+                ref={globalSearchRef}
+                className="global-search-input"
+                placeholder={searchMode === "expense"
+                  ? "Search expense name… e.g. Aamir Bike Loan, Snacks, Petrol"
+                  : "Search person name or note…"}
+                value={globalSearch}
+                onChange={e => { setGlobalSearch(e.target.value); setShowSuggestions(true); }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 180)}
+                onKeyDown={e => { if (e.key === "Escape") { setGlobalSearch(""); setShowSuggestions(false); } }}
+              />
+              {globalSearch && (
+                <button className="global-search-clear" onClick={() => { setGlobalSearch(""); setShowSuggestions(false); globalSearchRef.current?.focus(); }}>
+                  ✕
+                </button>
+              )}
+              <div className="global-search-mode-tabs">
+                <button className={`gsm-tab${searchMode === "expense" ? " active" : ""}`} onMouseDown={e => { e.preventDefault(); setSearchMode("expense"); globalSearchRef.current?.focus(); }}>
+                  💸 Expenses
+                </button>
+                <button className={`gsm-tab${searchMode === "person" ? " active" : ""}`} onMouseDown={e => { e.preventDefault(); setSearchMode("person"); globalSearchRef.current?.focus(); }}>
+                  👤 Persons
+                </button>
+              </div>
+
+              {/* ── SUGGESTIONS DROPDOWN ── */}
+              {showSuggestions && globalSearch.trim().length >= 1 && (() => {
+                if (searchMode === "expense") {
+                  const suggs = buildExpenseSearchResults(globalSearch, bulkExpenses, bulkIncomes).slice(0, 6);
+                  if (suggs.length === 0) return null;
+                  return (
+                    <div className="search-suggestions">
+                      <div className="sugg-header">💡 Expense suggestions</div>
+                      {suggs.map(s => (
+                        <div className="sugg-item" key={s.expName}
+                          onMouseDown={e => { e.preventDefault(); setGlobalSearch(s.expName); setShowSuggestions(false); }}>
+                          <span className="sugg-item-icon">💸</span>
+                          <div className="sugg-item-text">
+                            <div className="sugg-item-name">
+                              {s.expName}
+                              {s.isFuzzy && <span className="sugg-fuzzy-badge">~fuzzy</span>}
+                            </div>
+                            <div className="sugg-item-sub">
+                              {s.count}× · {[...new Set(s.occurrences.map(o => o.personName))].slice(0, 3).join(", ")}
+                            </div>
+                          </div>
+                          <span className="sugg-item-amt">−₹{Math.round(s.totalAmt).toLocaleString("en-IN")}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                } else {
+                  const q = globalSearch.trim().toLowerCase();
+                  const suggs = bulkIncomes.filter(inc =>
+                    inc.person_name.toLowerCase().includes(q) || (inc.note || "").toLowerCase().includes(q)
+                  ).slice(0, 6);
+                  if (suggs.length === 0) return null;
+                  return (
+                    <div className="search-suggestions">
+                      <div className="sugg-header">👤 Person suggestions</div>
+                      {suggs.map(inc => (
+                        <div className="sugg-item" key={inc.id}
+                          onMouseDown={e => { e.preventDefault(); setGlobalSearch(inc.person_name); setShowSuggestions(false); }}>
+                          <span className="sugg-item-icon">{inc.is_settled ? "🔒" : "✅"}</span>
+                          <div className="sugg-item-text">
+                            <div className="sugg-item-name">{inc.person_name}</div>
+                            <div className="sugg-item-sub">{inc.is_settled ? "Settled" : "Active"} · ₹{Math.round(inc.amount).toLocaleString("en-IN")}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }
+              })()}
+            </div>
+          </div>
+
+          {/* ══════════ SEARCH RESULTS ══════════ */}
+          {globalSearch.trim() && searchMode === "expense" && (
+            <ExpenseSearchResults
+              query={globalSearch}
+              bulkExpenses={bulkExpenses}
+              bulkIncomes={bulkIncomes}
+              onViewPerson={handleViewFromSearch}
+              avatarColor={avatarColor}
+            />
+          )}
+          {globalSearch.trim() && searchMode === "person" && (
+            <PersonSearchResults
+              query={globalSearch}
+              bulkIncomes={bulkIncomes}
+              bulkExpenses={bulkExpenses}
+              sharedExpenses={sharedExpenses}
+              onViewPerson={handleViewFromSearch}
+              getIndivExp={getIndivExp}
+              getSharedCut={getSharedCut}
+              getRemaining={getRemaining}
+              avatarColor={avatarColor}
+            />
+          )}
 
           <p className="section-title">Add Bulk Income</p>
           <div className="add-form-card">
@@ -1762,7 +2078,7 @@ export default function BulkTracker() {
 
           {!loading && bulkIncomes.length > 0 && (
             <div className="filter-bar">
-              <input className="filter-search" placeholder="🔍 Search by name or note…"
+              <input className="filter-search" placeholder="🔍 Filter active persons by name or note…"
                 value={searchQ} onChange={e => setSearchQ(e.target.value)} />
               <div className="filter-pills">
                 {["all", "pending", "partial"].map(s => (
@@ -1956,13 +2272,11 @@ export default function BulkTracker() {
         </div>
       </div>
 
-      {/* AUTO-SETTLE TOASTS */}
       {toasts.map(t => (
         <AutoSettleToast key={t.id} name={t.name}
           onDone={() => setToasts(prev => prev.filter(x => x.id !== t.id))} />
       ))}
 
-      {/* IMPORT TOASTS */}
       {importToasts.map(t => (
         <ImportToast key={t.id} count={t.count}
           onDone={() => setImportToasts(prev => prev.filter(x => x.id !== t.id))} />
@@ -1982,7 +2296,7 @@ export default function BulkTracker() {
         today={today}
       />
 
-      {/* EXPENSE HISTORY POPUP — works for both active & settled, always editable */}
+      {/* EXPENSE HISTORY POPUP */}
       {popupPersonId && popupPerson && (
         <div className="popup-overlay" onClick={() => { setPopupPersonId(null); setEditingExpenseId(null); }}>
           <div className="popup-box" onClick={e => e.stopPropagation()}>
@@ -2016,25 +2330,16 @@ export default function BulkTracker() {
                       {popupIndivExp.map(exp => (
                         <div key={exp.id}>
                           {editingExpenseId === exp.id ? (
-                            /* ── Inline edit form ── */
                             <div className="popup-inline-edit">
                               <div className="popup-inline-edit-row">
-                                <input
-                                  className="bt-input"
-                                  placeholder="Description"
-                                  autoFocus
+                                <input className="bt-input" placeholder="Description" autoFocus
                                   value={editingExpenseForm.description}
                                   onChange={e => setEditingExpenseForm({ ...editingExpenseForm, description: e.target.value })}
-                                  onKeyDown={e => { if (e.key === "Enter") saveEditExpense(); if (e.key === "Escape") setEditingExpenseId(null); }}
-                                />
-                                <input
-                                  className="bt-input"
-                                  type="number"
-                                  placeholder="Amount"
+                                  onKeyDown={e => { if (e.key === "Enter") saveEditExpense(); if (e.key === "Escape") setEditingExpenseId(null); }} />
+                                <input className="bt-input" type="number" placeholder="Amount"
                                   value={editingExpenseForm.amount}
                                   onChange={e => setEditingExpenseForm({ ...editingExpenseForm, amount: e.target.value })}
-                                  onKeyDown={e => { if (e.key === "Enter") saveEditExpense(); if (e.key === "Escape") setEditingExpenseId(null); }}
-                                />
+                                  onKeyDown={e => { if (e.key === "Enter") saveEditExpense(); if (e.key === "Escape") setEditingExpenseId(null); }} />
                               </div>
                               <div className="popup-inline-edit-btns">
                                 <button className="btn btn-teal btn-sm" onClick={saveEditExpense}>Save</button>
@@ -2049,21 +2354,13 @@ export default function BulkTracker() {
                                 <div className="popup-exp-date">{exp.date}</div>
                               </div>
                               <div className="popup-exp-amt">−₹{fmt(exp.amount)}</div>
-                              {/* ✏️ Edit expense button — always shown */}
-                              <button
-                                className="popup-edit-btn"
-                                title="Edit this expense"
-                                onClick={() => {
-                                  setEditingExpenseId(exp.id);
-                                  setEditingExpenseForm({ description: exp.description, amount: String(exp.amount) });
-                                }}
-                              >
+                              <button className="popup-edit-btn" title="Edit this expense"
+                                onClick={() => { setEditingExpenseId(exp.id); setEditingExpenseForm({ description: exp.description, amount: String(exp.amount) }); }}>
                                 <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                                 </svg>
                               </button>
-                              {/* 🗑️ Delete expense button — always shown */}
                               <button className="popup-del-btn" onClick={() => deleteExpense(exp.id, exp.bulk_income_id)}>
                                 <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" /></svg>
                               </button>

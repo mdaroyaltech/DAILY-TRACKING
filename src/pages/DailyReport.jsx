@@ -193,8 +193,31 @@ const CSS = `
 .db-input:focus, .db-select:focus { border-color:var(--teal); background:var(--surface); box-shadow:0 0 0 3px rgba(13,148,136,0.1); }
 .db-select option { color:var(--text); }
 
+.two-col-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.two-col-row .field-wrap { margin-bottom:0; }
+
 .qty-rate-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .qty-rate-row .field-wrap { margin-bottom:0; }
+
+/* ── CUSTOMER INFO BOX ── */
+.customer-info-box {
+  background: var(--blue-bg);
+  border: 1.5px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.customer-info-box .customer-box-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 
 .auto-amount-box {
   background:var(--teal-light); border:1.5px solid var(--teal-mid);
@@ -282,7 +305,7 @@ const CSS = `
 @media(max-width:580px){ .table-scroll-hint { display:block; } }
 .table-inner { overflow-x:auto; padding:0 2px; }
 
-.db-table { width:100%; border-collapse:collapse; font-size:13px; min-width:420px; }
+.db-table { width:100%; border-collapse:collapse; font-size:13px; min-width:520px; }
 .db-table th { font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--text-dim); padding:9px 14px; text-align:left; background:var(--bg2); border-bottom:1.5px solid var(--border); white-space:nowrap; }
 .db-table th:first-child { border-radius:7px 0 0 7px; }
 .db-table th:last-child  { border-radius:0 7px 7px 0; }
@@ -293,6 +316,28 @@ const CSS = `
 .db-table td.center { text-align:center; }
 .db-table tr:last-child td { border-bottom:none; }
 .db-table tr:hover td { background:var(--surface2); }
+
+/* Customer info in table */
+.cust-name {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 13px;
+}
+.cust-mobile {
+  font-size: 11px;
+  color: var(--blue);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 2px;
+}
+.cust-mobile svg { flex-shrink: 0; }
+.cust-empty {
+  font-size: 11px;
+  color: var(--text-faint);
+  font-style: italic;
+}
 
 .badge { display:inline-flex; align-items:center; padding:3px 9px; border-radius:12px; font-size:10px; font-weight:600; letter-spacing:.05em; }
 .badge-income  { background:var(--green-bg); color:var(--green); }
@@ -347,6 +392,7 @@ const CSS = `
   .ch-total { font-size:16px; }
   .dr-date-input { min-width:130px; }
   .dr-today-btn { padding:7px 9px; font-size:9px; }
+  .two-col-row { grid-template-columns: 1fr; }
 }
 `;
 
@@ -453,6 +499,10 @@ export default function DailyReport() {
   const [manualDesc, setManualDesc] = useState("");
   const [manualAmount, setManualAmount] = useState("");
 
+  // ── CUSTOMER FIELDS ──
+  const [customerName, setCustomerName] = useState("");
+  const [customerMobile, setCustomerMobile] = useState("");
+
   const handleServiceChange = (svcName) => {
     setSelectedService(svcName);
     const found = serviceOptions.find(s => s.name === svcName);
@@ -486,20 +536,35 @@ export default function DailyReport() {
   const addServiceIncome = async () => {
     if (!selectedService || !computedAmount) return;
     const { error } = await supabase.from("income").insert([{
-      date, service: selectedService, amount: computedAmount,
-      qty: Number(qty), rate_per_qty: Number(ratePerQty),
+      date,
+      service: selectedService,
+      amount: computedAmount,
+      qty: Number(qty),
+      rate_per_qty: Number(ratePerQty),
+      customer_name: customerName.trim() || null,
+      customer_mobile: customerMobile.trim() || null,
     }]);
     if (error) { alert(error.message); return; }
-    setSelectedService(""); setRatePerQty(""); setQty(1); fetchData();
+    setSelectedService(""); setRatePerQty(""); setQty(1);
+    setCustomerName(""); setCustomerMobile("");
+    fetchData();
   };
 
   /* ── ADD MANUAL INCOME ── */
   const addManualIncome = async () => {
     const desc = manualDesc.trim(); const amount = Number(manualAmount);
     if (!desc || !amount || amount <= 0) return;
-    const { error } = await supabase.from("income").insert([{ date, service: desc, amount }]);
+    const { error } = await supabase.from("income").insert([{
+      date,
+      service: desc,
+      amount,
+      customer_name: customerName.trim() || null,
+      customer_mobile: customerMobile.trim() || null,
+    }]);
     if (error) { alert(error.message); return; }
-    setManualDesc(""); setManualAmount(""); fetchData();
+    setManualDesc(""); setManualAmount("");
+    setCustomerName(""); setCustomerMobile("");
+    fetchData();
   };
 
   /* ── ADD EXPENSE ── */
@@ -548,8 +613,19 @@ export default function DailyReport() {
       `💸 *Expense:* ₹${fmt(totalExpense)}`,
       `🧮 *Balance:* ₹${fmt(balance)}`,
     ];
-    if (incomes.length) { lines.push(``, `*Income:*`); incomes.forEach(i => lines.push(`  • ${i.service}  — ₹${fmt(i.amount)}`)); }
-    if (expenses.length) { lines.push(``, `*Expenses:*`); expenses.forEach(e => lines.push(`  • ${e.paid_to} — ₹${fmt(e.amount)}`)); }
+    if (incomes.length) {
+      lines.push(``, `*Income:*`);
+      incomes.forEach(i => {
+        let line = `  • ${i.service} — ₹${fmt(i.amount)}`;
+        if (i.customer_name) line += ` | 👤 ${i.customer_name}`;
+        if (i.customer_mobile) line += ` | 📱 ${i.customer_mobile}`;
+        lines.push(line);
+      });
+    }
+    if (expenses.length) {
+      lines.push(``, `*Expenses:*`);
+      expenses.forEach(e => lines.push(`  • ${e.paid_to} — ₹${fmt(e.amount)}`));
+    }
     navigator.clipboard.writeText(lines.join("\n")).then(() => { setWaCopied(true); setTimeout(() => setWaCopied(false), 2500); });
   };
 
@@ -634,6 +710,39 @@ export default function DailyReport() {
               {/* ── INCOME PANEL ── */}
               {activeForm === "income" && (
                 <div className="form-panel">
+
+                  {/* ── CUSTOMER INFO BOX ── */}
+                  <div className="customer-info-box">
+                    <div className="customer-box-label">
+                      <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+                      </svg>
+                      Customer Details
+                    </div>
+                    <div className="two-col-row">
+                      <div className="field-wrap">
+                        <label className="field-label">Customer Name</label>
+                        <input
+                          className="db-input"
+                          placeholder="e.g. Rajan, Kumar…"
+                          value={customerName}
+                          onChange={e => setCustomerName(e.target.value)}
+                        />
+                      </div>
+                      <div className="field-wrap">
+                        <label className="field-label">Mobile Number</label>
+                        <input
+                          className="db-input"
+                          type="tel"
+                          placeholder="e.g. 9876543210"
+                          maxLength={15}
+                          value={customerMobile}
+                          onChange={e => setCustomerMobile(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="income-mode-row">
                     <button className={`income-mode-btn${incomeMode === "service" ? " active" : ""}`} onClick={() => setIncomeMode("service")}>⚡ By Service</button>
                     <button className={`income-mode-btn${incomeMode === "manual" ? " active" : ""}`} onClick={() => setIncomeMode("manual")}>✏️ Manual</button>
@@ -818,7 +927,7 @@ export default function DailyReport() {
               )}
 
               {/* ════════════════════════════════════════════
-                  ── INCOME TABLE (COLLAPSIBLE) ──
+                  ── TRANSACTIONS
               ════════════════════════════════════════════ */}
               <p className="section-title">Transactions</p>
 
@@ -829,7 +938,7 @@ export default function DailyReport() {
                 </button>
               </div>
 
-              {/* Income section */}
+              {/* ── INCOME TABLE (COLLAPSIBLE) ── */}
               <div className="section-wrap">
                 <div
                   className={`collapse-header${incomeOpen ? " open" : ""}`}
@@ -862,6 +971,7 @@ export default function DailyReport() {
                         <thead>
                           <tr>
                             <th>Service / Description</th>
+                            <th>Customer</th>
                             <th className="center">Qty</th>
                             <th className="right">Rate</th>
                             <th className="right">Amount</th>
@@ -880,6 +990,28 @@ export default function DailyReport() {
                                   <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 2 }}>₹{row.rate_per_qty}/qty</div>
                                 )}
                               </td>
+
+                              {/* ── CUSTOMER COLUMN ── */}
+                              <td>
+                                {row.customer_name || row.customer_mobile ? (
+                                  <div>
+                                    {row.customer_name && (
+                                      <div className="cust-name">{row.customer_name}</div>
+                                    )}
+                                    {row.customer_mobile && (
+                                      <div className="cust-mobile">
+                                        <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.06 18.8a19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                                        </svg>
+                                        {row.customer_mobile}
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="cust-empty">—</span>
+                                )}
+                              </td>
+
                               <td className="center" style={{ fontWeight: 600, color: "var(--text-med)" }}>
                                 {row.qty || "—"}
                               </td>
@@ -916,7 +1048,7 @@ export default function DailyReport() {
                         </tbody>
                         <tfoot>
                           <tr className="table-totals-row">
-                            <td colSpan={3}><span className="totals-label">Income Total</span></td>
+                            <td colSpan={4}><span className="totals-label">Income Total</span></td>
                             <td className="right">
                               <span style={{ color: "var(--green)", fontFamily: "Playfair Display,serif", fontSize: 15 }}>
                                 +₹{fmt(totalIncome)}
@@ -931,9 +1063,7 @@ export default function DailyReport() {
                 </div>
               </div>
 
-              {/* ════════════════════════════════════════════
-                  ── EXPENSE TABLE (COLLAPSIBLE) ──
-              ════════════════════════════════════════════ */}
+              {/* ── EXPENSE TABLE (COLLAPSIBLE) ── */}
               <div className="section-wrap">
                 <div
                   className={`collapse-header${expenseOpen ? " open" : ""}`}
