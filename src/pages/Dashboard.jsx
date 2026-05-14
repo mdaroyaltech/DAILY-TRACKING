@@ -83,6 +83,10 @@ const CSS = `
   from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes subRowIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
 
 .db-header    { animation: fadeIn .45s ease both; }
 .db-wrap > .section-title { animation: slideRight .4s ease both; }
@@ -165,6 +169,189 @@ const CSS = `
   animation: shimmer 2.5s linear infinite;
   font-weight: 800 !important;
 }
+
+/* ══════════════════════════════════════
+   ── GROUPED DROPDOWN / SUB-ROWS ──
+   ══════════════════════════════════════ */
+
+/* The expand toggle button inside grouped row */
+.group-expand-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(22,163,74,0.1);
+  border: 1.5px solid rgba(22,163,74,0.25);
+  border-radius: 8px;
+  padding: 3px 9px 3px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--green);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  margin-left: 8px;
+  transition: all .18s;
+  vertical-align: middle;
+}
+.group-expand-btn:hover {
+  background: rgba(22,163,74,0.2);
+  border-color: rgba(22,163,74,0.4);
+}
+.group-expand-btn svg {
+  transition: transform .22s cubic-bezier(.4,0,.2,1);
+  flex-shrink: 0;
+}
+.group-expand-btn.open svg { transform: rotate(180deg); }
+
+/* Sub-row container — spans full width */
+.sub-rows-container td {
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+}
+.sub-rows-container:hover td { background: transparent !important; }
+
+.sub-rows-inner {
+  background: linear-gradient(180deg, #f0fdf4 0%, #f7fef9 100%);
+  border-left: 3px solid var(--green);
+  border-bottom: 1.5px solid #bbf7d0;
+  animation: subRowIn .22s ease both;
+  overflow: hidden;
+}
+
+.sub-row-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sub-row-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px 6px 16px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #15803d;
+  border-bottom: 1px dashed #bbf7d0;
+}
+.sub-row-header-icon {
+  font-size: 12px;
+}
+
+.sub-row-table thead th {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #4ade80;
+  padding: 5px 14px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  white-space: nowrap;
+}
+.sub-row-table thead th.right { text-align: right; }
+.sub-row-table thead th.center { text-align: center; }
+
+.sub-row-item {
+  border-top: 1px dashed #d1fae5;
+  transition: background .15s;
+  animation: subRowIn .22s ease both;
+}
+.sub-row-item:nth-child(1) { animation-delay: .03s; }
+.sub-row-item:nth-child(2) { animation-delay: .07s; }
+.sub-row-item:nth-child(3) { animation-delay: .11s; }
+.sub-row-item:nth-child(4) { animation-delay: .15s; }
+.sub-row-item:nth-child(5) { animation-delay: .19s; }
+.sub-row-item:hover { background: rgba(74,222,128,0.1); }
+
+.sub-row-item td {
+  padding: 9px 14px;
+  font-size: 12px;
+  color: var(--text);
+  vertical-align: middle;
+  border: none !important;
+  background: transparent !important;
+}
+.sub-row-item td.right { text-align: right; }
+.sub-row-item td.center { text-align: center; }
+.sub-row-item:hover td { background: transparent !important; }
+
+/* Customer cell inside sub-row */
+.sub-cust-name {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 12px;
+}
+.sub-cust-mobile {
+  font-size: 10px;
+  color: var(--blue);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 1px;
+}
+.sub-cust-empty {
+  font-size: 11px;
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+/* Amount in sub-row */
+.sub-amount {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+/* Sub-row delete btn */
+.sub-del-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 5px;
+  color: #86efac;
+  transition: all .18s;
+  display: inline-flex;
+}
+.sub-del-btn:hover { color: var(--red); background: var(--red-bg); }
+
+/* Sub-row edit */
+.sub-edit-input {
+  background: var(--surface);
+  border: 1.5px solid var(--teal);
+  border-radius: 5px;
+  padding: 4px 7px;
+  width: 80px;
+  text-align: right;
+  color: var(--text);
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
+}
+.sub-edit-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: var(--text);
+}
+.sub-edit-trigger:hover { color: var(--teal); }
+
+/* Sub-row total footer */
+.sub-row-total td {
+  padding: 8px 14px;
+  background: rgba(22,163,74,0.08) !important;
+  border-top: 1.5px solid #bbf7d0 !important;
+  border: none;
+}
+.sub-row-total:hover td { background: rgba(22,163,74,0.12) !important; }
 
 /* ── HEADER ── */
 .db-header {
@@ -443,7 +630,7 @@ const CSS = `
 }
 .txn-section:hover { box-shadow: var(--shadow); }
 
-/* Income header — soft green */
+/* Income header */
 .txn-header-income {
   display: flex;
   align-items: center;
@@ -458,7 +645,7 @@ const CSS = `
 .txn-header-income.open { border-bottom-color: #bbf7d0; }
 .txn-header-income:hover { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); }
 
-/* Expense header — soft red */
+/* Expense header */
 .txn-header-expense {
   display: flex;
   align-items: center;
@@ -648,6 +835,13 @@ export default function Dashboard() {
   const [incomeOpen, setIncomeOpen] = useState(true);
   const [expenseOpen, setExpenseOpen] = useState(true);
 
+  // ── GROUPED ROW EXPAND STATE ──
+  // Key: service name → boolean (open/closed)
+  const [expandedGroups, setExpandedGroups] = useState({});
+  const toggleGroup = (serviceName) => {
+    setExpandedGroups(prev => ({ ...prev, [serviceName]: !prev[serviceName] }));
+  };
+
   const { totalIncome, totalExpense, balance, weeklyBalance } =
     useFinanceSummary(incomes, expenses, today);
 
@@ -741,7 +935,6 @@ export default function Dashboard() {
   const [qty, setQty] = useState(1);
   const computedAmount = ratePerQty && qty ? Math.round(Number(ratePerQty) * Number(qty)) : 0;
 
-  // ── CUSTOMER FIELDS (shared for both service & manual income) ──
   const [customerName, setCustomerName] = useState("");
   const [customerMobile, setCustomerMobile] = useState("");
 
@@ -874,7 +1067,17 @@ export default function Dashboard() {
           const totalQty = siblings.every(r => r.qty) ? siblings.reduce((s, r) => s + (r.qty || 0), 0) : null;
           const isManual = siblings.every(r => !r.qty);
           siblings.forEach(r => usedIds.add(r.id));
-          result.push({ ...row, _grouped: true, _count: siblings.length, _ids: siblings.map(r => r.id), amount: totalAmt, qty: totalQty, _isManual: isManual });
+          // Store full sibling data for sub-rows
+          result.push({
+            ...row,
+            _grouped: true,
+            _count: siblings.length,
+            _ids: siblings.map(r => r.id),
+            _siblings: siblings, // ← FULL SIBLING OBJECTS
+            amount: totalAmt,
+            qty: totalQty,
+            _isManual: isManual,
+          });
         } else {
           usedIds.add(row.id);
           result.push({ ...row, _grouped: false });
@@ -985,7 +1188,7 @@ export default function Dashboard() {
                 <input className="db-input" type="date" value={incomeDate} onChange={e => setIncomeDate(e.target.value)} />
               </div>
 
-              {/* ── CUSTOMER INFO BOX ── */}
+              {/* CUSTOMER INFO BOX */}
               <div className="customer-info-box">
                 <div className="customer-box-label">
                   <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
@@ -1213,9 +1416,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ════════════════════════════════
-              TODAY'S TRANSACTIONS
-              ════════════════════════════════ */}
+          {/* TODAY'S TRANSACTIONS */}
           <p className="section-title">Today's Transactions</p>
 
           {/* WhatsApp copy */}
@@ -1242,7 +1443,7 @@ export default function Dashboard() {
                 </div>
                 <div className="txn-header-right">
                   <span className="txn-total income">+₹{fmt(todayIncTotal)}</span>
-                  <div className={`txn-arrow-btn income`}>
+                  <div className="txn-arrow-btn income">
                     <svg className={`txn-arrow-icon${incomeOpen ? " open" : ""}`} width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                       <path d="M6 9l6 6 6-6" />
                     </svg>
@@ -1273,68 +1474,189 @@ export default function Dashboard() {
                       <tbody>
                         {incomeDisplayRows.map((row, idx) => {
                           const rowKey = row._grouped ? `g-inc-${row.service}-${idx}` : `inc-${row.id}`;
+                          const isExpanded = !!expandedGroups[row.service + "-" + idx];
+
                           return (
-                            <tr key={rowKey} className={row._grouped ? "row-grouped" : ""}>
-                              <td style={{ fontWeight: 500 }}>
-                                {row.service}
-                                {row._grouped && <span className="multi-badge">×{row._count}</span>}
-                                {!row.qty && !row._grouped && <span className="badge badge-manual" style={{ marginLeft: 6 }}>Manual</span>}
-                                {row._grouped && row._isManual && <span className="badge badge-manual" style={{ marginLeft: 6 }}>Manual</span>}
-                                {row.rate_per_qty && !row._grouped && (
-                                  <span style={{ fontSize: 10, color: "var(--text-dim)", marginLeft: 6 }}>₹{row.rate_per_qty}/qty</span>
-                                )}
-                              </td>
+                            <>
+                              {/* ── MAIN ROW ── */}
+                              <tr key={rowKey} className={row._grouped ? "row-grouped" : ""}>
+                                <td style={{ fontWeight: 500 }}>
+                                  {row.service}
+                                  {row._grouped && <span className="multi-badge">×{row._count}</span>}
+                                  {!row.qty && !row._grouped && <span className="badge badge-manual" style={{ marginLeft: 6 }}>Manual</span>}
+                                  {row._grouped && row._isManual && <span className="badge badge-manual" style={{ marginLeft: 6 }}>Manual</span>}
+                                  {row.rate_per_qty && !row._grouped && (
+                                    <span style={{ fontSize: 10, color: "var(--text-dim)", marginLeft: 6 }}>₹{row.rate_per_qty}/qty</span>
+                                  )}
+                                  {/* ── EXPAND BUTTON (only for grouped) ── */}
+                                  {row._grouped && (
+                                    <button
+                                      className={`group-expand-btn${isExpanded ? " open" : ""}`}
+                                      onClick={e => { e.stopPropagation(); toggleGroup(row.service + "-" + idx); }}
+                                    >
+                                      <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                        <path d="M6 9l6 6 6-6" />
+                                      </svg>
+                                      {isExpanded ? "Hide" : "Details"}
+                                    </button>
+                                  )}
+                                </td>
 
-                              {/* ── CUSTOMER COLUMN ── */}
-                              <td>
-                                {row._grouped ? (
-                                  <span className="cust-empty">—</span>
-                                ) : row.customer_name || row.customer_mobile ? (
-                                  <div>
-                                    {row.customer_name && (
-                                      <div className="cust-name">{row.customer_name}</div>
-                                    )}
-                                    {row.customer_mobile && (
-                                      <div className="cust-mobile">
-                                        <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.06 18.8a19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
-                                        </svg>
-                                        {row.customer_mobile}
-                                      </div>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <span className="cust-empty">—</span>
-                                )}
-                              </td>
+                                {/* Customer column — only show for non-grouped */}
+                                <td>
+                                  {row._grouped ? (
+                                    <span className="cust-empty" style={{ fontSize: 10, color: "var(--teal)", fontStyle: "normal", fontWeight: 600 }}>
+                                      {row._count} customers
+                                    </span>
+                                  ) : row.customer_name || row.customer_mobile ? (
+                                    <div>
+                                      {row.customer_name && <div className="cust-name">{row.customer_name}</div>}
+                                      {row.customer_mobile && (
+                                        <div className="cust-mobile">
+                                          <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.06 18.8a19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                                          </svg>
+                                          {row.customer_mobile}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <span className="cust-empty">—</span>
+                                  )}
+                                </td>
 
-                              <td className="center" style={{ color: "var(--text-med)", fontWeight: 600 }}>
-                                {row.qty ? row.qty : "—"}
-                              </td>
-                              <td className="right">
-                                {row._grouped ? (
-                                  <span className="grouped-total">₹{fmt(row.amount)}</span>
-                                ) : editing === `Income-${row.id}` ? (
-                                  <input className="edit-input" type="number" defaultValue={row.amount} autoFocus
-                                    onBlur={e => updateTransaction("income", row.id, e.target.value)} />
-                                ) : (
-                                  <span className="edit-trigger" onClick={() => setEditing(`Income-${row.id}`)}>
-                                    <span style={{ fontWeight: 600 }}>₹{fmt(row.amount)}</span>
-                                    <svg className="edit-icon" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                      <path d="M15.232 5.232l3.536 3.536M4 20l4-1 10-10-3-3L5 16l-1 4z" />
+                                <td className="center" style={{ color: "var(--text-med)", fontWeight: 600 }}>
+                                  {row.qty ? row.qty : "—"}
+                                </td>
+                                <td className="right">
+                                  {row._grouped ? (
+                                    <span className="grouped-total">₹{fmt(row.amount)}</span>
+                                  ) : editing === `Income-${row.id}` ? (
+                                    <input className="edit-input" type="number" defaultValue={row.amount} autoFocus
+                                      onBlur={e => updateTransaction("income", row.id, e.target.value)} />
+                                  ) : (
+                                    <span className="edit-trigger" onClick={() => setEditing(`Income-${row.id}`)}>
+                                      <span style={{ fontWeight: 600 }}>₹{fmt(row.amount)}</span>
+                                      <svg className="edit-icon" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                        <path d="M15.232 5.232l3.536 3.536M4 20l4-1 10-10-3-3L5 16l-1 4z" />
+                                      </svg>
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="center">
+                                  <button className="del-btn"
+                                    onClick={() => row._grouped ? deleteGrouped(row._ids) : deleteTransaction("income", row.id)}>
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
                                     </svg>
-                                  </span>
-                                )}
-                              </td>
-                              <td className="center">
-                                <button className="del-btn"
-                                  onClick={() => row._grouped ? deleteGrouped(row._ids) : deleteTransaction("income", row.id)}>
-                                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-                                  </svg>
-                                </button>
-                              </td>
-                            </tr>
+                                  </button>
+                                </td>
+                              </tr>
+
+                              {/* ── SUB-ROWS DROPDOWN (only for grouped + expanded) ── */}
+                              {row._grouped && isExpanded && (
+                                <tr key={`sub-${rowKey}`} className="sub-rows-container">
+                                  <td colSpan={5}>
+                                    <div className="sub-rows-inner">
+                                      <div className="sub-row-header">
+                                        <span className="sub-row-header-icon">📋</span>
+                                        Breakdown — {row.service} ({row._count} entries)
+                                      </div>
+                                      <table className="sub-row-table">
+                                        <thead>
+                                          <tr>
+                                            <th>#</th>
+                                            <th>Customer</th>
+                                            <th className="center">Qty</th>
+                                            <th className="right">Amount</th>
+                                            <th className="center">Edit / Del</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {row._siblings.map((sib, sibIdx) => (
+                                            <tr key={`sib-${sib.id}`} className="sub-row-item">
+                                              <td style={{ color: "var(--text-dim)", fontSize: 11, fontWeight: 700, minWidth: 24 }}>
+                                                {sibIdx + 1}
+                                              </td>
+                                              <td>
+                                                {sib.customer_name || sib.customer_mobile ? (
+                                                  <div>
+                                                    {sib.customer_name && <div className="sub-cust-name">{sib.customer_name}</div>}
+                                                    {sib.customer_mobile && (
+                                                      <div className="sub-cust-mobile">
+                                                        <svg width="9" height="9" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                                                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.06 18.8a19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                                                        </svg>
+                                                        {sib.customer_mobile}
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                ) : (
+                                                  <span className="sub-cust-empty">No customer info</span>
+                                                )}
+                                              </td>
+                                              <td className="center" style={{ color: "var(--text-med)", fontWeight: 600, fontSize: 12 }}>
+                                                {sib.qty ? sib.qty : "—"}
+                                                {sib.rate_per_qty && (
+                                                  <div style={{ fontSize: 9, color: "var(--text-dim)", marginTop: 1 }}>
+                                                    ₹{sib.rate_per_qty}/qty
+                                                  </div>
+                                                )}
+                                              </td>
+                                              <td className="right">
+                                                {editing === `Income-${sib.id}` ? (
+                                                  <input
+                                                    className="sub-edit-input"
+                                                    type="number"
+                                                    defaultValue={sib.amount}
+                                                    autoFocus
+                                                    onBlur={e => updateTransaction("income", sib.id, e.target.value)}
+                                                  />
+                                                ) : (
+                                                  <span
+                                                    className="sub-edit-trigger"
+                                                    onClick={() => setEditing(`Income-${sib.id}`)}
+                                                    title="Click to edit"
+                                                  >
+                                                    <span className="sub-amount">₹{fmt(sib.amount)}</span>
+                                                    <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ color: "var(--text-faint)" }}>
+                                                      <path d="M15.232 5.232l3.536 3.536M4 20l4-1 10-10-3-3L5 16l-1 4z" />
+                                                    </svg>
+                                                  </span>
+                                                )}
+                                              </td>
+                                              <td className="center">
+                                                <button
+                                                  className="sub-del-btn"
+                                                  title="Delete this entry"
+                                                  onClick={() => deleteTransaction("income", sib.id)}
+                                                >
+                                                  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                                                  </svg>
+                                                </button>
+                                              </td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                        {/* Sub-total footer */}
+                                        <tfoot>
+                                          <tr className="sub-row-total">
+                                            <td colSpan={3} style={{ fontSize: 9, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--green)" }}>
+                                              Subtotal
+                                            </td>
+                                            <td className="right" style={{ fontFamily: "Playfair Display,serif", fontSize: 14, fontWeight: 800, color: "var(--green)" }}>
+                                              ₹{fmt(row.amount)}
+                                            </td>
+                                            <td />
+                                          </tr>
+                                        </tfoot>
+                                      </table>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </>
                           );
                         })}
                       </tbody>
@@ -1370,7 +1692,7 @@ export default function Dashboard() {
                 </div>
                 <div className="txn-header-right">
                   <span className="txn-total expense">−₹{fmt(todayExpTotal)}</span>
-                  <div className={`txn-arrow-btn expense`}>
+                  <div className="txn-arrow-btn expense">
                     <svg className={`txn-arrow-icon${expenseOpen ? " open" : ""}`} width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                       <path d="M6 9l6 6 6-6" />
                     </svg>
